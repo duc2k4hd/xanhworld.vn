@@ -170,7 +170,7 @@
                     </div>
                     
                     <div class="xanhworld_single_info_images_support">
-                        <form class="xanhworld_single_info_images_support_form" id="phone-request-form" method="POST">
+                        <form class="xanhworld_single_info_images_support_form" id="phone-request-form" method="POST" action="{{ route('client.product.phone-request') }}">
                             @csrf
                             <div class="xanhworld_single_info_images_support_form_group">
                                 <input type="hidden" name="product_id" value="{{ $product->id }}">

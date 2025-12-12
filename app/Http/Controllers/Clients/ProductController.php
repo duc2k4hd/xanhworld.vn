@@ -268,4 +268,30 @@ class ProductController extends Controller
             return redirect()->back()->with('error', 'Không thể xóa sản phẩm này.');
         }
     }
+
+    /**
+     * Nhận yêu cầu gọi tư vấn từ trang chi tiết sản phẩm.
+     */
+    public function phoneRequest(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => ['required', 'integer', 'exists:products,id'],
+            'phone' => ['required', 'regex:/^[0-9]{10,11}$/'],
+        ], [
+            'product_id.required' => 'Thiếu mã sản phẩm.',
+            'product_id.exists' => 'Sản phẩm không tồn tại.',
+            'phone.required' => 'Vui lòng nhập số điện thoại.',
+            'phone.regex' => 'Số điện thoại không hợp lệ (10-11 chữ số).',
+        ]);
+
+        // Ghi log tạm (có thể thay bằng lưu DB hoặc gửi mail)
+        \Log::info('Phone request', [
+            'product_id' => $validated['product_id'],
+            'phone' => $validated['phone'],
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return redirect()->back()->with('success', 'Đã nhận số điện thoại, chúng tôi sẽ liên hệ sớm.');
+    }
 }

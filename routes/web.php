@@ -33,6 +33,7 @@ Route::prefix('tin-tuc')->name('client.blog.')->group(function () {
 Route::get('/flash-sale', [ClientFlashSaleController::class, 'index'])->name('client.flash-sale.index');
 Route::get('/cua-hang', [ClientShopController::class, 'index'])->name('client.shop.index');
 Route::get('/san-pham/{slug}', [ClientProductController::class, 'detail'])->name('client.product.detail');
+Route::post('/san-pham/phone-request', [ClientProductController::class, 'phoneRequest'])->name('client.product.phone-request');
 
 // Giỏ hàng
 Route::get('/gio-hang', [ClientCartController::class, 'index'])->name('client.cart.index');
