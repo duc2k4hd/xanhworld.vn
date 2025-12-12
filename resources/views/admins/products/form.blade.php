@@ -563,7 +563,7 @@
                                         editor.selection.select(targetImg);
                                         
                                         // Trigger change event to mark editor as dirty
-                                        editor.fire('change');
+                                        editor.dispatch('change');
                                         editor.nodeChanged();
                                     } else {
                                         // Fallback: Update all images with matching src
@@ -587,7 +587,7 @@
                                             }
                                         });
                                         
-                                        editor.fire('change');
+                                        editor.dispatch('change');
                                         editor.nodeChanged();
                                     }
                                 } else {
