@@ -3,12 +3,7 @@
 @section('title', $product->meta_title .' | THẾ GIỚI CÂY XANH XWORLD' ?? ($product->name ? ($product->name. ' | THẾ GIỚI CÂY XANH XWORLD') : 'THẾ GIỚI CÂY XANH XWORLD - Chi tiết sản phẩm'))
 
 @push('css_page')
-    <link rel="stylesheet" href="{{ asset('clients/assets/css/single.css') }}" />
-
-    <link rel="preload"
-        href="{{ asset('clients/assets/css/single.css') }}"
-        as="style"
-        onload="this.rel='stylesheet'">
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/single.css') }}">
 @endpush
 
 @push('js_page')
@@ -16,9 +11,6 @@
 @endpush
 
 @section('head')
-    <link rel="preload" href="{{ asset('clients/assets/css/single.css') }}" as="style" onload="this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="{{ asset('clients/assets/css/single.css') }}"></noscript>
-
     @if ($product?->primaryImage?->url)
         <link rel="preload"
               as="image"

@@ -1,9 +1,4 @@
-<link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}" />
-
-<link rel="preload"
-      href="{{ asset('clients/assets/css/main.css') }}"
-      as="style"
-      onload="this.rel='stylesheet'">
+<link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
 
 @stack('css_page')
 
