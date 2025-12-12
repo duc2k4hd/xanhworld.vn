@@ -344,11 +344,10 @@
                         </button>
 
                         <!-- Buy Now (same behavior as Add to Cart) -->
-                        <button type="submit" name="action" value="add_to_cart"
-                            class="xanhworld_single_info_specifications_actions_buy {{ $isOutOfStock ? 'disabled' : '' }}"
+                        <a href="https://zalo.me/{{ $settings->contact_zalo ?? '0398951396' }}" class="xanhworld_single_info_specifications_actions_buy {{ $isOutOfStock ? 'disabled' : '' }}"
                             {{ $isOutOfStock ? 'disabled' : '' }}>
-                            MUA NGAY
-                        </button>
+                            Liên hệ mua hàng
+                        </a>
                         
                         <!-- Favorite button -->
                         <button type="button" @if(in_array($product->id, $favoriteProductIds ?? [])) onclick="removeWishlist({{ $product->id }})" @else onclick="addWishlist({{ $product->id }})" @endif class="xanhworld_fav_btn {{ in_array($product->id, $favoriteProductIds ?? []) ? 'active' : '' }}" aria-label="Yêu thích" style="">

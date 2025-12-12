@@ -1254,3 +1254,17 @@ function updateCartCountBadge(count) {
             }
         });
 }
+
+[
+    '.xanhworld_header_main_search_select',
+].forEach(selector => {
+
+    document.querySelectorAll(selector)?.forEach(el => {
+        if (typeof SlimSelect === "function") {
+            new SlimSelect({ select: el });
+        } else {
+            console.warn("SlimSelect is not available; skipping select enhancement.");
+        }
+    });
+
+});
