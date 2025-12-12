@@ -52,6 +52,10 @@
     flex-direction: column;
     gap: 1rem;
     cursor: pointer;
+    position: sticky;
+    height: fit-content;
+    top: 0;
+    background-color: white;
 }
 
 .xanhworld_single_info_images_main img {
@@ -284,6 +288,10 @@
     display: flex;
     flex-direction: column;
     gap: 0.7rem;
+    height: fit-content;
+    position: sticky;
+    top: 0;
+    background-color: white;
 }
 
 .xanhworld_single_info_specifications_time {
@@ -737,6 +745,9 @@
     padding: 15px !important;
     background-color: #fff !important;
     height: max-content !important;
+    position: sticky;
+    top: 0;
+    background-color: white;
 }
 
 .xanhworld_single_info_policy_title {
