@@ -76,11 +76,9 @@
 
 @endsection
 
-@section('foot')
-
+@push('js_page')
     <script defer src="{{ asset('clients/assets/js/home.js') }}"></script>
-
-@endsection
+@endpush
 
 @section('schema')
 

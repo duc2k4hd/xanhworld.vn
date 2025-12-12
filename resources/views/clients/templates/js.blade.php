@@ -1,5 +1,5 @@
-<script async src="{{ asset('clients/assets/js/vendor/slim_select.js') }}"></script>
-<script async src="{{ asset('clients/assets/js/vendor/embla_carousel.js') }}"></script>
+<script defer src="{{ asset('clients/assets/js/vendor/slim_select.js') }}"></script>
+<script defer src="{{ asset('clients/assets/js/vendor/embla_carousel.js') }}"></script>
 
 @stack('js_page')
 

@@ -881,65 +881,65 @@ if (typeof endTime !== "undefined") {
     countDownFlashSale(endTime);
 }
 
-// function showPopupVoucher() {
-//     const popup = document.querySelector(
-//         ".xanhworld_main_show_popup_voucher_overlay"
-//     );
-//     const closeBtn = document.querySelector(
-//         ".xanhworld_main_show_popup_voucher_close"
-//     );
-//     const codeEl = document.querySelectorAll(
-//         ".xanhworld_main_show_popup_voucher_code"
-//     );
+function showPopupVoucher() {
+    const popup = document.querySelector(
+        ".xanhworld_main_show_popup_voucher_overlay"
+    );
+    const closeBtn = document.querySelector(
+        ".xanhworld_main_show_popup_voucher_close"
+    );
+    const codeEl = document.querySelectorAll(
+        ".xanhworld_main_show_popup_voucher_code"
+    );
 
-//     // // Hiện popup sau 10 giây
-//     // setTimeout(() => {
+    // // Hiện popup sau 10 giây
+    // setTimeout(() => {
 
-//     // }, 10000);
-//     popup.style.display = "flex";
+    // }, 10000);
+    popup.style.display = "flex";
 
-//     // Đóng popup
-//     closeBtn.addEventListener("click", () => {
-//         popup.style.display = "none";
-//     });
+    // Đóng popup
+    closeBtn.addEventListener("click", () => {
+        popup.style.display = "none";
+    });
 
-//     // Click ra ngoài để đóng
-//     popup.addEventListener("click", (e) => {
-//         if (e.target === popup) {
-//             popup.style.display = "none";
-//         }
-//     });
+    // Click ra ngoài để đóng
+    popup.addEventListener("click", (e) => {
+        if (e.target === popup) {
+            popup.style.display = "none";
+        }
+    });
 
-//     // Copy voucher code khi click
-//     codeEl.forEach((el) => {
-//         el.addEventListener("click", () => {
-//             if (el.dataset.copied === "true") return; // nếu voucher này đã copy rồi thì bỏ qua
+    // Copy voucher code khi click
+    codeEl.forEach((el) => {
+        el.addEventListener("click", () => {
+            if (el.dataset.copied === "true") return; // nếu voucher này đã copy rồi thì bỏ qua
 
-//             const originalText = el.textContent.trim();
+            const originalText = el.textContent.trim();
 
-//             navigator.clipboard
-//                 .writeText(originalText)
-//                 .then(() => {
-//                     showCustomToast("Mã voucher đã được sao chép!", "info");
-//                     el.textContent = "Đã sao chép!";
-//                     el.dataset.copied = "true"; // đánh dấu riêng cho voucher này
+            navigator.clipboard
+                .writeText(originalText)
+                .then(() => {
+                    showCustomToast("Mã voucher đã được sao chép!", "info");
+                    el.textContent = "Đã sao chép!";
+                    el.dataset.copied = "true"; // đánh dấu riêng cho voucher này
 
-//                     // Reset lại sau 2 giây
-//                     setTimeout(() => {
-//                         el.textContent = originalText;
-//                         el.dataset.copied = "false";
-//                     }, 5000);
-//                 })
-//                 .catch((err) => {
-//                     console.error("Copy thất bại: ", err);
-//                 });
-//         });
-//     });
-// }
+                    // Reset lại sau 2 giây
+                    setTimeout(() => {
+                        el.textContent = originalText;
+                        el.dataset.copied = "false";
+                    }, 5000);
+                })
+                .catch((err) => {
+                    console.error("Copy thất bại: ", err);
+                });
+        });
+    });
+}
 
-// setTimeout(() => {
-//     showPopupVoucher();
-// }, 10000);
+setTimeout(() => {
+    showPopupVoucher();
+}, 20000);
 
 document.addEventListener("DOMContentLoaded", () => {
     // === BASE ELEMENTS ===
