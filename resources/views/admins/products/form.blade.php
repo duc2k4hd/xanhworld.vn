@@ -131,60 +131,6 @@
             color: #2563eb;
             cursor: pointer;
         }
-        .image-library-wrapper {
-            margin-top: 10px;
-        }
-        .image-library-search {
-            margin-bottom: 10px;
-        }
-        .image-library-search input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #cbd5f5;
-            border-radius: 6px;
-            font-size: 13px;
-        }
-        .image-library {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 8px;
-            background: #f9fafb;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-        .image-library button {
-            border: 2px solid #cbd5f5;
-            border-radius: 8px;
-            padding: 0;
-            background: #fff;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-        }
-        .image-library button:hover {
-            border-color: #2563eb;
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
-        }
-        .image-library button.selected {
-            border-color: #2563eb;
-            border-width: 3px;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-        }
-        .image-library button.selected::after {
-            content: '✓';
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: #2563eb;
-            color: #fff;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
@@ -716,57 +662,83 @@
                     markDirty();
                 }
 
-                if (e.target.matches('[data-select-image]') || e.target.closest('[data-select-image]')) {
-                    const btn = e.target.closest('[data-select-image]') || e.target;
-                    const filename = btn.dataset.filename; // Chỉ tên file (ví dụ: abc123.jpg)
-                    const fullUrl = btn.dataset.url; // URL đầy đủ để hiển thị
-                    const target = document.querySelector(btn.dataset.target);
-                    const preview = document.querySelector(btn.dataset.preview);
+                // Open gallery picker for image selection
+                if (e.target.matches('[data-open-gallery-picker]')) {
+                    const btn = e.target;
+                    const targetSelector = btn.dataset.target;
+                    const previewSelector = btn.dataset.preview;
+                    const altInputSelector = btn.dataset.altInput;
                     
-                    if (target && preview) {
-                        const repeaterItem = target.closest('.repeater-item');
-                        if (!repeaterItem) return;
-                        
-                        // Set giá trị vào hidden input existing_path
-                        target.value = filename;
-                        
-                        // Hiển thị preview
-                        preview.innerHTML = `<img src="${fullUrl}" alt="" style="max-width:100%;height:auto;">`;
-                        
-                        // Đảm bảo có hidden input id (nếu chưa có thì giữ nguyên giá trị cũ)
-                        let idInput = repeaterItem.querySelector('input[name*="[id]"]');
-                        if (!idInput) {
-                            // Tạo input id nếu chưa có
-                            const firstInput = repeaterItem.querySelector('input');
-                            if (firstInput) {
-                                idInput = document.createElement('input');
-                                idInput.type = 'hidden';
-                                idInput.name = target.name.replace('[existing_path]', '[id]');
-                                idInput.value = '';
-                                firstInput.parentNode.insertBefore(idInput, firstInput);
+                    if (!targetSelector || !previewSelector) return;
+                    
+                    const targetInput = document.querySelector(targetSelector);
+                    const previewDiv = document.querySelector(previewSelector);
+                    const repeaterItem = btn.closest('.repeater-item');
+                    
+                    if (!targetInput || !previewDiv || !repeaterItem) return;
+                    
+                    // Mở media picker
+                    if (typeof openMediaPicker === 'function') {
+                        openMediaPicker({
+                            mode: 'single',
+                            scope: 'client',
+                            folder: 'clothes', // Chỉ lấy ảnh từ folder clothes
+                            onSelect: (file) => {
+                                if (file && file.url) {
+                                    // Lưu relative_path (path tương đối từ folder clothes, ví dụ: thumbs/filename.jpg)
+                                    // Nếu không có relative_path, fallback về filename
+                                    const pathToSave = file.relative_path || file.filename || file.name || '';
+                                    
+                                    // Debug: log để kiểm tra
+                                    console.log('Selected file:', {
+                                        url: file.url,
+                                        filename: file.filename,
+                                        relative_path: file.relative_path,
+                                        pathToSave: pathToSave
+                                    });
+                                    
+                                    // Set giá trị vào hidden input existing_path
+                                    targetInput.value = pathToSave;
+                                    
+                                    // Hiển thị preview
+                                    previewDiv.innerHTML = `<img src="${file.url}" alt="${file.alt || ''}" style="max-width:100%;height:auto;">`;
+                                    
+                                    // Set alt nếu có input alt
+                                    if (altInputSelector) {
+                                        const altInput = repeaterItem.querySelector(altInputSelector);
+                                        if (altInput && file.alt) {
+                                            altInput.value = file.alt;
+                                        }
+                                    }
+                                    
+                                    // Đảm bảo có hidden input id (nếu chưa có thì tạo mới)
+                                    let idInput = repeaterItem.querySelector('input[name*="[id]"]');
+                                    if (!idInput) {
+                                        const firstInput = repeaterItem.querySelector('input');
+                                        if (firstInput) {
+                                            idInput = document.createElement('input');
+                                            idInput.type = 'hidden';
+                                            idInput.name = targetInput.name.replace('[existing_path]', '[id]');
+                                            idInput.value = '';
+                                            firstInput.parentNode.insertBefore(idInput, firstInput);
+                                        }
+                                    }
+                                    
+                                    // Ẩn file input (không cần upload nữa)
+                                    const fileInput = repeaterItem.querySelector('.image-file-input');
+                                    if (fileInput) {
+                                        fileInput.value = '';
+                                    }
+                                    
+                                    markDirty();
+                                }
                             }
-                        }
-                        // Nếu id input rỗng, không set (để logic backend tìm hoặc tạo mới)
-                        
-                        // Highlight ảnh đã chọn trong library
-                        const library = btn.closest('.image-library');
-                        if (library) {
-                            // Bỏ selected của tất cả ảnh trong library này
-                            library.querySelectorAll('[data-select-image].selected').forEach(b => {
-                                b.classList.remove('selected');
-                            });
-                            // Thêm selected cho ảnh vừa chọn
-                            btn.classList.add('selected');
-                        }
-                        
-                        // Ẩn file input (không cần upload nữa)
-                        const fileInput = repeaterItem.querySelector('.image-file-input');
-                        if (fileInput) {
-                            fileInput.value = '';
-                        }
+                        });
+                    } else {
+                        alert('Popup thư viện ảnh chưa được tải. Vui lòng F5 lại trang.');
                     }
-                    markDirty();
                 }
+
 
                 // Add step
                 if (e.target.matches('[data-add-step]')) {
@@ -826,189 +798,6 @@
                 }
             });
             
-            // Load thêm ảnh và Show tất cả ảnh - dùng click event
-            document.addEventListener('click', (e) => {
-                // Load thêm ảnh
-                if (e.target.matches('[data-load-more-images]')) {
-                    e.preventDefault();
-                    const libraryIndex = e.target.dataset.loadMoreImages;
-                    loadMoreImages(libraryIndex);
-                }
-                
-                // Show tất cả ảnh
-                if (e.target.matches('[data-show-all-images]')) {
-                    e.preventDefault();
-                    const libraryIndex = e.target.dataset.showAllImages;
-                    showAllImages(libraryIndex);
-                }
-            });
-            
-            // Tìm kiếm real-time (debounce) - tìm trong tất cả ảnh
-            let searchTimeout;
-            document.addEventListener('input', (e) => {
-                if (e.target.matches('[data-search-library]')) {
-                    clearTimeout(searchTimeout);
-                    const libraryIndex = e.target.dataset.searchLibrary;
-                    const searchTerm = e.target.value.trim();
-                    
-                    searchTimeout = setTimeout(() => {
-                        if (searchTerm) {
-                            // Load từ API để tìm trong tất cả ảnh
-                            loadImagesFromAPI(libraryIndex, 0, 10000, searchTerm, true);
-                        } else {
-                            // Reset về ảnh đã load ban đầu - load lại từ API với offset=0, limit=100
-                            loadImagesFromAPI(libraryIndex, 0, 100, null, true);
-                        }
-                    }, 300);
-                }
-            });
-            
-            // Function để load ảnh từ API
-            function loadImagesFromAPI(libraryIndex, offset = 0, limit = 100, search = null, replace = false) {
-                const library = document.querySelector(`#image-library-${libraryIndex}`);
-                if (!library) {
-                    console.error('Library not found:', `#image-library-${libraryIndex}`);
-                    return;
-                }
-                
-                const url = new URL('{{ route("admin.products.media-images") }}', window.location.origin);
-                url.searchParams.set('offset', offset);
-                url.searchParams.set('limit', limit);
-                if (search) {
-                    url.searchParams.set('search', search);
-                }
-                
-                console.log('Loading images from API:', { libraryIndex, offset, limit, search, replace });
-                
-                fetch(url)
-                    .then(res => {
-                        if (!res.ok) {
-                            throw new Error(`HTTP error! status: ${res.status}`);
-                        }
-                        return res.json();
-                    })
-                    .then(data => {
-                        console.log('Images loaded:', data);
-                        if (replace) {
-                            library.innerHTML = '';
-                        }
-                        
-                        // Lưu ảnh ban đầu nếu là lần load đầu tiên (không có search và replace = false)
-                        if (!search && !replace && !window.initialLibraryImages[libraryIndex]) {
-                            window.initialLibraryImages[libraryIndex] = data.data.map(m => ({
-                                name: m.name,
-                                url: m.url,
-                                filename: m.name
-                            }));
-                        }
-                        
-                        data.data.forEach(media => {
-                            const mediaFileName = media.name;
-                            const mediaFullUrl = media.url;
-                            
-                            const btn = document.createElement('button');
-                            btn.type = 'button';
-                            btn.setAttribute('data-select-image', '');
-                            btn.setAttribute('data-filename', mediaFileName);
-                            btn.setAttribute('data-url', mediaFullUrl);
-                            btn.setAttribute('data-name', media.name);
-                            
-                            // Tìm repeater item để lấy đúng target và preview
-                            const repeaterItem = library.closest('.repeater-item');
-                            if (repeaterItem) {
-                                const targetInput = repeaterItem.querySelector(`#image-path-${libraryIndex}`);
-                                const previewDiv = repeaterItem.querySelector(`#image-preview-${libraryIndex}`);
-                                if (targetInput) {
-                                    btn.setAttribute('data-target', `#image-path-${libraryIndex}`);
-                                }
-                                if (previewDiv) {
-                                    btn.setAttribute('data-preview', `#image-preview-${libraryIndex}`);
-                                }
-                            }
-                            
-                            btn.className = '';
-                            btn.title = media.name;
-                            btn.innerHTML = `<img src="${mediaFullUrl}" alt="${media.name}">`;
-                            
-                            library.appendChild(btn);
-                        });
-                        
-                        // Update state - ĐẢM BẢO imageLibraryState đã được khởi tạo
-                        if (typeof window.imageLibraryState === 'undefined') {
-                            window.imageLibraryState = {};
-                        }
-                        if (!window.imageLibraryState[libraryIndex]) {
-                            window.imageLibraryState[libraryIndex] = {};
-                        }
-                        window.imageLibraryState[libraryIndex].offset = data.offset + data.data.length;
-                        window.imageLibraryState[libraryIndex].hasMore = data.has_more;
-                        window.imageLibraryState[libraryIndex].total = data.total;
-                        
-                        // Update buttons
-                        updateLoadButtons(libraryIndex);
-                    })
-                    .catch(err => {
-                        console.error('Error loading images:', err);
-                        alert('Không thể tải ảnh: ' + err.message + '. Vui lòng thử lại.');
-                    });
-            }
-            
-            // Function để load thêm ảnh
-            function loadMoreImages(libraryIndex) {
-                if (typeof window.imageLibraryState === 'undefined') {
-                    window.imageLibraryState = {};
-                }
-                const state = window.imageLibraryState[libraryIndex] || { offset: 100 };
-                const offset = state.offset || 100;
-                loadImagesFromAPI(libraryIndex, offset, 100, null, false);
-            }
-            
-            // Function để show tất cả ảnh
-            function showAllImages(libraryIndex) {
-                if (typeof window.imageLibraryState === 'undefined') {
-                    window.imageLibraryState = {};
-                }
-                const state = window.imageLibraryState[libraryIndex] || { total: 0 };
-                const total = state.total || 10000;
-                loadImagesFromAPI(libraryIndex, 0, total, null, true);
-            }
-            
-            // Function để update buttons
-            function updateLoadButtons(libraryIndex) {
-                if (typeof window.imageLibraryState === 'undefined') {
-                    window.imageLibraryState = {};
-                }
-                const state = window.imageLibraryState[libraryIndex] || {};
-                const loadMoreBtn = document.querySelector(`[data-load-more-images="${libraryIndex}"]`);
-                const showAllBtn = document.querySelector(`[data-show-all-images="${libraryIndex}"]`);
-                
-                if (loadMoreBtn) {
-                    loadMoreBtn.style.display = state.hasMore ? 'inline-block' : 'none';
-                }
-                if (showAllBtn && state.total) {
-                    showAllBtn.textContent = `📋 Show tất cả (${state.total} ảnh)`;
-                }
-            }
-            
-            // Initialize state for each library - ĐẢM BẢO imageLibraryState đã được khởi tạo
-            if (typeof window.imageLibraryState === 'undefined') {
-                window.imageLibraryState = {};
-            }
-            
-            document.querySelectorAll('.image-library-wrapper').forEach(wrapper => {
-                const libraryIndex = wrapper.dataset.libraryIndex;
-                if (libraryIndex) {
-                    const library = wrapper.querySelector('.image-library');
-                    const currentImagesCount = library ? library.querySelectorAll('[data-select-image]').length : 0;
-                    if (!window.imageLibraryState[libraryIndex]) {
-                        window.imageLibraryState[libraryIndex] = {
-                            offset: currentImagesCount,
-                            hasMore: true,
-                            total: null
-                        };
-                    }
-                }
-            });
 
             // TomSelect
             if (document.querySelector('#primary-category')) {
@@ -1032,15 +821,6 @@
                     }
                 });
             }
-
-            // Store all images for search (loaded from server initially)
-            window.allMediaImages = {!! json_encode($mediaImages, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) !!};
-            
-            // Store pagination state for each library - KHỞI TẠO TRƯỚC
-            window.imageLibraryState = {};
-            
-            // Store initial images for each library (để restore khi xóa search)
-            window.initialLibraryImages = {};
 
             initTinyMCE();
 
@@ -1516,34 +1296,15 @@
                 <input type="file" name="images[__INDEX__][file]" class="form-control image-file-input">
                 <input type="hidden" id="image-path-__INDEX__" name="images[__INDEX__][existing_path]">
                 <div class="image-preview" id="image-preview-__INDEX__"></div>
-                <div class="image-library-wrapper" data-library-index="__INDEX__">
-                    <div class="image-library-search">
-                        <input type="text" 
-                               class="form-control" 
-                               placeholder="🔍 Tìm kiếm ảnh theo tên..." 
-                               data-search-library="__INDEX__">
-                    </div>
-                    <div class="image-library" id="image-library-__INDEX__">
-                        @foreach($mediaImages as $media)
-                            @php
-                                // Chỉ lấy tên file từ path
-                                $mediaFileName = basename($media['path']);
-                                // Tạo URL đầy đủ để hiển thị
-                                $mediaFullUrl = asset('clients/assets/img/clothes/' . $mediaFileName);
-                            @endphp
-                            <button type="button"
-                                    data-select-image
-                                    data-filename="{{ $mediaFileName }}"
-                                    data-url="{{ $mediaFullUrl }}"
-                                    data-name="{{ $media['name'] }}"
-                                    data-target="#image-path-__INDEX__"
-                                    data-preview="#image-preview-__INDEX__"
-                                    title="{{ $media['name'] }}">
-                                <img src="{{ $mediaFullUrl }}" alt="{{ $media['name'] }}">
-                            </button>
-                        @endforeach
-                    </div>
-                </div>
+                <button type="button" 
+                        class="btn btn-primary btn-sm mt-2" 
+                        data-open-gallery-picker
+                        data-target="#image-path-__INDEX__"
+                        data-preview="#image-preview-__INDEX__"
+                        data-alt-input="input[name='images[__INDEX__][alt]']"
+                        style="margin-top: 8px;">
+                    📷 Chọn ảnh từ thư viện
+                </button>
             </div>
             <div style="margin-top:10px;">
                 <label><input type="checkbox" name="images[__INDEX__][is_primary]" value="1"> Ảnh chính</label>

@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -291,8 +292,9 @@ class ProductController extends Controller
         $limit = (int) request('limit', 100);
         $offset = (int) request('offset', 0);
         $search = request('search');
+        $folder = request('folder'); // Thêm tham số folder
 
-        $result = $this->getMediaImages($limit, $offset, $search);
+        $result = $this->getMediaImages($limit, $offset, $search, $folder);
 
         return response()->json($result);
     }
@@ -357,14 +359,21 @@ class ProductController extends Controller
         }
     }
 
-    private function getMediaImages(int $limit = 100, int $offset = 0, ?string $search = null): array
+    private function getMediaImages(int $limit = 100, int $offset = 0, ?string $search = null, ?string $folder = null): array
     {
         $root = public_path('clients/assets/img');
         $baseUrl = $this->getSiteUrl();
 
-        // Lấy tất cả file ảnh (đệ quy) trong thư mục img
+        // Nếu có folder, chỉ lấy ảnh trong folder đó
+        $folderPath = '';
+        if ($folder) {
+            $root = $root.'/'.$folder;
+            $folderPath = $folder.'/';
+        }
+
+        // Lấy tất cả file ảnh (đệ quy) trong thư mục img hoặc folder cụ thể
         $allFiles = [];
-        $imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'ico'];
+        $imageExtensions = ['jpg','jpeg','png','webp','gif','svg','avif','ico'];
         if (is_dir($root)) {
             foreach (File::allFiles($root) as $file) {
                 $extension = strtolower($file->getExtension());
@@ -379,6 +388,37 @@ class ProductController extends Controller
                 $relative = ltrim($relative, '/');
                 $fullUrl = rtrim($baseUrl, '/').'/'.$relative;
 
+                // Tính path tương đối từ folder clothes (ví dụ: thumbs/filename.jpg)
+                $relativeFromClothes = '';
+                if ($folder) {
+                    // Tính trực tiếp từ đường dẫn file
+                    // Ví dụ: file nằm trong public/clients/assets/img/clothes/thumbs/filename.jpg
+                    // root = public/clients/assets/img/clothes
+                    // relativeFromClothes = thumbs/filename.jpg
+                    $filePath = str_replace('\\', '/', $file->getRealPath());
+                    $rootPath = str_replace('\\', '/', $root);
+                    
+                    if (str_starts_with($filePath, $rootPath)) {
+                        $relativeFromClothes = substr($filePath, strlen($rootPath));
+                        $relativeFromClothes = ltrim($relativeFromClothes, '/\\');
+                    } else {
+                        // Fallback: nếu không match, dùng tên file
+                        $relativeFromClothes = $filename;
+                    }
+                    
+                    // Debug log (có thể xóa sau)
+                    \Log::debug('Image path calculation', [
+                        'filePath' => $filePath,
+                        'rootPath' => $rootPath,
+                        'relative' => $relative,
+                        'relativeFromClothes' => $relativeFromClothes,
+                        'filename' => $filename,
+                    ]);
+                } else {
+                    // Nếu không có folder, dùng tên file
+                    $relativeFromClothes = $filename;
+                }
+
                 $filePath = $file->getRealPath();
                 $mimeType = 'image/jpeg';
                 if (function_exists('mime_content_type') && file_exists($filePath)) {
@@ -390,10 +430,12 @@ class ProductController extends Controller
                     }
                 }
                 
-                $allFiles[$filename] = [
+                // Dùng relativeFromClothes làm key để tìm trong database
+                $allFiles[$relativeFromClothes] = [
                     'name' => $filename,
                     'url' => $fullUrl, // URL đầy đủ
-                    'path' => $relative, // đường dẫn tương đối
+                    'path' => $relative, // đường dẫn tương đối từ public
+                    'relative_path' => $relativeFromClothes, // path tương đối từ folder clothes (ví dụ: thumbs/filename.jpg)
                     'title' => null,
                     'alt' => null,
                     'size' => $file->getSize(),
@@ -402,12 +444,32 @@ class ProductController extends Controller
             }
         }
 
-        // Load thông tin từ bảng images (title, alt)
-        $images = Image::whereIn('url', array_keys($allFiles))->get()->keyBy('url');
+        // Load thông tin từ bảng images (title, alt) - tìm theo relative_path và filename
+        $imageUrls = array_keys($allFiles);
+        // Thêm cả basename để tìm ảnh cũ (chỉ lưu tên file)
+        $imageUrlsWithBasename = [];
+        foreach ($imageUrls as $url) {
+            $imageUrlsWithBasename[] = $url;
+            $basename = basename($url);
+            if ($basename !== $url) {
+                $imageUrlsWithBasename[] = $basename;
+            }
+        }
+        $images = Image::whereIn('url', $imageUrlsWithBasename)->get()->keyBy('url');
         foreach ($images as $image) {
+            // Tìm file theo relative_path hoặc filename
             if (isset($allFiles[$image->url])) {
                 $allFiles[$image->url]['title'] = $image->title;
                 $allFiles[$image->url]['alt'] = $image->alt;
+            } else {
+                // Nếu không tìm thấy theo relative_path, thử tìm theo filename
+                foreach ($allFiles as $relativePath => $file) {
+                    if (basename($relativePath) === $image->url) {
+                        $allFiles[$relativePath]['title'] = $image->title;
+                        $allFiles[$relativePath]['alt'] = $image->alt;
+                        break;
+                    }
+                }
             }
         }
 
@@ -416,10 +478,10 @@ class ProductController extends Controller
             $searchTerms = $this->parseSearchTerms($search);
             $filteredFiles = [];
 
-            foreach ($allFiles as $filename => $file) {
+            foreach ($allFiles as $relativePath => $file) {
                 $title = strtolower($file['title'] ?? '');
                 $alt = strtolower($file['alt'] ?? '');
-                $name = strtolower($filename);
+                $name = strtolower($file['name'] ?? ''); // Tìm theo tên file, không phải relative_path
 
                 // Kiểm tra xem có bất kỳ từ nào trong search terms khớp với title, alt hoặc tên file không
                 $matches = false;
@@ -431,7 +493,7 @@ class ProductController extends Controller
                 }
 
                 if ($matches) {
-                    $filteredFiles[$filename] = $file;
+                    $filteredFiles[$relativePath] = $file;
                 }
             }
 
@@ -444,6 +506,15 @@ class ProductController extends Controller
 
         $total = count($files);
         $files = array_slice($files, $offset, $limit);
+
+        // Debug log (có thể xóa sau)
+        if ($folder === 'clothes' && count($files) > 0) {
+            Log::debug('ProductController getMediaImages response', [
+                'folder' => $folder,
+                'sample_file' => $files[0] ?? null,
+                'total' => $total,
+            ]);
+        }
 
         return [
             'data' => $files,

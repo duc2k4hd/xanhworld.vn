@@ -411,7 +411,8 @@ class ProductService
             $imageId = Arr::get($imageData, 'id');
             $file = Arr::get($imageData, 'file');
             $path = Arr::get($imageData, 'existing_path', Arr::get($imageData, 'path'));
-            $filename = $path ? basename($path) : null;
+            // Lưu cả path (ví dụ: thumbs/filename.jpg), không chỉ basename
+            $filename = $path ?: null;
 
             // Nếu có upload file mới, lưu file mới
             if ($file instanceof UploadedFile) {
@@ -420,10 +421,10 @@ class ProductService
                 // Nếu là ảnh cũ (có ID) và không có file mới
                 $existingImage = Image::find($imageId);
                 if ($existingImage) {
-                    // Nếu có existing_path mới (chọn từ library), dùng filename mới
+                    // Nếu có existing_path mới (chọn từ library), dùng path mới
                     if (! empty($path)) {
-                        $filename = basename($path);
-                        // Nếu filename thay đổi, tìm xem ảnh mới đã tồn tại chưa
+                        $filename = $path; // Lưu cả path, không chỉ basename
+                        // Nếu path thay đổi, tìm xem ảnh mới đã tồn tại chưa
                         if ($filename !== $existingImage->url) {
                             $existingImageByUrl = Image::where('url', $filename)->first();
                             if ($existingImageByUrl) {
@@ -432,13 +433,13 @@ class ProductService
                             }
                         }
                     } else {
-                        $filename = $existingImage->url; // Lấy filename từ database
+                        $filename = $existingImage->url; // Lấy path từ database
                     }
                 }
             } elseif (! empty($path)) {
                 // Nếu có existing_path (chọn từ library) nhưng không có ID
                 // Tìm xem ảnh này đã tồn tại trong database chưa
-                $filename = basename($path);
+                $filename = $path; // Lưu cả path, không chỉ basename
                 $existingImageByUrl = Image::where('url', $filename)->first();
                 if ($existingImageByUrl) {
                     // Ảnh đã tồn tại, dùng lại ID

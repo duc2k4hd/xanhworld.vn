@@ -46,7 +46,7 @@
             color: #0f172a;
             margin-bottom: 6px;
         }
-        input {
+        .form-group input {
             width: 100%;
             padding: 12px 14px;
             border: 1px solid #d0d7ee;

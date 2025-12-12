@@ -140,12 +140,14 @@
                 mode: 'single',
                 onSelect: null,
                 scope: 'client',
+                folder: null, // Thêm folder vào state
             };
 
             window.openMediaPicker = function (options = {}) {
                 state.mode = options.mode === 'multiple' ? 'multiple' : 'single';
                 state.onSelect = typeof options.onSelect === 'function' ? options.onSelect : null;
                 state.scope = options.scope || 'client';
+                state.folder = options.folder || null; // Nhận folder từ options
                 state.selected.clear();
                 state.current = null;
                 selectionInfo.textContent = 'Chưa chọn ảnh';
@@ -170,7 +172,7 @@
             function loadPage() {
                 gridEl.innerHTML = '<div class="text-center text-muted py-5">Đang tải...</div>';
                 
-                // Nếu scope='client', dùng API products.media-images (đệ quy toàn bộ img)
+                // Nếu scope='client', dùng API products.media-images (đệ quy toàn bộ img hoặc folder cụ thể)
                 // Nếu scope='admin', dùng API media.list (theo folder)
                 let apiUrl;
                 if (state.scope === 'client') {
@@ -178,6 +180,7 @@
                     params.set('offset', (state.page - 1) * state.perPage);
                     params.set('limit', state.perPage);
                     if (state.search) params.set('search', state.search);
+                    if (state.folder) params.set('folder', state.folder); // Truyền folder nếu có
                     apiUrl = `{{ route('admin.products.media-images') }}?${params.toString()}`;
                 } else {
                     apiUrl = `{{ route('admin.media.list') }}?${buildParams()}`;
@@ -199,6 +202,7 @@
                                 filename: f.name || f.filename || '',
                                 url: f.url || '',
                                 path: f.path || f.url || '',
+                                relative_path: f.relative_path || f.name || f.filename || '', // Path tương đối từ folder clothes
                                 title: f.title || null,
                                 alt: f.alt || null,
                                 size: f.size || 0,
@@ -363,6 +367,7 @@
                     alt: f.alt || '',
                     title: f.title || '',
                     path: f.path || '',
+                    relative_path: f.relative_path || f.filename || f.name || '', // Path tương đối từ folder clothes
                 }));
                 state.onSelect(state.mode === 'single' ? payload[0] : payload);
                 modal.hide();
