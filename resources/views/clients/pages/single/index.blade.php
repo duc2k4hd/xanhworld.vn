@@ -659,6 +659,8 @@
                                     @endif
                                 </div>
 
+                                {{-- FAQS --}}
+                                @include('clients.templates.faqs')
                             </div>
                             <aside class="xanhworld_single_sidebar">
                                 <div class="sticky-box">
@@ -683,9 +685,6 @@
                 </div>
             </div>
         </section>
-
-        {{-- FAQS --}}
-        @include('clients.templates.faqs')
 
         {{-- Sản phẩm đi kèm (section danh mục) --}}
         @if($includedSets->isNotEmpty())
