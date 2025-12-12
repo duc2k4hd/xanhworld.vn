@@ -1,0 +1,451 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\Concerns\HasImageIds;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    use HasFactory;
+    use HasImageIds;
+
+    protected $table = 'products';
+
+    protected $fillable = [
+        'sku',
+        'name',
+        'slug',
+        'description',
+        'short_description',
+        'price',
+        'sale_price',
+        'cost_price',
+        'stock_quantity',
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
+        'meta_canonical',
+        'primary_category_id',
+        'category_included_ids',
+        'category_ids',
+        'tag_ids',
+        'image_ids',
+        'is_featured',
+        'locked_by',
+        'locked_at',
+        'created_by',
+        'is_active',
+        'category_ids_backup',
+        'created_at',
+        'updated_at',
+    ];
+
+    protected $casts = [
+        'category_ids' => 'array',
+        'tag_ids' => 'array',
+        'image_ids' => 'array',
+        'category_ids_backup' => 'array',
+        'meta_keywords' => 'array',
+        'price' => 'decimal:2',
+        'sale_price' => 'decimal:2',
+        'cost_price' => 'decimal:2',
+        'stock_quantity' => 'integer',
+        'locked_at' => 'datetime',
+        'is_featured' => 'boolean',
+        'is_active' => 'boolean',
+        'category_included_ids' => 'array',
+    ];
+
+    protected array $reviewDisplayCache = [];
+
+    public function creator()
+    {
+        return $this->belongsTo(Account::class, 'created_by');
+    }
+
+    public function lockedByUser()
+    {
+        return $this->belongsTo(Account::class, 'locked_by');
+    }
+
+    public function primaryCategory()
+    {
+        return $this->belongsTo(Category::class, 'primary_category_id');
+    }
+
+    public function tags()
+    {
+        return $this->hasMany(Tag::class, 'entity_id')
+            ->where('entity_type', self::class);
+    }
+
+    /**
+     * Get variants accessor (backward compatibility)
+     * Returns empty collection since variants are not used in new migration
+     */
+    public function getVariantsAttribute()
+    {
+        return collect([]);
+    }
+
+    public function scopeInCategory($query, array $categoryIds)
+    {
+        return $query->where(function ($q) use ($categoryIds) {
+            $q->whereIn('primary_category_id', $categoryIds)
+                ->orWhere(function ($q2) use ($categoryIds) {
+                    foreach ($categoryIds as $id) {
+                        $q2->orWhereJsonContains('category_ids', $id);
+                    }
+                });
+        });
+    }
+
+    public function getFrameAttribute()
+    {
+        // Logic để lấy frame, ví dụ:
+        if ($this->is_featured) {
+            return 'frame-free-ship-hot.png';
+        }
+        if ($this->sale_price && $this->sale_price < $this->price) {
+            return 'frame-price-sale.png';
+        }
+
+        return 'frame-free-ship-hot.png';
+    }
+
+    public function getLabelAttribute()
+    {
+        if ($this->is_featured) {
+            return 'Nổi bật';
+        }
+        if ($this->sale_price && $this->sale_price < $this->price) {
+            return 'Giảm giá';
+        }
+
+        return 'Bán chạy '.date('Y').'';
+    }
+
+    public function faqs()
+    {
+        return $this->hasMany(ProductFaq::class);
+    }
+
+    public function howTos()
+    {
+        return $this->hasMany(ProductHowTo::class);
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
+    public function comments()
+    {
+        return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    public function scopeWithApprovedCommentsMeta($query)
+    {
+        return $query
+            ->withCount(['comments as approved_comments_count' => function ($q) {
+                $q->where('is_approved', true)->whereNull('parent_id');
+            }])
+            ->withAvg(['comments as approved_rating_avg' => function ($q) {
+                $q->where('is_approved', true)
+                    ->whereNull('parent_id')
+                    ->whereNotNull('rating');
+            }], 'rating');
+    }
+
+    public function getHasRealReviewsAttribute(): bool
+    {
+        return ($this->approved_comments_count ?? 0) > 0;
+    }
+
+    public function getDisplayReviewCountAttribute(): int
+    {
+        if ($this->has_real_reviews) {
+            return (int) $this->approved_comments_count;
+        }
+
+        if (! array_key_exists('review_count', $this->reviewDisplayCache)) {
+            $this->reviewDisplayCache['review_count'] = rand(10, 1000);
+        }
+
+        return $this->reviewDisplayCache['review_count'];
+    }
+
+    public function getDisplayRatingValueAttribute(): float
+    {
+        if ($this->has_real_reviews && ($this->approved_rating_avg ?? null)) {
+            $avg = max(1, min(5, (float) $this->approved_rating_avg));
+
+            return round($avg, 1);
+        }
+
+        if (! array_key_exists('rating_value', $this->reviewDisplayCache)) {
+            $this->reviewDisplayCache['rating_value'] = rand(40, 50) / 10;
+        }
+
+        return $this->reviewDisplayCache['rating_value'];
+    }
+
+    public function getDisplayRatingStarAttribute(): int
+    {
+        if (! array_key_exists('rating_star', $this->reviewDisplayCache)) {
+            $this->reviewDisplayCache['rating_star'] = (int) round($this->display_rating_value);
+        }
+
+        return $this->reviewDisplayCache['rating_star'];
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    /**
+     * Scope only active products.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', 1);
+    }
+
+    public function scopeNew($query)
+    {
+        $thirtyDaysAgo = now()->subDays(30);
+
+        return $query->active()->where('created_at', '>=', $thirtyDaysAgo);
+    }
+
+    /**
+     * Scope featured products.
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', 1);
+    }
+
+    public static function getRelatedProducts(self $product, int $limit = 12)
+    {
+        $currentId = $product->id;
+
+        $baseQuery = static::query()
+            ->active()
+            ->withApprovedCommentsMeta()
+            ->where('id', '!=', $currentId)
+            ->where(function ($q) use ($product) {
+                $q->where('primary_category_id', $product->primary_category_id)
+                    ->orWhereJsonContains('category_ids', (int) $product->primary_category_id)
+                    ->orWhereJsonContains('category_ids', (string) $product->primary_category_id);
+            });
+
+        $beforeLimit = floor($limit / 2);
+        $afterLimit = $limit - $beforeLimit;
+
+        $before = (clone $baseQuery)
+            ->where('id', '<', $currentId)
+            ->orderBy('id', 'desc')
+            ->limit($beforeLimit)
+            ->get()
+            ->reverse();
+
+        $after = (clone $baseQuery)
+            ->where('id', '>', $currentId)
+            ->orderBy('id', 'asc')
+            ->limit($afterLimit)
+            ->get();
+
+        $related = $before->merge($after);
+
+        if ($related->count() < $limit) {
+            $missing = $limit - $related->count();
+
+            if ($before->count() < $beforeLimit) {
+                $extra = (clone $baseQuery)
+                    ->where('id', '>', $currentId)
+                    ->orderBy('id', 'asc')
+                    ->skip($after->count())
+                    ->limit($missing)
+                    ->get();
+                $related = $related->merge($extra);
+            } elseif ($after->count() < $afterLimit) {
+                $extra = (clone $baseQuery)
+                    ->where('id', '<', $currentId)
+                    ->orderBy('id', 'desc')
+                    ->skip($before->count())
+                    ->limit($missing)
+                    ->get()
+                    ->reverse();
+                $related = $extra->merge($related);
+            }
+        }
+
+        $collection = $related->take($limit)->values();
+
+        static::preloadImages($collection);
+
+        return $collection;
+    }
+
+    public function extraCategories()
+    {
+        return Category::whereIn('id', $this->category_ids ?? [])->get();
+    }
+
+    // Quan hệ tới flash_sale_items
+    public function flashSaleItems()
+    {
+        return $this->hasMany(FlashSaleItem::class, 'product_id');
+    }
+
+    // Quan hệ gián tiếp tới FlashSale
+    public function flashSales()
+    {
+        return $this->belongsToMany(FlashSale::class, 'flash_sale_items', 'product_id', 'flash_sale_id')->withPivot(['original_price', 'sale_price', 'stock', 'sold', 'max_per_user', 'is_active']);
+    }
+
+    // Flash Sale hiện tại (nếu có)
+    public function currentFlashSale()
+    {
+        return $this->belongsToMany(FlashSale::class, 'flash_sale_items', 'product_id', 'flash_sale_id')
+            ->withPivot(['original_price', 'sale_price', 'stock', 'sold', 'max_per_user', 'is_active'])
+            ->where('flash_sales.is_active', 1)
+            ->where('flash_sales.status', 'active')
+            ->whereRaw('flash_sales.start_time <= NOW()')
+            ->whereRaw('flash_sales.end_time >= NOW()')
+            ->where('flash_sale_items.is_active', 1)
+            ->limit(1);
+    }
+
+    /**
+     * Kiểm tra có Flash Sale hiện tại không (dùng cùng điều kiện với currentFlashSale)
+     */
+    public function hasCurrentFlashSale(): bool
+    {
+        return $this->currentFlashSale()->exists();
+    }
+
+    // Flash Sale Item hiện tại (nếu có)
+    public function currentFlashSaleItem()
+    {
+        return $this->hasOne(FlashSaleItem::class, 'product_id')
+            ->whereHas('flashSale', function ($query) {
+                $query->where('is_active', 1)->where('status', 'active')->where('start_time', '<=', now())->where('end_time', '>=', now());
+            })
+            ->where('is_active', 1)
+            ->latest('id');
+    }
+
+    // Kiểm tra sản phẩm có đang trong flash sale không
+    public function isInFlashSale(): bool
+    {
+        return $this->flashSaleItems()
+            ->where('is_active', 1)
+            ->whereHas('flashSale', function ($q) {
+                $q->where('is_active', 1)->whereRaw('start_time <= NOW()')->whereRaw('end_time >= NOW()');
+            })
+            ->exists();
+    }
+
+    // Lấy giá flash sale hiện tại
+    public function getFlashSalePriceAttribute()
+    {
+        $flashSaleItem = $this->currentFlashSaleItem;
+
+        return $flashSaleItem ? $flashSaleItem->sale_price : null;
+    }
+
+    // Lấy giá gốc trong flash sale
+    public function getFlashSaleOriginalPriceAttribute()
+    {
+        $flashSaleItem = $this->currentFlashSaleItem;
+
+        return $flashSaleItem ? $flashSaleItem->original_price : null;
+    }
+
+    public function resolveCartPrice(): float
+    {
+        $flashSaleItem = $this->currentFlashSaleItem ?? $this->currentFlashSaleItem()->first();
+
+        if ($flashSaleItem && $flashSaleItem->sale_price !== null) {
+            return (float) $flashSaleItem->sale_price;
+        }
+
+        if ($this->sale_price && $this->sale_price > 0 && $this->sale_price < $this->price) {
+            return (float) $this->sale_price;
+        }
+
+        return (float) $this->price;
+    }
+
+    public function flashSaleLimitPerUser(): ?int
+    {
+        $flashSaleItem = $this->currentFlashSaleItem ?? $this->currentFlashSaleItem()->first();
+
+        return $flashSaleItem?->max_per_user;
+    }
+
+    // Lấy thông tin flash sale hiện tại
+    public function getCurrentFlashSaleInfoAttribute()
+    {
+        $flashSaleItem = $this->currentFlashSaleItem;
+        if (! $flashSaleItem) {
+            return null;
+        }
+
+        return [
+            'flash_sale' => $flashSaleItem->flashSale,
+            'sale_price' => $flashSaleItem->sale_price,
+            'original_price' => $flashSaleItem->original_price,
+            'stock' => $flashSaleItem->stock,
+            'sold' => $flashSaleItem->sold,
+            'remaining' => $flashSaleItem->stock - $flashSaleItem->sold,
+            'max_per_user' => $flashSaleItem->max_per_user,
+            'discount_percent' => $flashSaleItem->original_price > 0 ? round((($flashSaleItem->original_price - $flashSaleItem->sale_price) / $flashSaleItem->original_price) * 100) : 0,
+        ];
+    }
+
+    // Scope: Sản phẩm đang trong flash sale
+    public function scopeInFlashSale($query)
+    {
+        return $query->whereHas('currentFlashSaleItem');
+    }
+
+    // Scope: Sản phẩm có flash sale sắp tới
+    public function scopeUpcomingFlashSale($query)
+    {
+        return $query->whereHas('flashSaleItems.flashSale', function ($q) {
+            $q->where('is_active', 1)->where('status', 'active')->where('start_time', '>', now());
+        });
+    }
+
+    public function newCollection(array $models = []): EloquentCollection
+    {
+        $collection = new EloquentCollection($models);
+        static::preloadImages($collection);
+
+        return $collection;
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            app(\App\Services\SitemapService::class)->clearCache();
+        });
+
+        static::deleted(function () {
+            app(\App\Services\SitemapService::class)->clearCache();
+        });
+    }
+}

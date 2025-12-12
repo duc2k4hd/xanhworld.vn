@@ -1,0 +1,166 @@
+AddDefaultCharset UTF-8
+
+AddType 'application/javascript; charset=UTF-8' .js
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+############################################
+# 1. REDIRECT SUBDOMAIN -> DOMAIN CHÍNH
+############################################
+RewriteCond %{HTTP_HOST} ^(www\.)?xanhworld\.haiphongtech\.vn$ [NC]
+RewriteRule ^(.*)$ https://xanhworld.vn/$1 [L,R=301]
+
+############################################
+# 2. FORCE HTTPS
+############################################
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+############################################
+# 3. WWW → NON-WWW
+############################################
+RewriteCond %{HTTP_HOST} ^www\.xanhworld\.vn$ [NC]
+RewriteRule ^ https://xanhworld.vn%{REQUEST_URI} [R=301,L]
+
+############################################
+# 4. BẢO MẬT
+############################################
+
+# CHỈ chặn nếu KHÔNG PHẢI Googlebot, Bingbot, Applebot, Yandex
+RewriteCond %{HTTP_USER_AGENT} !(googlebot|bingbot|yandex|applebot) [NC]
+RewriteCond %{HTTP_USER_AGENT} (wget|curl|ApacheBench) [NC]
+RewriteRule ^ - [F,L]
+
+# Tắt MultiViews
+<IfModule mod_negotiation.c>
+Options -MultiViews -Indexes
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(webp)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>
+
+############################################
+# 5. DỌN ĐƯỜNG DẪN
+############################################
+# Gộp nhiều dấu //
+RewriteCond %{REQUEST_URI} ^(.*)//+(.*)$
+RewriteRule ^ %1/%2 [R=301,L]
+
+# Remove trailing slash
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} (.+)/$
+RewriteRule ^ %1 [R=301,L]
+
+# Redirect index.php -> /
+RewriteCond %{THE_REQUEST} \s/index\.php[?\s] [NC]
+RewriteRule ^index\.php$ https://xanhworld.vn/ [R=301,L]
+
+# Redirect index.php/something
+RewriteCond %{THE_REQUEST} \s/index\.php/([^\s?]*) [NC]
+RewriteRule ^index\.php/(.*)$ https://xanhworld.vn/%1 [R=301,L]
+
+##############################################
+# 6. LITESPEED CACHE – FULL OPTIMIZED CONFIG #
+##############################################
+
+# <IfModule LiteSpeed>
+
+#     ########################################
+#     # 1) BẬT ENGINE CACHE
+#     ########################################
+#     CacheEngine on
+#     CacheLookup on
+
+#     ########################################
+#     # 2) CACHE TOÀN BỘ TRANG HTML (GET/HEAD)
+#     ########################################
+#     RewriteCond %{REQUEST_METHOD} ^GET|HEAD$ [NC]
+
+#     # Không cache admin + API + file upload
+#     RewriteCond %{REQUEST_URI} !^/admin [NC]
+#     RewriteCond %{REQUEST_URI} !^/api [NC]
+#     RewriteCond %{REQUEST_URI} !^/storage [NC]
+#     RewriteCond %{REQUEST_URI} !^/uploads [NC]
+
+#     # Không cache khi có query string (search, filter…)
+#     RewriteCond %{QUERY_STRING} ^$ 
+
+#     # Cache trang Laravel
+#     RewriteRule .* - [E=cache-control:max-age=3600]
+
+#     ########################################
+#     # 3) CACHE RIÊNG GOOGLEBOT (TỐC ĐỘ INDEX)
+#     ########################################
+#     RewriteCond %{HTTP_USER_AGENT} (googlebot|bingbot|duckduckbot|yandex) [NC]
+#     RewriteRule .* - [E=cache-control:max-age=86400]
+
+#     ########################################
+#     # 4) CACHE CHO MOBILE / DESKTOP KHÁC NHAU
+#     ########################################
+#     CacheVary on
+#     RewriteRule .* - [E=cache-vary:User-Agent]
+
+#     ########################################
+#     # 5) KHÔNG TỐI ƯU JSON-LD (TRÁNH LỖI SCHEMA)
+#     ########################################
+#     RewriteRule .* - [E=no-optimize:1]
+
+#     ########################################
+#     # 6) BẬT CACHE CHO TÀI NGUYÊN TĨNH
+#     ########################################
+#     <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|css|js|ico|woff|woff2|ttf)$">
+#         Header set Cache-Control "max-age=31536000, public"
+#     </FilesMatch>
+
+# </IfModule>
+
+##############################################
+# 🔥 HẾT PHẦN LITESPEED CACHE
+##############################################
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # 1 năm cho hình ảnh
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/avif "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+
+    # 1 năm cho font
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType font/otf "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType application/vnd.ms-fontobject "access plus 1 year"
+
+    # 1 năm cho CSS + JS
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType application/x-javascript "access plus 1 year"
+
+    # 1 năm cho PDF / media
+    ExpiresByType application/pdf "access plus 1 year"
+    ExpiresByType video/mp4 "access plus 1 year"
+    ExpiresByType video/webm "access plus 1 year"
+</IfModule>
+
+############################################
+# 7. CHO PHÉP LARAVEL XỬ LÝ ROUTE
+############################################
+RewriteCond %{HTTP:Authorization} . 
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]
+
+</IfModule>
