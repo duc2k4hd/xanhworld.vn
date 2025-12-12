@@ -2,6 +2,10 @@
 
 @section('title', 'So sánh sản phẩm')
 
+@section('head')
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
+@endsection
+
 @section('content')
 <div class="container py-5">
     <h2 class="mb-4">So sánh sản phẩm</h2>

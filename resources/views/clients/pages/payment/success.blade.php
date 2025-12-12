@@ -12,6 +12,7 @@
 @section('title', 'Thanh toán thành công - ' . ($settings->site_name ?? 'XWorld Garden'))
 
 @section('head')
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
     <style>
         .payment-success-page {
             background: #f4f7f5;

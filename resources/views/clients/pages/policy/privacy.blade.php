@@ -3,6 +3,7 @@
 @section('title', 'Chính sách bảo mật - ' . ($settings->site_name ?? $settings->subname ?? 'XWorld'))
 
 @section('head')
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
     <meta name="description"
           content="Chính sách bảo mật {{ $settings->site_name ?? 'XWorld' }} - cách thu thập, sử dụng và bảo vệ dữ liệu cá nhân của khách hàng.">
     <link rel="canonical" href="{{ url()->current() }}">

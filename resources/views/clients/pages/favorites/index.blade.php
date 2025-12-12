@@ -4,6 +4,7 @@
 
 @section('head')
     <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
 @endsection
 
 @section('content')

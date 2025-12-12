@@ -3,6 +3,8 @@
 @section('title', 'Liên hệ ' .($settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD'). ' - Giải pháp cây cảnh trọn gói | '. $settings->site_name)
 
 @section('head')
+<link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
+
 <meta name="robots" content="index,follow" />
 
 <meta name="description" content="{{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} tư vấn, cung cấp và chăm sóc cây phong thủy, cây để bàn, cây trang trí nội thất cho gia đình và doanh nghiệp." />

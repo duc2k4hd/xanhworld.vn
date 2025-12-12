@@ -2,6 +2,10 @@
 
 @section('title', 'Thanh toán không thành công')
 
+@section('head')
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
+@endsection
+
 @section('content')
 <div class="container" style="text-align: center; padding: 50px 0;">
     <h2>Thanh toán không thành công!</h2>

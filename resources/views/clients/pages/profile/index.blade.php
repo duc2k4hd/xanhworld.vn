@@ -3,6 +3,7 @@
 @section('title', 'Thông tin tài khoản - '.($settings->site_name ?? $settings->subname ?? 'XWorld'))
 
 @section('head')
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
     <meta name="description" content="Quản lý thông tin tài khoản của bạn tại {{ $settings->site_name ?? 'XWorld' }}">
     <meta name="robots" content="noindex, nofollow">
 @endsection

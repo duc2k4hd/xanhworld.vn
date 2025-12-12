@@ -4,6 +4,7 @@
 
 @section('head')
 
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
     <meta name="description"
 
           content="Chính sách đổi trả & bảo hành {{ $settings->site_name ?? 'XWorld' }} - điều kiện đổi hàng, thời gian áp dụng và cách liên hệ hỗ trợ nhanh chóng cho cây cảnh.">

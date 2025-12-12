@@ -3,6 +3,7 @@
 @section('title', '503 - Bảo Trì Hệ Thống | ' . ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD'))
 
 @section('head')
+<link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
 <meta name="robots" content="noindex, nofollow" />
 <style>
     :root {

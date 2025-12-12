@@ -3,6 +3,7 @@
 @section('title', 'Chính sách bán hàng - ' . ($settings->site_name ?? $settings->subname ?? 'XWorld'))
 
 @section('head')
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
 
     <meta name="description"
 

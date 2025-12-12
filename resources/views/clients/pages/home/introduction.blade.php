@@ -4,6 +4,7 @@
 
 @section('head')
     <meta name="robots" content="index,follow" />
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
     <meta name="description"
         content="{{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} dẫn đầu giải pháp cây phong thủy, cây để bàn, cây trang trí nội thất và cảnh quan cho doanh nghiệp Việt." />
     <meta property="og:title" content="Giới thiệu {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} - Giải pháp cây xanh trọn gói" />
