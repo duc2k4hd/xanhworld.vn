@@ -99,66 +99,6 @@
     </div>
 </div>
 
-@push('styles')
-    <style>
-        .media-picker-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-            min-height: 360px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .media-picker-card {
-            background: #fff;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all .15s ease;
-            position: relative;
-        }
-        .media-picker-card:hover {
-            border-color: #3b82f6;
-            box-shadow: 0 4px 12px rgba(59,130,246,0.15);
-        }
-        .media-picker-card.selected {
-            border-color: #3b82f6;
-            background: #eff6ff;
-        }
-        .media-picker-thumb {
-            width: 100%;
-            padding-bottom: 100%;
-            position: relative;
-            background: #f1f5f9;
-        }
-        .media-picker-thumb img {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .media-picker-meta {
-            padding: 8px 10px;
-        }
-        .media-picker-name {
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .media-picker-size {
-            font-size: 11px;
-            color: #64748b;
-        }
-        .media-picker-toolbar input {
-            min-width: 220px;
-        }
-    </style>
-@endpush
-
 @push('scripts')
     <script>
         (() => {
@@ -436,6 +376,9 @@
                     title: titleEl.value || '',
                     scope: state.scope
                 };
+                const btnText = updateMetaBtn.textContent;
+                updateMetaBtn.disabled = true;
+                updateMetaBtn.textContent = 'Đang lưu...';
                 fetch(`{{ route('admin.media.update-meta') }}`, {
                     method: 'POST',
                     headers: {
@@ -443,8 +386,24 @@
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: JSON.stringify(body)
-                }).then(r => r.json()).then(() => {
-                    loadPage();
+                }).then(r => r.json()).then(data => {
+                    if (data.success && data.data) {
+                        // Cập nhật state.current với data mới từ database
+                        if (state.current) {
+                            state.current.alt = data.data.alt || '';
+                            state.current.title = data.data.title || '';
+                        }
+                        // Cập nhật preview với data mới
+                        updatePreview(state.current);
+                        // Reload grid để hiển thị alt/title mới
+                        loadPage();
+                    }
+                }).catch(err => {
+                    console.error('Update meta error:', err);
+                    alert('Không thể lưu alt/title. Vui lòng thử lại.');
+                }).finally(() => {
+                    updateMetaBtn.disabled = false;
+                    updateMetaBtn.textContent = btnText;
                 });
             });
 

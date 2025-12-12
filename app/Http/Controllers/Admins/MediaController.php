@@ -408,16 +408,36 @@ class MediaController extends Controller
         ]);
 
         $path = $request->string('path')->value();
+        // Lấy filename từ path (có thể là full URL hoặc relative path)
         $filename = basename($path);
+        
+        // Nếu path chứa URL đầy đủ, chỉ lấy tên file
+        if (str_contains($filename, '?')) {
+            $filename = explode('?', $filename)[0];
+        }
 
-        $updated = Image::where('url', $filename)->update([
-            'alt' => $request->input('alt'),
-            'title' => $request->input('title'),
-        ]);
+        // Tìm hoặc tạo Image record
+        $image = Image::firstOrNew(['url' => $filename]);
+        
+        // Nếu là record mới, set các giá trị mặc định
+        if (! $image->exists) {
+            $image->notes = null;
+            $image->is_primary = false;
+            $image->order = 0;
+        }
+        
+        // Cập nhật alt và title
+        $image->alt = $request->input('alt', '');
+        $image->title = $request->input('title', '');
+        $image->save();
 
         return response()->json([
             'success' => true,
-            'updated' => $updated,
+            'data' => [
+                'url' => $image->url,
+                'alt' => $image->alt,
+                'title' => $image->title,
+            ],
         ]);
     }
 

@@ -445,6 +445,67 @@
             }
         }
     </style>
+    <style>
+        .media-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+            min-height: 360px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .media-picker-card {
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all .15s ease;
+            position: relative;
+        }
+        .media-picker-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.15);
+        }
+        .media-picker-card.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        .media-picker-thumb {
+            width: 100%;
+            height: 100px;
+            position: relative;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .media-picker-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .media-picker-meta {
+            padding: 6px 8px;
+        }
+        .media-picker-name {
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+        .media-picker-size {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .media-picker-toolbar input {
+            min-width: 220px;
+        }
+    </style>
     @stack('head')
 </head>
 <body>
