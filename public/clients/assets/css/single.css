@@ -1268,6 +1268,10 @@
         flex-direction: column;
         gap: 10px;
     }
+
+    .xanhworld_single_info_images, .xanhworld_single_info_specifications, .xanhworld_single_info_policy {
+        position: relative;
+    }
 }
 
 /* Item */

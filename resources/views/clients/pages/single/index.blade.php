@@ -146,6 +146,22 @@
                             @endforeach
                         @endif
                     </div>
+
+                    @php
+                        $item = $product->isInFlashSale() ? $product->currentFlashSaleItem()->first() : $product;
+
+                        $original = $item->original_price ?? ($item->price ?? 0);
+                        $sale = $item->sale_price ?? 0;
+                        // dd($product->currentFlashSale()->first())
+                        $availableStock = max(0, (int) ($quantityProductDetail ?? 0));
+                        $isOutOfStock = $availableStock <= 0;
+                    @endphp
+
+                    {{-- Tính % giảm --}}
+                    <span class="xanhworld_single_info_specifications_sale">
+                        -{{ round((($original - $sale) / $original) * 100) }}%
+                    </span>
+                    
                     @php
                         $overlayImages = ($product->images && $product->images->count() > 0)
                             ? $product->images
@@ -193,21 +209,6 @@
                         </form>
                     </div>
                 </div>
-
-                @php
-                    $item = $product->isInFlashSale() ? $product->currentFlashSaleItem()->first() : $product;
-
-                    $original = $item->original_price ?? ($item->price ?? 0);
-                    $sale = $item->sale_price ?? 0;
-                    // dd($product->currentFlashSale()->first())
-                    $availableStock = max(0, (int) ($quantityProductDetail ?? 0));
-                    $isOutOfStock = $availableStock <= 0;
-                @endphp
-
-                {{-- Tính % giảm --}}
-                <span class="xanhworld_single_info_specifications_sale">
-                    -{{ round((($original - $sale) / $original) * 100) }}%
-                </span>
 
                 <div class="xanhworld_single_info_specifications">
                     @if ($product->isInFlashSale())
