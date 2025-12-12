@@ -204,6 +204,11 @@
                     $isOutOfStock = $availableStock <= 0;
                 @endphp
 
+                {{-- Tính % giảm --}}
+                <span class="xanhworld_single_info_specifications_sale">
+                    -{{ round((($original - $sale) / $original) * 100) }}%
+                </span>
+
                 <div class="xanhworld_single_info_specifications">
                     @if ($product->isInFlashSale())
                         <script>
@@ -306,11 +311,6 @@
                                 <span class="xanhworld_single_info_specifications_old_price"
                                     style="text-decoration:line-through;">
                                     {{ number_format($original, 0, ',', '.') }}₫
-                                </span>
-
-                                {{-- Tính % giảm --}}
-                                <span class="xanhworld_single_info_specifications_sale">
-                                    -{{ round((($original - $sale) / $original) * 100) }}%
                                 </span>
                             @else
                                 {{-- Không có sale, chỉ hiển thị giá gốc --}}
