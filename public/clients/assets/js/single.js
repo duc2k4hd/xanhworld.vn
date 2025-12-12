@@ -990,10 +990,16 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
+        console.log(document
+            .querySelectorAll(
+                ".xanhworld_single_info_images_main_overlay_image"
+            ));
+        
+
     // === OPEN OVERLAY ===
     document
         .querySelectorAll(
-            ".xanhworld_single_info_images_main_overlay_image img"
+            ".xanhworld_single_info_images_main_overlay_image"
         )
         .forEach((xanhworldImg, i) => {
             xanhworldImg.addEventListener("click", () => {

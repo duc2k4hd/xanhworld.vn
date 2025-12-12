@@ -55,13 +55,12 @@
     position: sticky;
     height: fit-content;
     top: 0;
-    background-color: white;
 }
 
 .xanhworld_single_info_images_main img {
     width: 100%;
     border-radius: 12px;
-    object-fit: contain;
+    object-fit: cover;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
@@ -291,7 +290,6 @@
     height: fit-content;
     position: sticky;
     top: 0;
-    background-color: white;
 }
 
 .xanhworld_single_info_specifications_time {
@@ -430,8 +428,8 @@
     line-height: 60px;
     background-color: var(--primary-color);
     color: white !important;
-    top: 5px;
-    left: 5px;
+    top: -20px;
+    left: -20px;
     text-align: center;
     color: #d10024;
     font-weight: 600;
@@ -534,6 +532,19 @@
     font-weight: 500;
     text-transform: uppercase;
     color: var(--primary-color);
+}
+
+.xanhworld_single_info_specifications_title_hot {
+    background: #d10024;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-right: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 5px;
 }
 
 .xanhworld_single_info_specifications_price {
@@ -738,11 +749,9 @@
     font-family: Arial, sans-serif !important;
     border: 1px dashed var(--primary-color) !important;
     padding: 15px !important;
-    background-color: #fff !important;
     height: max-content !important;
     position: sticky;
     top: 0;
-    background-color: white;
 }
 
 .xanhworld_single_info_policy_title {

@@ -196,7 +196,7 @@ const sliderTrack =
         updateTimer();
     }
 
-    handleFlashSale();
+    // handleFlashSale();
 
 })();
 

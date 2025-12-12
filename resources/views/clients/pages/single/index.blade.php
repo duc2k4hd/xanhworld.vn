@@ -121,6 +121,28 @@
                             class="xanhworld_single_info_images_main_image"
                             data-default-src="{{ asset('clients/assets/img/clothes/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}">
                     </div>
+
+                    @php
+                        $item = $product->isInFlashSale() ? $product->currentFlashSaleItem()->first() : $product;
+
+                        $original = $item->original_price ?? ($item->price ?? 0);
+                        $sale = $item->sale_price ?? 0;
+                        // dd($product->currentFlashSale()->first())
+                        $availableStock = max(0, (int) ($quantityProductDetail ?? 0));
+                        $isOutOfStock = $availableStock <= 0;
+                    @endphp
+
+                    {{-- Tính % giảm --}}
+                    <span class="xanhworld_single_info_specifications_sale">
+                        -{{ round((($original - $sale) / $original) * 100) }}%
+                    </span>
+                    
+                    @php
+                        $overlayImages = ($product->images && $product->images->count() > 0)
+                            ? $product->images
+                            : collect([$product->primaryImage]);
+                    @endphp
+                    
                     <div class="xanhworld_single_info_images_gallery">
                         @if ($product->images && $product->images->count() > 0)
                             @foreach ($product->images as $img)
@@ -146,43 +168,7 @@
                             @endforeach
                         @endif
                     </div>
-
-                    @php
-                        $item = $product->isInFlashSale() ? $product->currentFlashSaleItem()->first() : $product;
-
-                        $original = $item->original_price ?? ($item->price ?? 0);
-                        $sale = $item->sale_price ?? 0;
-                        // dd($product->currentFlashSale()->first())
-                        $availableStock = max(0, (int) ($quantityProductDetail ?? 0));
-                        $isOutOfStock = $availableStock <= 0;
-                    @endphp
-
-                    {{-- Tính % giảm --}}
-                    <span class="xanhworld_single_info_specifications_sale">
-                        -{{ round((($original - $sale) / $original) * 100) }}%
-                    </span>
                     
-                    @php
-                        $overlayImages = ($product->images && $product->images->count() > 0)
-                            ? $product->images
-                            : collect([$product->primaryImage]);
-                    @endphp
-                    <div class="xanhworld_single_info_images_main_overlay">
-                        <div class="xanhworld_single_info_images_main_overlay_images">
-                            @forelse ($overlayImages as $img)
-                                <div class="xanhworld_single_info_images_main_overlay_image">
-                                    <img src="{{ asset('clients/assets/img/clothes/' . ($img->url ?? 'no-image.webp')) }}"
-                                         alt="{{ $img->alt ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}"
-                                         loading="lazy">
-                                </div>
-                            @empty
-                                <div class="xanhworld_single_info_images_main_overlay_image">
-                                    <img src="{{ asset('clients/assets/img/clothes/no-image.webp') }}"
-                                         alt="{{ $product->name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}">
-                                </div>
-                            @endforelse
-                        </div>
-                    </div>
                     <div class="xanhworld_single_info_images_support">
                         <form class="xanhworld_single_info_images_support_form" id="phone-request-form" method="POST">
                             @csrf
@@ -253,6 +239,7 @@
                     @endif
 
                     <h1 class="xanhworld_single_info_specifications_title">
+                        <span class="xanhworld_single_info_specifications_title_hot" aria-hidden="true">HOT</span>
                         {{ $product->name ?? 'Sản phẩm thời trang chính hãng - NOBI FASHION' }}</h1>
 
                     <div class="xanhworld_single_info_specifications_brand">
@@ -627,6 +614,22 @@
 
                 </div>
             </div>
+            <div class="xanhworld_single_info_images_main_overlay">
+                <div class="xanhworld_single_info_images_main_overlay_images">
+                    @forelse ($overlayImages as $img)
+                        <div class="xanhworld_single_info_images_main_overlay_image">
+                            <img src="{{ asset('clients/assets/img/clothes/' . ($img->url ?? 'no-image.webp')) }}"
+                                 alt="{{ $img->alt ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}"
+                                 loading="lazy">
+                        </div>
+                    @empty
+                        <div class="xanhworld_single_info_images_main_overlay_image">
+                            <img src="{{ asset('clients/assets/img/clothes/no-image.webp') }}"
+                                 alt="{{ $product->name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}">
+                        </div>
+                    @endforelse
+                </div>
+            </div>
             <div id="xanhworld_main_tab_guide" style="display: flex; align-items: center; justify-content: center; margin: 1rem 0;">
                 <hr style="flex: 1; height: 2px; background-color: #e6525e; border: none; margin: 0;">
                 <span style="padding: 0 12px; color: #f74a4a; font-weight: bold;">Mô tả sản phẩm</span>
@@ -793,6 +796,4 @@
         <span style="padding: 0 12px; color: #f74a4a; font-weight: bold; text-align: center;">Đăng ký Email nhận thông báo từ {{ $settings->subname ?? '' }}</span>
         <hr style="flex: 1; height: 2px; background-color: #e6525e; border: none; margin: 0;">
     </div>
-
-    @include('clients.pages.single.images')
 @endsection
