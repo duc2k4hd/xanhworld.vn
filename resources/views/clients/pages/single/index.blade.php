@@ -588,30 +588,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Popup overlay -->
-                    @if($vouchers->isNotEmpty())
-                        <div id="voucherPopup" class="xanhworld_main_show_popup_voucher_overlay">
-                            <div class="xanhworld_main_show_popup_voucher_box">
-                                <button class="xanhworld_main_show_popup_voucher_close">&times;</button>
-                                <h2>🎉 Chúc mừng bạn!</h2>
-                                <img width="100" src="{{ asset('clients/assets/img/other/party.gif') }}"
-                                    alt="Voucher NOBI FASHION">
-                                <p>Bạn đã nhận được voucher đặc biệt từ shop:</p>
-                                @foreach ($vouchers as $voucher)
-                                    <div class="xanhworld_main_show_popup_voucher_code">{{ $voucher->code }}</div>
-                                @endforeach
-                                <p>Dùng ngay để được ưu đãi hấp dẫn 💖</p>
-                            </div>
-                        </div>
-                    @else
-                        <div id="voucherPopup" class="xanhworld_main_show_popup_voucher_overlay">
-                            <div class="xanhworld_main_show_popup_voucher_box">
-                                <button class="xanhworld_main_show_popup_voucher_close">&times;</button>
-                                {{-- <h2>🎉 Chúc mừng bạn!</h2> --}}
-                            </div>
-                        </div>
-                    @endif
-
                 </div>
             </div>
             <div class="xanhworld_single_info_images_main_overlay">
@@ -782,6 +758,30 @@
             </div>
         </section>
     </main>
+
+    <!-- Popup overlay -->
+    @if($vouchers->isNotEmpty())
+        <div id="voucherPopup" class="xanhworld_main_show_popup_voucher_overlay">
+            <div class="xanhworld_main_show_popup_voucher_box">
+                <button class="xanhworld_main_show_popup_voucher_close">&times;</button>
+                <h2>🎉 Chúc mừng bạn!</h2>
+                <img width="100" src="{{ asset('clients/assets/img/other/party.gif') }}"
+                    alt="Voucher NOBI FASHION">
+                <p>Bạn đã nhận được voucher đặc biệt từ shop:</p>
+                @foreach ($vouchers as $voucher)
+                    <div class="xanhworld_main_show_popup_voucher_code">{{ $voucher->code }}</div>
+                @endforeach
+                <p>Dùng ngay để được ưu đãi hấp dẫn 💖</p>
+            </div>
+        </div>
+    @else
+        <div id="voucherPopup" class="xanhworld_main_show_popup_voucher_overlay">
+            <div class="xanhworld_main_show_popup_voucher_box">
+                <button class="xanhworld_main_show_popup_voucher_close">&times;</button>
+                {{-- <h2>🎉 Chúc mừng bạn!</h2> --}}
+            </div>
+        </div>
+    @endif
 
     <div style="display: flex; align-items: center; justify-content: center; margin: 1rem 0;">
         <hr style="flex: 1; height: 2px; background-color: #e6525e; border: none; margin: 0;">
