@@ -63,7 +63,7 @@ Route::prefix('thanh-toan')->name('client.payment.')->group(function () {
     Route::get('/huy-bo', [ClientPaymentController::class, 'cancel'])->name('cancel');
 });
 
-Route::get('/resize', [ClientImageController::class, 'resize'])->name('client.image.resize');
+Route::get('/resize', [ClientImageController::class, 'resize'])->name('client.image.resize'); // 10 requests per minute
 
 Route::get('/yeu-thich', function () {
     $accountId = auth('web')->id();
