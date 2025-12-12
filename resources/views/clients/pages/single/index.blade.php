@@ -12,7 +12,7 @@
 @endpush
 
 @push('js_page')
-    <script src="{{ asset('clients/assets/js/single.js') }}"></script>
+    <script defer src="{{ asset('clients/assets/js/single.js') }}"></script>
 @endpush
 
 @section('head')
