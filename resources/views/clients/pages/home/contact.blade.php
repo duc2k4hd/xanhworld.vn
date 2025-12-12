@@ -1,15 +1,15 @@
 @extends('clients.layouts.master')
 
-@section('title', 'Liên hệ XWorld Garden - Giải pháp cây cảnh trọn gói | '. $settings->site_name)
+@section('title', 'Liên hệ ' .($settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD'). ' - Giải pháp cây cảnh trọn gói | '. $settings->site_name)
 
 @section('head')
 <meta name="robots" content="index,follow" />
 
-<meta name="description" content="XWorld Garden tư vấn, cung cấp và chăm sóc cây phong thủy, cây để bàn, cây trang trí nội thất cho gia đình và doanh nghiệp." />
+<meta name="description" content="{{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} tư vấn, cung cấp và chăm sóc cây phong thủy, cây để bàn, cây trang trí nội thất cho gia đình và doanh nghiệp." />
 
-<meta property="og:title" content="Liên hệ XWorld Garden - Giải pháp cây cảnh trọn gói" />
+<meta property="og:title" content="Liên hệ {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} - Giải pháp cây cảnh trọn gói" />
 
-<meta property="og:description" content="Đặt lịch với chuyên gia XWorld Garden để nhận giải pháp cây xanh phù hợp không gian làm việc và nhà ở." />
+<meta property="og:description" content="Đặt lịch với chuyên gia {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} để nhận giải pháp cây xanh phù hợp không gian làm việc và nhà ở." />
 
 <meta property="og:image" content="{{ asset('clients/assets/img/business/' . ($settings->site_banner ?? $settings->site_logo ?? 'no-image.webp')) }}" />
 
@@ -22,7 +22,7 @@
 @section('content')
 <section class="garden-hero contact-block">
     <div class="garden-hero__text">
-        <p class="garden-eyebrow">XWorld Garden Support</p>
+        <p class="garden-eyebrow">{{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} Support</p>
         <h1>Đồng hành kiến tạo không gian xanh</h1>
         <p>
             Chúng tôi thiết kế, cung cấp và bảo dưỡng cây phong thủy, cây để bàn,
@@ -52,7 +52,7 @@
         <div class="card-badge">Gói doanh nghiệp</div>
         <h3>Bảo dưỡng cây định kỳ</h3>
         <p>
-            Đội ngũ kỹ thuật viên XWorld Garden chăm sóc tận nơi: tưới nước, vệ sinh lá,
+            Đội ngũ kỹ thuật viên {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} chăm sóc tận nơi: tưới nước, vệ sinh lá,
             bổ sung dinh dưỡng, thay thế cây miễn phí khi suy yếu.
         </p>
                 <ul>
@@ -67,7 +67,7 @@
         <div class="contact-info">
         <article class="info-card">
             <header>
-                <span>Trung tâm XWorld Garden</span>
+                <span>Trung tâm {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}</span>
                 <small>Hoạt động 8h00 – 21h00</small>
             </header>
             <h4>{{ $settings->contact_address ?? 'Đang cập nhật địa chỉ' }}</h4>
@@ -115,7 +115,7 @@
             <p class="eyebrow">Dịch vụ nổi bật</p>
             <h4>Thiết kế & thi công cảnh quan</h4>
             <p>
-                XWorld Garden phụ trách toàn bộ quy trình: khảo sát, phối cảnh 3D, thi công,
+                {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} phụ trách toàn bộ quy trình: khảo sát, phối cảnh 3D, thi công,
                 bảo hành cây xanh cho văn phòng, nhà hàng, resort và khu dân cư.
             </p>
             <ul>
@@ -130,7 +130,7 @@
         <div class="form-header">
             <p class="eyebrow">Đăng ký tư vấn</p>
             <h3>Chia sẻ nhu cầu của bạn</h3>
-            <p>Đội ngũ XWorld Garden sẽ liên hệ trong vòng 24 giờ.</p>
+            <p>Đội ngũ {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} sẽ liên hệ trong vòng 24 giờ.</p>
                 </div>
 
         @if (session('success'))
@@ -242,7 +242,7 @@
 
 <section class="garden-map contact-block">
         <div class="map-info">
-        <p class="eyebrow">Vườn mẫu XWorld Garden</p>
+        <p class="eyebrow">Vườn mẫu {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}</p>
         <h3>Trải nghiệm hơn 200+ giống cây</h3>
         <p>
             Đặt lịch trực tiếp để được chuyên gia phong thủy hướng dẫn

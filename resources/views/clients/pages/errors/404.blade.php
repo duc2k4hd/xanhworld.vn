@@ -6,6 +6,8 @@
 
 @section('head')
 
+<link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
+
 <meta name="theme-color" content="#ffffff">
 
 <meta name="robots" content="nofollow, noindex" />
