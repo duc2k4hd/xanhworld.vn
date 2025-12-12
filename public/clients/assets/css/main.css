@@ -2054,7 +2054,6 @@ input:disabled {
     text-align: center;
     margin-top: 1rem;
     font-size: 0.85rem;
-    color: white;
 }
 
 .xanhworld_footer_bottom a {
@@ -2062,10 +2061,6 @@ input:disabled {
     font-weight: 900;
     text-decoration: none;
     transition: color 0.3s ease;
-}
-
-.xanhworld_footer_bottom a:hover {
-    color: #fff;
 }
 
 @media (max-width: 1025px) {

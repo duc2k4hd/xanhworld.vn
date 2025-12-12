@@ -210,8 +210,6 @@
     </div>
     <hr>
     <div class="xanhworld_footer_bottom">
-        <p>{!! Blade::render($settings->copyright ?? '' ) !!}</p>
-        <p>Thiết kế bởi <a href="https://www.facebook.com/ducnobi2004">Đức Nobi ❤️</a></p>
-        <p>MST: {{ $settings->site_tax_code ?? '' }}</p>
+        {!! Blade::render($settings->copyright ?? '' ) !!}
     </div>
 </footer>
