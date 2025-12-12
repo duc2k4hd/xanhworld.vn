@@ -689,14 +689,6 @@
                                     // Nếu không có relative_path, fallback về filename
                                     const pathToSave = file.relative_path || file.filename || file.name || '';
                                     
-                                    // Debug: log để kiểm tra
-                                    console.log('Selected file:', {
-                                        url: file.url,
-                                        filename: file.filename,
-                                        relative_path: file.relative_path,
-                                        pathToSave: pathToSave
-                                    });
-                                    
                                     // Set giá trị vào hidden input existing_path
                                     targetInput.value = pathToSave;
                                     

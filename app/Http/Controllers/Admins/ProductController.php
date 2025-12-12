@@ -406,14 +406,6 @@ class ProductController extends Controller
                         $relativeFromClothes = $filename;
                     }
                     
-                    // Debug log (có thể xóa sau)
-                    \Log::debug('Image path calculation', [
-                        'filePath' => $filePath,
-                        'rootPath' => $rootPath,
-                        'relative' => $relative,
-                        'relativeFromClothes' => $relativeFromClothes,
-                        'filename' => $filename,
-                    ]);
                 } else {
                     // Nếu không có folder, dùng tên file
                     $relativeFromClothes = $filename;
