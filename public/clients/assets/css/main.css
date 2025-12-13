@@ -2932,9 +2932,14 @@ input:disabled {
     }
 
     .xanhworld_shop_products_filter {
+        position: unset;
         height: 58px;
         overflow: hidden !important;
         transition: all 0.3s ease !important;
+    }
+
+    .xanhworld_shop_products_content {
+        position: unset;
     }
 
     .xanhworld_shop_products_filter_height_full {
