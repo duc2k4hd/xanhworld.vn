@@ -128,24 +128,36 @@
                                                 </div>
                                             </td>
 
-                                            <!-- Đơn giá -->
+                                            <!-- Đơn giá và Số lượng cùng hàng -->
                                             <td class="xanhworld_cart_item_price" style="text-align: center;">
-                                                <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                                                    @if($isFlashSale)
-                                                        <span style="color: #dc3545; font-weight: bold; font-size: 14px;">
-                                                            {{ number_format($unitPrice, 0, ',', '.') }}₫
-                                                        </span>
-                                                        <span style="font-size: 11px; color: #dc3545; background: #ffe6e6; padding: 2px 6px; border-radius: 3px;">
-                                                            🔥 Flash Sale
-                                                        </span>
-                                                    @else
-                                                        <span>{{ number_format($unitPrice, 0, ',', '.') }}₫</span>
-                                                    @endif
+                                                <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px;">
+                                                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
+                                                        @if($isFlashSale)
+                                                            <span style="color: #dc3545; font-weight: bold; font-size: 15px;">
+                                                                {{ number_format($unitPrice, 0, ',', '.') }}₫
+                                                            </span>
+                                                            <span style="font-size: 10px; color: #dc3545; background: #ffe6e6; padding: 1px 4px; border-radius: 3px;">
+                                                                🔥 Flash Sale
+                                                            </span>
+                                                        @else
+                                                            <span style="font-size: 15px; font-weight: 700; color: #e74c3c;">{{ number_format($unitPrice, 0, ',', '.') }}₫</span>
+                                                        @endif
+                                                    </div>
+                                                    <div class="xanhworld_cart_item_quantity_wrapper">
+                                                        <button type="button" class="xanhworld_cart_item_quantity_decrease" data-item-id="{{ $item->id }}">-</button>
+                                                        <input data-max-quantity="{{ ! is_null($stockQuantity ?? $maxPerUser) ? $inputMax : '' }}"
+                                                            type="number" class="xanhworld_cart_item_quantity_input"
+                                                            name="items[{{ $item->id }}]"
+                                                            value="{{ $quantity }}" min="0" step="1" form="cart-update-form"
+                                                            @if(! is_null($stockQuantity ?? $maxPerUser)) max="{{ $inputMax }}" @endif
+                                                            data-item-id="{{ $item->id }}" />
+                                                        <button type="button" class="xanhworld_cart_item_quantity_increase" data-item-id="{{ $item->id }}">+</button>
+                                                    </div>
                                                 </div>
                                             </td>
 
-                                            <!-- Số lượng -->
-                                            <td class="xanhworld_cart_item_quantity" style="text-align: center;">
+                                            <!-- Số lượng - Ẩn trên mobile vì đã gộp với giá -->
+                                            <td class="xanhworld_cart_item_quantity" style="text-align: center; display: none;">
                                                 <div class="xanhworld_cart_item_quantity_wrapper">
                                                     <button type="button" class="xanhworld_cart_item_quantity_decrease" data-item-id="{{ $item->id }}">-</button>
                                                     <input data-max-quantity="{{ ! is_null($stockQuantity ?? $maxPerUser) ? $inputMax : '' }}"
