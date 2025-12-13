@@ -107,7 +107,18 @@ Route::middleware(['auth:web'])->group(function () {
     Route::put('/tai-khoan', [ClientProfileController::class, 'update'])->name('client.profile.update');
     Route::post('/tai-khoan/doi-mat-khau', [ClientProfileController::class, 'changePassword'])->name('client.profile.change-password');
 
+    // Orders
+    Route::prefix('don-hang')->name('client.order.')->group(function () {
+        Route::get('/', [ClientOrderController::class, 'index'])->name('index');
+        Route::get('/{code}', [ClientOrderController::class, 'show'])->name('show');
+        Route::post('/{code}/huy', [ClientOrderController::class, 'cancel'])->name('cancel');
+        Route::post('/{code}/mua-lai', [ClientOrderController::class, 'reorder'])->name('reorder');
+        Route::get('/{code}/hoa-don', [ClientOrderController::class, 'invoice'])->name('invoice');
+    });
+
     Route::get('/tai-khoan/don-hang/{code}', [ClientOrderController::class, 'show'])->name('client.orders.show');
+    
+    Route::get('/tra-cuu-van-don', [ClientOrderController::class, 'track'])->name('client.order.track');
 
     // Notifications
     Route::prefix('thong-bao')->name('client.notifications.')->group(function () {

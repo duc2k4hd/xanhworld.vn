@@ -3,7 +3,6 @@
 @section('title', $metaTitle ?? 'Sitemap - ' . config('app.name'))
 
 @section('head')
-    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
     <meta name="description" content="{{ $metaDescription ?? 'Sitemap của ' . config('app.name') . ' - Tìm kiếm và khám phá tất cả các trang, sản phẩm, bài viết và danh mục trên website của chúng tôi.' }}">
     <meta name="keywords" content="{{ $metaKeywords ?? 'sitemap, ' . config('app.name') . ', bản đồ trang web, tìm kiếm nội dung' }}">
     <meta name="author" content="{{ $siteName ?? config('app.name') }}">

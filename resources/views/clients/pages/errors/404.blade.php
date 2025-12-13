@@ -6,7 +6,7 @@
 
 @section('head')
 
-<link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
+<link rel="stylesheet" href="{{ asset('clients/assets/css/404.css') }}">
 
 <meta name="theme-color" content="#ffffff">
 
@@ -646,6 +646,9 @@
 
 @endsection
 
+@push('js_page')
+    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
 
 @section('content')
 

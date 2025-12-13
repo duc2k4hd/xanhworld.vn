@@ -3,7 +3,6 @@
 @section('title', '503 - Bảo Trì Hệ Thống | ' . ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD'))
 
 @section('head')
-<link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
 <meta name="robots" content="noindex, nofollow" />
 <style>
     :root {
@@ -128,6 +127,10 @@
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 @endsection
+
+@push('js_page')
+    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
 
 @section('content')
 <div class="maintenance-container">

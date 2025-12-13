@@ -298,6 +298,51 @@
     background: #2980b9;
 }
 
+.xanhworld_order_item_btn_secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.xanhworld_order_item_btn_secondary:hover {
+    background: #5a6268;
+}
+
+.xanhworld_order_item_btn_danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.xanhworld_order_item_btn_danger:hover {
+    background: #c0392b;
+}
+
+.xanhworld_order_item_btn_primary {
+    background: #007bff;
+    color: white;
+}
+
+.xanhworld_order_item_btn_primary:hover {
+    background: #0056b3;
+}
+
+.xanhworld_order_item_btn_success {
+    background: #28a745;
+    color: white;
+}
+
+.xanhworld_order_item_btn_success:hover {
+    background: #218838;
+}
+
+.xanhworld_order_item_btn_info {
+    background: #17a2b8;
+    color: white;
+}
+
+.xanhworld_order_item_btn_info:hover {
+    background: #138496;
+}
+
 /* Empty State */
 .xanhworld_order_empty {
     text-align: center;

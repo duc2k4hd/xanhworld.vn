@@ -17,7 +17,6 @@
         href="{{ asset('clients/assets/img/business/' . ($settings->site_favicon ?? 'favicon.png')) }}?v={{ time() }}"
         type="image/x-icon">
     <meta name="theme-color" content="#3bb77e">
-    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <meta name="robots" content="nofollow, noindex"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

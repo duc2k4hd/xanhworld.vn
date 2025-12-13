@@ -4,11 +4,6 @@
 
 @section('title', 'Địa chỉ giao hàng của tôi')
 
-@section('head')
-    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
-@endsection
-
-
 @push('styles')
 
 <style>

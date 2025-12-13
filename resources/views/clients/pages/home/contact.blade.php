@@ -3,7 +3,6 @@
 @section('title', 'Liên hệ ' .($settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD'). ' - Giải pháp cây cảnh trọn gói | '. $settings->site_name)
 
 @section('head')
-<link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
 
 <meta name="robots" content="index,follow" />
 
@@ -20,6 +19,10 @@
     <link rel="canonical" href="{{ route('client.contact.index') }}">
 
 @endsection
+
+@push('js_page')
+    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
 
 @section('content')
 <section class="garden-hero contact-block">

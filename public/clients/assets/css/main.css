@@ -2244,6 +2244,13 @@ input:disabled {
         display: none;
     }
 
+    .xanhworld_header_main_icons_mobile {
+        display: flex !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 10px;
+    }
+
     .xanhworld_header_main_nav_links {
         flex-wrap: nowrap;
         display: flex;
@@ -2522,6 +2529,7 @@ input:disabled {
         display: grid;
         grid-template-columns: 80px 2fr 50px;
         column-gap: 5px;
+        width: 100%;
     }
 
     .xanhworld_single_info_specifications_sale {
@@ -2533,9 +2541,10 @@ input:disabled {
     .xanhworld_header_mobile_main_nav_search {
         display: flex !important;
         align-items: center !important;
+        flex-direction: column;
+        gap: 12px !important;
         width: 90% !important;
         margin: 15px auto !important;
-        gap: 8px !important;
         background: #f9f9f9 !important;
         border: 1px solid #ddd !important;
         border-radius: 8px !important;

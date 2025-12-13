@@ -7,8 +7,6 @@
 
 
 @section('head')
-    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
-
     {{-- Basic SEO Meta Tags --}}
 
     <meta name="description" content="{{ $metaDescription ?? 'Sitemap của ' . config('app.name') . ' - Tìm kiếm và khám phá tất cả các trang, sản phẩm, bài viết và danh mục trên website của chúng tôi.' }}">

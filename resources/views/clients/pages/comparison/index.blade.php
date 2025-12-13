@@ -2,9 +2,9 @@
 
 @section('title', 'So sánh sản phẩm')
 
-@section('head')
-    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
-@endsection
+@push('js_page')
+    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
 
 @section('content')
 <div class="container py-5">

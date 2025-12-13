@@ -3,7 +3,6 @@
 @section('title', 'Chính sách giao hàng - ' . ($settings->site_name ?? ($settings->subname ?? 'XWorld')))
 
 @section('head')
-    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
 
     <meta name="description"
         content="Chính sách giao hàng {{ $settings->site_name ?? 'XWorld' }} - thông tin phí vận chuyển, thời gian giao và hỗ trợ đổi trả cây cảnh trên toàn quốc.">

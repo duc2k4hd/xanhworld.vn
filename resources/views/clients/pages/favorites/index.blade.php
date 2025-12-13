@@ -4,8 +4,11 @@
 
 @section('head')
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
 @endsection
+
+@push('js_page')
+    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
 
 @section('content')
 <style>

@@ -16,6 +16,9 @@
 
 @endsection
 
+@push('js_page')
+    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
 
 
 @section('content')
@@ -46,11 +49,11 @@
 
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
 
-                    <h1 class="xanhworld_order_list_title mb-0">Đơn hĂ ng cá»§a tĂ´i</h1>
+                    <h1 class="xanhworld_order_list_title mb-0">Đơn hàng của tôi</h1>
 
                     <a href="{{ route('client.order.track') }}" class="xanhworld_order_item_btn xanhworld_order_item_btn_view" style="text-decoration:none;">
 
-                        đŸ" Tra cứu vận đơn GHN
+                        Tra cứu vận đơn GHN
 
                     </a>
 
@@ -66,19 +69,19 @@
 
                         <div class="xanhworld_order_filter_group">
 
-                            <label>Trạng thĂ¡i đơn hĂ ng:</label>
+                            <label>Trạng thái đơn hàng:</label>
 
                             <select name="status" class="xanhworld_order_filter_select">
 
                                 <option value="">Tất cả</option>
 
-                                <option value="pending" {{ $filters['status'] === 'pending' ? 'selected' : '' }}>Chờ xá»­ lĂ½</option>
+                                <option value="pending" {{ $filters['status'] === 'pending' ? 'selected' : '' }}>Chờ xử lý</option>
 
-                                <option value="processing" {{ $filters['status'] === 'processing' ? 'selected' : '' }}>Đang xá»­ lĂ½</option>
+                                <option value="processing" {{ $filters['status'] === 'processing' ? 'selected' : '' }}>Đang xử lý</option>
 
-                                <option value="completed" {{ $filters['status'] === 'completed' ? 'selected' : '' }}>HoĂ n thĂ nh</option>
+                                <option value="completed" {{ $filters['status'] === 'completed' ? 'selected' : '' }}>Hoàn thành</option>
 
-                                <option value="cancelled" {{ $filters['status'] === 'cancelled' ? 'selected' : '' }}>ÄĂ£ há»§y</option>
+                                <option value="cancelled" {{ $filters['status'] === 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
 
                             </select>
 
@@ -86,15 +89,15 @@
 
                         <div class="xanhworld_order_filter_group">
 
-                            <label>Trạng thĂ¡i thanh toĂ¡n:</label>
+                            <label>Trạng thái thanh toán:</label>
 
                             <select name="payment_status" class="xanhworld_order_filter_select">
 
                                 <option value="">Tất cả</option>
 
-                                <option value="pending" {{ $filters['payment_status'] === 'pending' ? 'selected' : '' }}>Chờ thanh toĂ¡n</option>
+                                <option value="pending" {{ $filters['payment_status'] === 'pending' ? 'selected' : '' }}>Chờ thanh toán</option>
 
-                                <option value="paid" {{ $filters['payment_status'] === 'paid' ? 'selected' : '' }}>ÄĂ£ thanh toĂ¡n</option>
+                                <option value="paid" {{ $filters['payment_status'] === 'paid' ? 'selected' : '' }}>Đã thanh toán</option>
 
                                 <option value="failed" {{ $filters['payment_status'] === 'failed' ? 'selected' : '' }}>Thất bại</option>
 
@@ -104,7 +107,7 @@
 
                         <button type="submit" class="xanhworld_order_filter_btn">Lọc</button>
 
-                        <a href="{{ route('client.order.index') }}" class="xanhworld_order_filter_reset">XĂ³a bá»™ lọc</a>
+                        <a href="{{ route('client.order.index') }}" class="xanhworld_order_filter_reset">Xóa bộ lọc</a>
 
                     </form>
 
@@ -128,7 +131,7 @@
 
                                         <h3 class="xanhworld_order_item_code">
 
-                                            Đơn hĂ ng: <strong>{{ $order->code }}</strong>
+                                            Đơn hàng: <strong>{{ $order->code }}</strong>
 
                                         </h3>
 
@@ -136,7 +139,7 @@
 
                                             <span class="xanhworld_order_item_date">
 
-                                                đŸ"… {{ $order->created_at->format('d/m/Y H:i') }}
+                                                {{ $order->created_at->format('d/m/Y H:i') }}
 
                                             </span>
 
@@ -144,19 +147,19 @@
 
                                                 @if($order->status === 'pending')
 
-                                                    ⏳ Chờ xá»­ lĂ½
+                                                    ⏳ Chờ xử lý
 
                                                 @elseif($order->status === 'processing')
 
-                                                    đŸ"" Đang xá»­ lĂ½
+                                                    Đang xử lý
 
                                                 @elseif($order->status === 'completed')
 
-                                                    ✅ HoĂ n thĂ nh
+                                                    ✅ Hoàn thành
 
                                                 @else
 
-                                                    ❌ ÄĂ£ há»§y
+                                                    ❌ Đã hủy
 
                                                 @endif
 
@@ -166,15 +169,15 @@
 
                                                 @if($order->payment_status === 'pending')
 
-                                                    đŸ'³ Chờ thanh toĂ¡n
+                                                    Chờ thanh toán
 
                                                 @elseif($order->payment_status === 'paid')
 
-                                                    ✅ ÄĂ£ thanh toĂ¡n
+                                                    ✅ Đã thanh toán
 
                                                 @else
 
-                                                    ❌ Thanh toĂ¡n thất bại
+                                                    ❌ Thanh toán thất bại
 
                                                 @endif
 
@@ -186,7 +189,7 @@
 
                                     <div class="xanhworld_order_item_total">
 
-                                        <strong>{{ number_format($order->final_price, 0, ',', '.') }} Ä'</strong>
+                                        <strong>{{ number_format($order->final_price, 0, ',', '.') }} đ</strong>
 
                                     </div>
 
@@ -260,7 +263,7 @@
 
                                         <div class="xanhworld_order_item_product_more">
 
-                                            + {{ $order->items->count() - 3 }} sản phẩm khĂ¡c
+                                            + {{ $order->items->count() - 3 }} sản phẩm khác
 
                                         </div>
 
@@ -272,9 +275,9 @@
 
                                 <div class="xanhworld_order_item_actions">
 
-                                    <a href="{{ route('client.order.show', $order->id) }}" class="xanhworld_order_item_btn xanhworld_order_item_btn_view">
+                                    <a href="{{ route('client.order.show', $order->code) }}" class="xanhworld_order_item_btn xanhworld_order_item_btn_view">
 
-                                        đŸ'ï¸ Xem chi tiết
+                                        Xem chi tiết
 
                                     </a>
 
@@ -282,11 +285,60 @@
 
                                         <a href="{{ route('client.order.track', ['tracking_code' => $order->shipping_tracking_code]) }}" class="xanhworld_order_item_btn xanhworld_order_item_btn_secondary">
 
-                                            đŸ"¦ Tra cứu GHN
+                                            Tra cứu vận đơn GHN
 
                                         </a>
 
                                     @endif
+
+                                    @if($order->status === 'pending' && $order->payment_status !== 'paid')
+
+                                        <form action="{{ route('client.order.cancel', $order->code) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
+                                            @csrf
+                                            @method('POST')
+                                            <button type="submit" class="xanhworld_order_item_btn xanhworld_order_item_btn_danger">
+
+                                                Hủy đơn hàng
+
+                                            </button>
+                                        </form>
+
+                                    @endif
+
+                                    @if(in_array($order->payment_status, ['pending', 'failed']) && $order->status !== 'cancelled')
+
+                                        <a href="{{ route('client.checkout.index', ['order_code' => $order->code]) }}" class="xanhworld_order_item_btn xanhworld_order_item_btn_primary">
+
+                                            Thanh toán lại
+
+                                        </a>
+
+                                    @endif
+
+                                    @if($order->status === 'completed')
+
+                                        <form action="{{ route('client.order.reorder', $order->code) }}" method="POST" style="display: inline-block;">
+                                            @csrf
+                                            <button type="submit" class="xanhworld_order_item_btn xanhworld_order_item_btn_success">
+
+                                                Mua lại
+
+                                            </button>
+                                        </form>
+
+                                    @endif
+
+                                    <a href="{{ route('client.contact.index') }}?order_code={{ $order->code }}" class="xanhworld_order_item_btn xanhworld_order_item_btn_info">
+
+                                        Liên hệ hỗ trợ
+
+                                    </a>
+
+                                    <a href="{{ route('client.order.invoice', $order->code) }}" target="_blank" class="xanhworld_order_item_btn xanhworld_order_item_btn_secondary">
+
+                                        In hóa đơn
+
+                                    </a>
 
                                 </div>
 
@@ -310,13 +362,13 @@
 
                     <div class="xanhworld_order_empty">
 
-                        <div class="xanhworld_order_empty_icon">đŸ"¦</div>
+                        <div class="xanhworld_order_empty_icon"></div>
 
-                        <h2>Chưa cĂ³ đơn hĂ ng nĂ o</h2>
+                        <h2>Chưa có đơn hàng nào</h2>
 
-                        <p>Bạn chưa cĂ³ đơn hĂ ng nĂ o. HĂ£y mua sắm ngay để cĂ³ đơn hĂ ng đầu tiĂªn!</p>
+                        <p>Bạn chưa có đơn hàng nào. Hãy mua sắm ngay để có đơn hàng đầu tiên!</p>
 
-                        <a href="{{ route('client.shop.index') }}" class="xanhworld_order_empty_btn">đŸ›' Mua sắm ngay</a>
+                        <a href="{{ route('client.shop.index') }}" class="xanhworld_order_empty_btn">Mua sắm ngay</a>
 
                     </div>
 
@@ -333,14 +385,3 @@
     @include('clients.templates.chat')
 
 @endsection
-
-
-
-
-
-
-
-
-
-
-

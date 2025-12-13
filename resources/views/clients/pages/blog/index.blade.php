@@ -10,26 +10,27 @@
 
 @section('title', $resolvedTitle)
 
-@section('head')
-<link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-<meta name="description" content="{{ $resolvedDescription }}">
-<meta name="keywords" content="{{ $resolvedKeywords }}">
-<link rel="canonical" href="{{ $canonicalUrl }}">
-<meta property="og:title" content="{{ $resolvedTitle }}">
-<meta property="og:description" content="{{ $resolvedDescription }}">
-<meta property="og:url" content="{{ $canonicalUrl }}">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="{{ $settings->site_name ?? config('app.name') }}">
-<meta property="og:image" content="{{ $pageImage }}">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ $resolvedTitle }}">
-<meta name="twitter:description" content="{{ $resolvedDescription }}">
-<meta name="twitter:image" content="{{ $pageImage }}">
-@if(!empty($shouldNoindex))
-    <meta name="robots" content="noindex, follow">
-@endif
+@push('js_page')
+    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
 
+@section('head')
+    <meta name="description" content="{{ $resolvedDescription }}">
+    <meta name="keywords" content="{{ $resolvedKeywords }}">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    <meta property="og:title" content="{{ $resolvedTitle }}">
+    <meta property="og:description" content="{{ $resolvedDescription }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ $settings->site_name ?? config('app.name') }}">
+    <meta property="og:image" content="{{ $pageImage }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $resolvedTitle }}">
+    <meta name="twitter:description" content="{{ $resolvedDescription }}">
+    <meta name="twitter:image" content="{{ $pageImage }}">
+    @if(!empty($shouldNoindex))
+        <meta name="robots" content="noindex, follow">
+    @endif
 <style>
     /* Tổng thể trang */
     .blog-page {

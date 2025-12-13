@@ -511,21 +511,98 @@
         <div class="xanhworld_header_mobile_main_nav_search">
             <form action="{{ route('client.shop.index') }}" method="GET"
                 class="xanhworld_header_mobile_main_nav_search_form">
-                <select class="xanhworld_header_mobile_main_nav_search_select" name="category">
-                    <option value="">Danh mục</option>
-                @foreach ($categories as $category)
-                        <option value="{{ $category->slug }}" @selected(request('category') === $category->slug)>{{ $category->name }}
-                        </option>
-                @endforeach
-            </select>
-                <input class="xanhworld_header_mobile_main_nav_search_input" type="text" name="keyword"
-                    value="{{ request('keyword') }}" placeholder="Tìm kiếm sản phẩm...">
-            <button class="xanhworld_header_mobile_main_nav_search_btn" type="submit"><svg
-                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                    <path
-                        d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z" />
-                </svg></button>
+                    <select class="xanhworld_header_mobile_main_nav_search_select" name="category">
+                        <option value="">Danh mục</option>
+                    @foreach ($categories as $category)
+                            <option value="{{ $category->slug }}" @selected(request('category') === $category->slug)>{{ $category->name }}
+                            </option>
+                    @endforeach
+                </select>
+                    <input class="xanhworld_header_mobile_main_nav_search_input" type="text" name="keyword"
+                        value="{{ request('keyword') }}" placeholder="Tìm kiếm sản phẩm...">
+                <button class="xanhworld_header_mobile_main_nav_search_btn" type="submit"><svg
+                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path
+                            d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z" />
+                    </svg></button>
             </form>
+            <div class="xanhworld_header_main_icons xanhworld_header_main_icons_mobile">
+
+                <div class="xanhworld_header_main_icon xanhworld_header_main_icons_compare">
+    
+                    <a href="/">
+    
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <path
+                                d="M320 488c0 9.5-5.6 18.1-14.2 21.9s-18.8 2.3-25.8-4.1l-80-72c-5.1-4.6-7.9-11-7.9-17.8s2.9-13.3 7.9-17.8l80-72c7-6.3 17.2-7.9 25.8-4.1s14.2 12.4 14.2 21.9l0 40 16 0c35.3 0 64-28.7 64-64l0-166.7C371.7 141 352 112.8 352 80c0-44.2 35.8-80 80-80s80 35.8 80 80c0 32.8-19.7 61-48 73.3L464 320c0 70.7-57.3 128-128 128l-16 0 0 40zM456 80a24 24 0 1 0 -48 0 24 24 0 1 0 48 0zM192 24c0-9.5 5.6-18.1 14.2-21.9s18.8-2.3 25.8 4.1l80 72c5.1 4.6 7.9 11 7.9 17.8s-2.9 13.3-7.9 17.8l-80 72c-7 6.3-17.2 7.9-25.8 4.1s-14.2-12.4-14.2-21.9l0-40-16 0c-35.3 0-64 28.7-64 64l0 166.7c28.3 12.3 48 40.5 48 73.3c0 44.2-35.8 80-80 80s-80-35.8-80-80c0-32.8 19.7-61 48-73.3L48 192c0-70.7 57.3-128 128-128l16 0 0-40zM56 432a24 24 0 1 0 48 0 24 24 0 1 0 -48 0z" />
+    
+                        </svg>
+    
+                        <span class="xanhworld_header_main_icon_count xanhworld_header_main_icon_compre__count">0</span>
+    
+                        <span class="xanhworld_header_main_icon_name">So sánh</span>
+    
+                    </a>
+    
+                </div>
+    
+                <div class="xanhworld_header_main_icon xanhworld_header_main_icons_wishlist">
+    
+                    <a href="{{ ($wishlistCount ?? 0) > 0 ? $wishlistLink ?? route('client.home.index') : '#' }}"
+                        class="xanhworld_header_wishlist_link">
+    
+                        <svg class="xanhworld_header_wishlist_heart" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 640 640">
+                            <path fill="#ff3366"
+                                d="M305 151.1L320 171.8L335 151.1C360 116.5 400.2 96 442.9 96C516.4 96 576 155.6 576 229.1L576 231.7C576 343.9 436.1 474.2 363.1 529.9C350.7 539.3 335.5 544 320 544C304.5 544 289.2 539.4 276.9 529.9C203.9 474.2 64 343.9 64 231.7L64 229.1C64 155.6 123.6 96 197.1 96C239.8 96 280 116.5 305 151.1z" />
+                        </svg>
+    
+                        <span
+                            class="xanhworld_header_main_icon_count xanhworld_header_main_icon_wishlist_count">{{ $wishlistCount ?? 0 }}</span>
+    
+                        <span class="xanhworld_header_main_icon_name">Yêu thích</span>
+    
+                    </a>
+    
+                </div>
+    
+                <div class="xanhworld_header_main_icon xanhworld_header_main_icons_cart">
+    
+                    <a
+                        href="{{ ($cartCount ?? ($cartQuantity ?? ($cartQty ?? 0))) > 0 ? $cartLink ?? ($cartUrl ?? route('client.cart.index')) : '#' }}">
+    
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+                            <path
+                                d="M0 24C0 10.7 10.7 0 24 0L69.5 0c22 0 41.5 12.8 50.6 32l411 0c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3l-288.5 0 5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5L488 336c13.3 0 24 10.7 24 24s-10.7 24-24 24l-288.3 0c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5L24 48C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z" />
+    
+                        </svg>
+    
+                        <span
+                            class="xanhworld_header_main_icon_count xanhworld_header_main_icon_cart_count">{{ $cartCount ?? ($cartQuantity ?? ($cartQty ?? 0)) }}</span>
+    
+                        <span class="xanhworld_header_main_cart xanhworld_header_main_icon_name">Giỏ hàng</span>
+    
+                    </a>
+    
+                </div>
+    
+                <div class="xanhworld_header_main_icon xanhworld_header_main_icons_account">
+    
+                    <a class="xanhworld_header_main_icon_link" href="{{ $accountLink }}">
+    
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <path
+                                d="M406.5 399.6C387.4 352.9 341.5 320 288 320l-64 0c-53.5 0-99.4 32.9-118.5 79.6C69.9 362.2 48 311.7 48 256C48 141.1 141.1 48 256 48s208 93.1 208 208c0 55.7-21.9 106.2-57.5 143.6zm-40.1 32.7C334.4 452.4 296.6 464 256 464s-78.4-11.6-110.5-31.7c7.3-36.7 39.7-64.3 78.5-64.3l64 0c38.8 0 71.2 27.6 78.5 64.3zM256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-272a40 40 0 1 1 0-80 40 40 0 1 1 0 80zm-88-40a88 88 0 1 0 176 0 88 88 0 1 0 -176 0z" />
+    
+                        </svg>
+    
+                        <span class="xanhworld_header_main_titlexanhworld_header_main_icon_name">{{ $accountLabel }}</span>
+    
+                    </a>
+    
+                </div>
+    
+            </div>
         </div>
 
         @auth

@@ -25,6 +25,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
 @endsection
 
+@push('js_page')
+    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
+
 @section('schema')
     @if(isset($schemaData) && is_array($schemaData))
         @foreach($schemaData as $schema)
