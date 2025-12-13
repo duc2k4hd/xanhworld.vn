@@ -202,8 +202,8 @@
                 <a href="{{ route('client.policy.warranty') }}">Hướng dẫn bảo hành</a>
                 <a href="{{ route('client.policy.privacy') }}">Hướng dẫn bảo mật thông tin</a>
                 <a href="{{ route('client.policy.privacy') }}">Hướng dẫn bảo mật dữ liệu</a>
-                {{-- <a href="{{ route('client.sitemap.html') }}">🗺️ Sitemap</a> --}}
-                <img loading="lazy" width="200" height="70" src="{{ asset('clients/assets/img/other/footer_trustbadge.jpg') }}"
+                <a href="{{ route('client.sitemap.landing') }}">🗺️ Sitemap</a>
+                <img loading="lazy" style="object-fit: contain;" width="250" height="70" src="{{ asset('clients/assets/img/other/footer_trustbadge.jpg') }}"
                     alt="Các phương thức thanh toán được tin cậy bởi xanhworld.vn">
             </div>
         </div>
