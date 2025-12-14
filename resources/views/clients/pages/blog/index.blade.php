@@ -31,211 +31,7 @@
     @if(!empty($shouldNoindex))
         <meta name="robots" content="noindex, follow">
     @endif
-    <style>
-        /* Tổng thể trang */
-        .blog-page {
-            width: 100%;
-        }
-
-        /* Hero */
-        .blog-hero {
-            background: linear-gradient(135deg, #f0fdf4, #ecfeff);
-            border-radius: 16px;
-            padding: clamp(20px, 3vw, 32px);
-            margin-bottom: clamp(16px, 2vw, 24px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .blog-hero h1 {
-            font-size: clamp(22px, 3vw, 30px);
-            line-height: 1.4;
-        }
-
-        .hero-list {
-            margin: 16px 0 0;
-            padding-left: 20px;
-            color: #4b5563;
-        }
-
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 999px;
-            background: #dcfce7;
-            color: #166534;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        /* Featured */
-        .blog-featured .card {
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .blog-featured .card img {
-            height: 140px;
-            width: 100%;
-            object-fit: cover;
-        }
-
-        .blog-featured .card-body {
-            padding: 14px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex-grow: 1;
-        }
-
-        .blog-featured .card:hover {
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-            transform: translateY(-3px);
-        }
-
-        /* Bài viết */
-        .blog-card {
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: 0.2s;
-            background: #fff;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .blog-card:hover {
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
-            transform: translateY(-3px);
-        }
-
-        .blog-card img {
-            height: 150px;
-            object-fit: cover;
-            width: 100%;
-        }
-
-        @media (min-width: 768px) {
-            .blog-card img {
-                height: 130px;
-            }
-        }
-
-        .blog-card .card-body {
-            padding: 14px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex-grow: 1;
-        }
-
-        .blog-card .card-body h3 {
-            font-size: 16px;
-            line-height: 1.4;
-            margin-bottom: 4px;
-        }
-
-        .blog-card .meta-row {
-            margin-top: auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* Sidebar */
-        .blog-sidebar .card {
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 14px 18px;
-        }
-
-        .blog-sidebar h5 {
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        /* Tag */
-        .blog-tag {
-            display: inline-block;
-            background: #f3f4f6;
-            color: #111827;
-            padding: 3px 10px;
-            margin: 4px 6px 0 0;
-            border-radius: 999px;
-            font-size: 12px;
-        }
-
-        /* List trong sidebar */
-        .blog-sidebar ul li {
-            padding: 6px 0;
-            border-bottom: 1px solid #f1f1f1;
-        }
-
-        .blog-sidebar ul li:last-child {
-            border-bottom: none;
-        }
-
-        .tiny {
-            font-size: 11px;
-        }
-
-        /* Breadcrumb */
-        .blog-breadcrumb {
-            margin-bottom: 16px;
-        }
-        .breadcrumb-list {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            flex-wrap: wrap;
-        }
-        .breadcrumb-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .breadcrumb-item a {
-            color: var(--text-muted, #6b7280);
-            text-decoration: none;
-            font-size: 13px;
-            transition: color 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .breadcrumb-item a:hover {
-            color: var(--text-primary, #111827);
-        }
-        .breadcrumb-item a i {
-            font-size: 12px;
-        }
-        .breadcrumb-item.active span {
-            color: var(--text-primary, #111827);
-            font-size: 13px;
-            font-weight: 500;
-        }
-        .breadcrumb-separator {
-            color: var(--text-muted, #9ca3af);
-            font-size: 10px;
-            display: flex;
-            align-items: center;
-        }
-        * {
-            list-style: none !important;
-            text-decoration: none !important;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/blog.css') }}">
 @endsection
 
 @section('schema')
@@ -249,9 +45,9 @@
 @endsection
 
 @section('content')
-<section class="container py-4 blog-page">
+<section class="blog-page-container">
     {{-- Breadcrumb --}}
-    <nav aria-label="breadcrumb" class="blog-breadcrumb mb-3">
+    <nav aria-label="breadcrumb" class="blog-breadcrumb">
         <ol class="breadcrumb-list">
             <li class="breadcrumb-item">
                 <a href="{{ route('client.home.index') }}">
@@ -270,36 +66,34 @@
 
     <!-- HERO -->
     <div class="blog-hero">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
+        <div class="blog-hero-inner">
+            <div class="blog-hero-content">
                 @if($heroContextLabel)
                     <span class="hero-badge">{{ $heroContextLabel }}</span>
                 @endif
-                <h1 class="h3 fw-bold mb-2 mt-2">{{ $heroHeading ?? 'Góc tin tức cây xanh' }}</h1>
-                <p class="text-muted small mb-2">
+                <h1 class="blog-hero-title">{{ $heroHeading ?? 'Góc tin tức cây xanh' }}</h1>
+                <p class="blog-hero-subtitle">
                     {{ $heroSubheading ?? ('Tổng hợp kiến thức chăm cây và cảm hứng decor từ ' . ($settings->site_name ?? config('app.name'))) }}
                 </p>
-                <ul class="hero-list small">
+                <ul class="hero-list">
                     <li>Đội ngũ biên tập cập nhật mỗi ngày với trải nghiệm thực tế.</li>
                     <li>Bám sát xu hướng sống xanh, tối ưu không gian nhà phố & văn phòng.</li>
                     <li>Hướng dẫn chi tiết cho người mới bắt đầu lẫn người chơi cây lâu năm.</li>
                 </ul>
             </div>
 
-            <div class="col-lg-4 mt-3 mt-lg-0">
-                <div class="d-flex justify-content-lg-end gap-3">
-                    <div>
-                        <div class="fw-bold">{{ number_format($featuredPosts->count()) }}</div>
-                        <span class="text-muted tiny">Góc cảm hứng</span>
-                    </div>
-                    <div>
-                        <div class="fw-bold">{{ number_format($posts->total()) }}</div>
-                        <span class="text-muted tiny">Chia sẻ hữu ích</span>
-                    </div>
-                    <div>
-                        <div class="fw-bold">{{ number_format($sidebarCategories->count()) }}</div>
-                        <span class="text-muted tiny">Chủ đề xanh</span>
-                    </div>
+            <div class="blog-hero-stats">
+                <div class="blog-hero-stat-item">
+                    <div class="blog-hero-stat-number">{{ number_format($featuredPosts->count()) }}</div>
+                    <span class="blog-hero-stat-label">Góc cảm hứng</span>
+                </div>
+                <div class="blog-hero-stat-item">
+                    <div class="blog-hero-stat-number">{{ number_format($posts->total()) }}</div>
+                    <span class="blog-hero-stat-label">Chia sẻ hữu ích</span>
+                </div>
+                <div class="blog-hero-stat-item">
+                    <div class="blog-hero-stat-number">{{ number_format($sidebarCategories->count()) }}</div>
+                    <span class="blog-hero-stat-label">Chủ đề xanh</span>
                 </div>
             </div>
         </div>
@@ -307,151 +101,145 @@
 
     <!-- FEATURED -->
     @if($featuredPosts->isNotEmpty())
-        <section class="blog-featured mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2 class="h5 fw-bold mb-0">Bài viết nổi bật</h2>
-                <span class="text-muted tiny">Được chọn bởi biên tập viên</span>
+        <section class="blog-featured">
+            <div class="blog-featured-header">
+                <h2 class="blog-featured-title">Bài viết nổi bật</h2>
+                <span class="blog-featured-label">Được chọn bởi biên tập viên</span>
             </div>
-            <div class="row g-3">
+            <div class="blog-featured-grid">
                 @foreach($featuredPosts as $featured)
-                    <div class="col-md-4">
-                        <article class="card h-100">
-                            @php
-                                $featuredCover = $featured->coverImagePath();
-                                $featuredCoverUrl = asset($featuredCover ?? 'clients/assets/img/clothes/default.webp');
-                            @endphp
-                            <img src="{{ $featuredCoverUrl }}" alt="{{ $featured->title }}" loading="lazy">
+                    <article class="blog-featured-card">
+                        @php
+                            $featuredCover = $featured->coverImagePath();
+                            $featuredCoverUrl = asset($featuredCover ?? 'clients/assets/img/clothes/default.webp');
+                        @endphp
+                        <img src="{{ $featuredCoverUrl }}" alt="{{ $featured->title }}" loading="lazy">
 
-                            <div class="card-body">
-                                <span class="badge bg-light text-dark rounded-pill mb-2 small">
-                                    {{ $featured->category?->name ?? 'Tin tức' }}
-                                </span>
+                        <div class="blog-featured-card-body">
+                            <span class="blog-featured-badge">
+                                {{ $featured->category?->name ?? 'Tin tức' }}
+                            </span>
 
-                                <h3 class="h6 fw-bold mb-2">
-                                    <a href="{{ route('client.blog.show', $featured) }}"
-                                        class="text-dark text-decoration-none">
-                                        {{ $featured->title }}
-                                    </a>
-                                </h3>
+                            <h3 class="blog-featured-card-title">
+                                <a href="{{ route('client.blog.show', $featured) }}">
+                                    {{ $featured->title }}
+                                </a>
+                            </h3>
 
-                                <p class="text-muted tiny">{{ $featured->excerpt_text }}</p>
+                            <p class="blog-featured-card-excerpt">{{ $featured->excerpt_text }}</p>
 
-                                <div class="d-flex justify-content-between tiny text-muted">
-                                    <span>{{ optional($featured->published_at)->format('d/m/Y') }}</span>
-                                    <span>{{ number_format($featured->views) }} xem</span>
-                                </div>
+                            <div class="blog-featured-card-meta">
+                                <span>{{ optional($featured->published_at)->format('d/m/Y') }}</span>
+                                <span>{{ number_format($featured->views) }} xem</span>
                             </div>
-                        </article>
-                    </div>
+                        </div>
+                    </article>
                 @endforeach
             </div>
         </section>
     @endif
 
-    <div class="row g-4">
+    <div class="blog-main-wrapper">
         <!-- MAIN POSTS -->
-        <div class="col-lg-8">
-            <div class="row g-3">
+        <div class="blog-main-content">
+            <div class="blog-posts-grid">
                 @forelse($posts as $post)
-                    <div class="col-md-6">
-                        <article class="blog-card h-100">
-                            @php
-                                $coverPath = $post->coverImagePath();
-                                $coverUrl = asset($coverPath ?? 'clients/assets/img/clothes/default.webp');
-                            @endphp
-                            <img src="{{ $coverUrl }}" alt="{{ $post->title }}" loading="lazy">
+                    <article class="blog-card">
+                        @php
+                            $coverPath = $post->coverImagePath();
+                            $coverUrl = asset($coverPath ?? 'clients/assets/img/clothes/default.webp');
+                        @endphp
+                        <img src="{{ $coverUrl }}" alt="{{ $post->title }}" loading="lazy">
 
-                            <div class="card-body">
-                                <div class="d-flex gap-2 tiny text-muted mb-1">
-                                    <span>{{ $post->category?->name ?? 'Tin tức' }}</span> •
-                                    <span>{{ optional($post->published_at)->format('d/m/Y') }}</span>
-                                </div>
-
-                                <h3 class="h6 fw-bold mb-2">
-                                    <a href="{{ route('client.blog.show', $post) }}"
-                                        class="text-dark text-decoration-none">
-                                        {{ $post->title }}
-                                    </a>
-                                </h3>
-
-                                <p class="text-muted tiny mb-2">{{ $post->excerpt_text }}</p>
-
-                                <div class="d-flex justify-content-between align-items-center tiny text-muted">
-                                    <span>{{ number_format($post->views) }} xem</span>
-                                    <a href="{{ route('client.blog.show', $post) }}" class="btn btn-sm btn-outline-dark">
-                                        Đọc tiếp
-                                    </a>
-                                </div>
+                        <div class="blog-card-body">
+                            <div class="blog-card-meta-top">
+                                <span>{{ $post->category?->name ?? 'Tin tức' }}</span> •
+                                <span>{{ optional($post->published_at)->format('d/m/Y') }}</span>
                             </div>
-                        </article>
-                    </div>
+
+                            <h3 class="blog-card-title">
+                                <a href="{{ route('client.blog.show', $post) }}">
+                                    {{ $post->title }}
+                                </a>
+                            </h3>
+
+                            <p class="blog-card-excerpt">{{ $post->excerpt_text }}</p>
+
+                            <div class="blog-card-footer">
+                                <span>{{ number_format($post->views) }} xem</span>
+                                <a href="{{ route('client.blog.show', $post) }}" class="blog-card-read-more">
+                                    Đọc tiếp
+                                </a>
+                            </div>
+                        </div>
+                    </article>
                 @empty
-                    <div class="col-12">
-                        <div class="alert alert-light border text-center">
+                    <div class="blog-empty">
+                        <div class="blog-empty-message">
                             Đang cập nhật bài viết mới, bạn quay lại sau nhé!
                         </div>
                     </div>
                 @endforelse
             </div>
 
-            <div class="mt-3">
-                {{ $posts->links('pagination::bootstrap-5') }}
+            <div class="blog-pagination-wrapper">
+                {{ $posts->links('clients.partials.pagination') }}
             </div>
         </div>
 
         <!-- SIDEBAR -->
-        <aside class="col-lg-4 blog-sidebar">
+        <aside class="blog-sidebar">
 
             <!-- Categories -->
-            <div class="card mb-3">
-                <h5 class="fw-bold mb-2">Chủ đề tiêu biểu</h5>
-                <ul class="list-unstyled mb-0">
+            <div class="blog-sidebar-card">
+                <h5 class="blog-sidebar-title">Chủ đề tiêu biểu</h5>
+                <ul class="blog-sidebar-list">
                     @foreach($sidebarCategories as $category)
-                        <li class="d-flex justify-content-between small">
-                            <a href="{{ route('client.blog.index', ['category' => $category->slug]) }}" class="text-dark text-decoration-none">
+                        <li class="blog-sidebar-list-item">
+                            <a href="{{ route('client.blog.index', ['category' => $category->slug]) }}">
                                 {{ $category->name }}
                             </a>
-                            <span class="text-muted">{{ $category->posts_count }}</span>
+                            <span class="blog-sidebar-count">{{ $category->posts_count }}</span>
                         </li>
                     @endforeach
                 </ul>
             </div>
 
             <!-- Tags -->
-            <div class="card mb-3">
-                <h5 class="fw-bold mb-2">Từ khóa bạn quan tâm</h5>
-                @foreach($sidebarTags as $tag)
-                    <a href="{{ route('client.blog.index', ['tag' => $tag->slug]) }}" class="blog-tag">#{{ $tag->name }}</a>
-                @endforeach
+            <div class="blog-sidebar-card">
+                <h5 class="blog-sidebar-title">Từ khóa bạn quan tâm</h5>
+                <div class="blog-sidebar-tags">
+                    @foreach($sidebarTags as $tag)
+                        <a href="{{ route('client.blog.index', ['tag' => $tag->slug]) }}" class="blog-tag">#{{ $tag->name }}</a>
+                    @endforeach
+                </div>
             </div>
 
             <!-- Recent Posts -->
-            <div class="card mb-3">
-                <h5 class="fw-bold mb-2">Bài viết mới nhất</h5>
-                <ul class="list-unstyled mb-0">
+            <div class="blog-sidebar-card">
+                <h5 class="blog-sidebar-title">Bài viết mới nhất</h5>
+                <ul class="blog-sidebar-list">
                     @foreach($recentPosts as $recent)
-                        <li class="mb-2">
-                            <a href="{{ route('client.blog.show', $recent) }}"
-                                class="text-dark small text-decoration-none">
+                        <li class="blog-sidebar-post-item">
+                            <a href="{{ route('client.blog.show', $recent) }}">
                                 {{ $recent->title }}
                             </a>
-                            <div class="text-muted tiny">{{ optional($recent->published_at)->format('d/m') }}</div>
+                            <div class="blog-sidebar-post-date">{{ optional($recent->published_at)->format('d/m') }}</div>
                         </li>
                     @endforeach
                 </ul>
             </div>
 
             <!-- Popular -->
-            <div class="card">
-                <h5 class="fw-bold mb-2">Được xem nhiều</h5>
-                <ul class="list-unstyled mb-0">
+            <div class="blog-sidebar-card">
+                <h5 class="blog-sidebar-title">Được xem nhiều</h5>
+                <ul class="blog-sidebar-list">
                     @foreach($popularPosts as $popular)
-                        <li class="mb-2">
-                            <a href="{{ route('client.blog.show', $popular) }}"
-                                class="text-dark small text-decoration-none">
+                        <li class="blog-sidebar-post-item">
+                            <a href="{{ route('client.blog.show', $popular) }}">
                                 {{ $popular->title }}
                             </a>
-                            <div class="text-muted tiny">{{ number_format($popular->views) }} views</div>
+                            <div class="blog-sidebar-post-date">{{ number_format($popular->views) }} views</div>
                         </li>
                     @endforeach
                 </ul>

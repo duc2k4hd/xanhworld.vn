@@ -18,7 +18,6 @@
     <meta name="twitter:description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt_text) }}">
     <meta name="twitter:image" content="{{ $coverAsset ?? asset('clients/assets/img/clothes/default.webp') }}">
     <link rel="preload" as="image" href="{{ $coverAsset ?? asset('clients/assets/img/clothes/default.webp') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     {{-- Load Fonts: Playfair Display (Sang trọng) & Inter (Dễ đọc) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,14 +78,14 @@
                         @php
                             $galleryImages = $post->images;
                         @endphp
-                        <div id="postImageCarousel" class="carousel slide" data-bs-ride="carousel">
-                            <div class="carousel-inner">
+                        <div class="xanhworld-article-carousel" id="postImageCarousel">
+                            <div class="xanhworld-article-carousel-inner">
                                 @if($galleryImages->isNotEmpty())
                                     @foreach($galleryImages as $index => $image)
                                         @php
                                             $imgPath = 'clients/assets/img/clothes/'.$image->url;
                                         @endphp
-                                        <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                        <div class="xanhworld-article-carousel-item {{ $index === 0 ? 'active' : '' }}">
                                             <img width="100%" height="100%"
                                                  src="{{ asset($imgPath) }}"
                                                  alt="{{ $image->alt ?? $post->title }}"
@@ -95,7 +94,7 @@
                                         </div>
                                     @endforeach
                                 @else
-                                    <div class="carousel-item active">
+                                    <div class="xanhworld-article-carousel-item active">
                                         <img width="100%" height="100%"
                                              src="{{ $coverAsset }}"
                                              alt="{{ $post->title }}"
@@ -105,13 +104,11 @@
                                 @endif
                             </div>
                             @if($galleryImages->count() > 1)
-                                <button class="carousel-control-prev" type="button" data-bs-target="#postImageCarousel" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
+                                <button class="xanhworld-article-carousel-prev" type="button" aria-label="Previous">
+                                    <span aria-hidden="true">‹</span>
                                 </button>
-                                <button class="carousel-control-next" type="button" data-bs-target="#postImageCarousel" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
+                                <button class="xanhworld-article-carousel-next" type="button" aria-label="Next">
+                                    <span aria-hidden="true">›</span>
                                 </button>
                             @endif
                         </div>
@@ -255,6 +252,54 @@
 
 @section('foot')
     <script>
+        // Carousel functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const carousel = document.getElementById('postImageCarousel');
+            if (!carousel) return;
+
+            const items = carousel.querySelectorAll('.xanhworld-article-carousel-item');
+            const prevBtn = carousel.querySelector('.xanhworld-article-carousel-prev');
+            const nextBtn = carousel.querySelector('.xanhworld-article-carousel-next');
+            
+            if (items.length <= 1) return;
+
+            let currentIndex = 0;
+
+            function showSlide(index) {
+                items.forEach((item, i) => {
+                    item.classList.remove('active');
+                    if (i === index) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % items.length;
+                showSlide(currentIndex);
+            }
+
+            function prevSlide() {
+                currentIndex = (currentIndex - 1 + items.length) % items.length;
+                showSlide(currentIndex);
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', prevSlide);
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', nextSlide);
+            }
+
+            // Auto play (optional)
+            // let autoPlayInterval = setInterval(nextSlide, 5000);
+            // carousel.addEventListener('mouseenter', () => clearInterval(autoPlayInterval));
+            // carousel.addEventListener('mouseleave', () => {
+            //     autoPlayInterval = setInterval(nextSlide, 5000);
+            // });
+        });
+
         // Auto Highlight TOC on scroll
         document.addEventListener('DOMContentLoaded', () => {
             const tocContainer = document.getElementById('toc-desktop');
