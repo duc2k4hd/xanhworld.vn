@@ -31,212 +31,211 @@
     @if(!empty($shouldNoindex))
         <meta name="robots" content="noindex, follow">
     @endif
-<style>
-    /* Tổng thể trang */
-    .blog-page {
-        width: 100%;
-    }
-
-    /* Hero */
-    .blog-hero {
-        background: linear-gradient(135deg, #f0fdf4, #ecfeff);
-        border-radius: 16px;
-        padding: clamp(20px, 3vw, 32px);
-        margin-bottom: clamp(16px, 2vw, 24px);
-        border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-
-    .blog-hero h1 {
-        font-size: clamp(22px, 3vw, 30px);
-        line-height: 1.4;
-    }
-
-    .hero-list {
-        margin: 16px 0 0;
-        padding-left: 20px;
-        color: #4b5563;
-    }
-
-    .hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 14px;
-        border-radius: 999px;
-        background: #dcfce7;
-        color: #166534;
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-    /* Featured */
-    .blog-featured .card {
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        overflow: hidden;
-        transition: 0.2s ease;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .blog-featured .card img {
-        height: 140px;
-        width: 100%;
-        object-fit: cover;
-    }
-
-    .blog-featured .card-body {
-        padding: 14px 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        flex-grow: 1;
-    }
-
-    .blog-featured .card:hover {
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-        transform: translateY(-3px);
-    }
-
-    /* Bài viết */
-    .blog-card {
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        overflow: hidden;
-        transition: 0.2s;
-        background: #fff;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .blog-card:hover {
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
-        transform: translateY(-3px);
-    }
-
-    .blog-card img {
-        height: 150px;
-        object-fit: cover;
-        width: 100%;
-    }
-
-    @media (min-width: 768px) {
-        .blog-card img {
-            height: 130px;
+    <style>
+        /* Tổng thể trang */
+        .blog-page {
+            width: 100%;
         }
-    }
 
-    .blog-card .card-body {
-        padding: 14px 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        flex-grow: 1;
-    }
+        /* Hero */
+        .blog-hero {
+            background: linear-gradient(135deg, #f0fdf4, #ecfeff);
+            border-radius: 16px;
+            padding: clamp(20px, 3vw, 32px);
+            margin-bottom: clamp(16px, 2vw, 24px);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
 
-    .blog-card .card-body h3 {
-        font-size: 16px;
-        line-height: 1.4;
-        margin-bottom: 4px;
-    }
+        .blog-hero h1 {
+            font-size: clamp(22px, 3vw, 30px);
+            line-height: 1.4;
+        }
 
-    .blog-card .meta-row {
-        margin-top: auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 6px;
-    }
+        .hero-list {
+            margin: 16px 0 0;
+            padding-left: 20px;
+            color: #4b5563;
+        }
 
-    /* Sidebar */
-    .blog-sidebar .card {
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 14px 18px;
-    }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 13px;
+            font-weight: 600;
+        }
 
-    .blog-sidebar h5 {
-        font-size: 16px;
-        font-weight: 700;
-    }
+        /* Featured */
+        .blog-featured .card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
 
-    /* Tag */
-    .blog-tag {
-        display: inline-block;
-        background: #f3f4f6;
-        color: #111827;
-        padding: 3px 10px;
-        margin: 4px 6px 0 0;
-        border-radius: 999px;
-        font-size: 12px;
-    }
+        .blog-featured .card img {
+            height: 140px;
+            width: 100%;
+            object-fit: cover;
+        }
 
-    /* List trong sidebar */
-    .blog-sidebar ul li {
-        padding: 6px 0;
-        border-bottom: 1px solid #f1f1f1;
-    }
+        .blog-featured .card-body {
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+        }
 
-    .blog-sidebar ul li:last-child {
-        border-bottom: none;
-    }
+        .blog-featured .card:hover {
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            transform: translateY(-3px);
+        }
 
-    .tiny {
-        font-size: 11px;
-    }
+        /* Bài viết */
+        .blog-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: 0.2s;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
 
-    /* Breadcrumb */
-    .blog-breadcrumb {
-        margin-bottom: 16px;
-    }
-    .breadcrumb-list {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        flex-wrap: wrap;
-    }
-    .breadcrumb-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-    .breadcrumb-item a {
-        color: var(--text-muted, #6b7280);
-        text-decoration: none;
-        font-size: 13px;
-        transition: color 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-    .breadcrumb-item a:hover {
-        color: var(--text-primary, #111827);
-    }
-    .breadcrumb-item a i {
-        font-size: 12px;
-    }
-    .breadcrumb-item.active span {
-        color: var(--text-primary, #111827);
-        font-size: 13px;
-        font-weight: 500;
-    }
-    .breadcrumb-separator {
-        color: var(--text-muted, #9ca3af);
-        font-size: 10px;
-        display: flex;
-        align-items: center;
-    }
-    * {
-        list-style: none !important;
-        text-decoration: none !important;
-    }
-</style>
+        .blog-card:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+            transform: translateY(-3px);
+        }
 
+        .blog-card img {
+            height: 150px;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .blog-card img {
+                height: 130px;
+            }
+        }
+
+        .blog-card .card-body {
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+        }
+
+        .blog-card .card-body h3 {
+            font-size: 16px;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .blog-card .meta-row {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Sidebar */
+        .blog-sidebar .card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px 18px;
+        }
+
+        .blog-sidebar h5 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        /* Tag */
+        .blog-tag {
+            display: inline-block;
+            background: #f3f4f6;
+            color: #111827;
+            padding: 3px 10px;
+            margin: 4px 6px 0 0;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+
+        /* List trong sidebar */
+        .blog-sidebar ul li {
+            padding: 6px 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .blog-sidebar ul li:last-child {
+            border-bottom: none;
+        }
+
+        .tiny {
+            font-size: 11px;
+        }
+
+        /* Breadcrumb */
+        .blog-breadcrumb {
+            margin-bottom: 16px;
+        }
+        .breadcrumb-list {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-wrap: wrap;
+        }
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .breadcrumb-item a {
+            color: var(--text-muted, #6b7280);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .breadcrumb-item a:hover {
+            color: var(--text-primary, #111827);
+        }
+        .breadcrumb-item a i {
+            font-size: 12px;
+        }
+        .breadcrumb-item.active span {
+            color: var(--text-primary, #111827);
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .breadcrumb-separator {
+            color: var(--text-muted, #9ca3af);
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+        }
+        * {
+            list-style: none !important;
+            text-decoration: none !important;
+        }
+    </style>
 @endsection
 
 @section('schema')

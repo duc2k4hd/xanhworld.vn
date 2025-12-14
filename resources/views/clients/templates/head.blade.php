@@ -18,5 +18,5 @@
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="X-XSS-Protection" content="1; mode=block">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-{{-- {!! $settings->site_pinterest ?? '' !!} --}}
-{{-- {!! $settings->google_tag_header ?? '' !!} --}}
+{!! $settings->site_pinterest ?? '' !!}
+{!! $settings->google_tag_header ?? '' !!}
