@@ -1,6 +1,11 @@
 @extends('admins.layouts.master')
 
-@section('title', 'Backup & Restore Database')
+@section('title', '📁 Backup & Restore Database')
+
+@push('head')
+    <link rel="shortcut icon" href="{{ asset('admins/img/icons/backup-icon.png') }}" type="image/x-icon">
+@endpush
+
 
 @section('content')
 <div class="container-fluid">
