@@ -1,12 +1,21 @@
+@php
+    $siteUrl = rtrim($settings->site_url ?? 'https://xanhworld.vn', '/');
+    $productUrl = $product->canonical_url ?? ($siteUrl.'/san-pham/'.$product->slug);
+    $sameAs = array_values(array_unique(array_filter([
+        $settings->facebook_link ?? 'https://www.facebook.com/nobifashion.vn',
+        $settings->instagram_link ?? 'https://www.instagram.com/nobifashion.vn',
+        $settings->discord_link ?? 'https://discord.gg/nobifashion',
+    ])));
+@endphp
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "{{ ($settings->site_url ?? 'https://nobifashion.vn') }}#organization",
+      "@id": "{{ $siteUrl }}#organization",
       "name": "{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD - Thế giới cây xanh & phụ kiện' }}",
-      "url": "{{ ($settings->site_url ?? 'https://nobifashion.vn') }}",
+      "url": "{{ $siteUrl }}",
       "logo": "{{ asset('clients/assets/img/business/' . ($settings->site_logo ?? 'no-image.webp')) }}",
       "email": "{{ ($settings->contact_email ?? 'support@nobifashion.vn') }}",
       "address": {
@@ -14,7 +23,7 @@
         "streetAddress": "{{ ($settings->contact_address ?? 'Số 123 Đường Thời Trang, Quận Trung Tâm') }}",
         "addressRegion": "{{ ($settings->city ?? 'Hải Phòng') }}",
         "postalCode": "{{ ($settings->postalCode ?? '180000') }}",
-        "addressCountry": "{{ ($settings->site_language ?? 'vi') }}",
+        "addressCountry": "VN",
         "addressLocality": "{{ ($settings->addressLocality ?? 'Hải Phòng') }}"
       },
       "contactPoint": [
@@ -24,33 +33,32 @@
           "contactType": "customer service"
         }
       ],
-      "sameAs": [
-        "{{ ($settings->facebook_link ?? 'https://www.facebook.com/nobifashion.vn') }}",
-        "{{ ($settings->instagram_link ?? 'https://www.instagram.com/nobifashion.vn') }}",
-        "{{ ($settings->discord_link ?? 'https://discord.gg/nobifashion') }}"
-      ]
+      "sameAs": {!! json_encode($sameAs, JSON_UNESCAPED_SLASHES) !!}
     },
     {
       "@type": "WebPage",
-      "@id": "{{ ($product->canonical_url ?? ($settings->site_url ?? 'https://nobifashion.vn')) }}#webpage",
-      "url": "{{ ($product->canonical_url ?? ($settings->site_url ?? 'https://nobifashion.vn')) }}",
+      "@id": "{{ $productUrl }}#webpage",
+      "url": "{{ $productUrl }}",
       "name": "{{ $product->meta_title . ' | ' . ($settings->site_name ?? $settings->subname) ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD - Cây xanh & phụ kiện decor') }}",
       "description": "{{ $product->meta_desc ?? 'THẾ GIỚI CÂY XANH XWORLD: Cây xanh, chậu cảnh, phụ kiện decor. Setup góc làm việc, ban công, sân vườn xanh mát. Giao cây tận nơi, bảo hành cây khỏe.' }}",
       "inLanguage": "{{ ($settings->site_language ?? 'vi') }}",
       "isPartOf": {
-        "@id": "{{ ($product->canonical_url ?? ($settings->site_url ?? 'https://nobifashion.vn')) }}#website"
+        "@id": "{{ $siteUrl }}#website"
+      },
+      "mainEntityOfPage": {
+        "@id": "{{ $productUrl }}"
       }
     },
     {
       "@type": "LocalBusiness",
-      "@id": "{{ ($settings->site_url ?? 'https://nobifashion.vn') }}#localbusiness",
+      "@id": "{{ $siteUrl }}#localbusiness",
       "name": "{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}",
       "logo": {
         "@type": "ImageObject",
         "url": "{{ asset('clients/assets/img/business/' . ($settings->site_logo ?? 'no-image.webp')) }}"
       },
-      "image": "{{ asset('clients/assets/img/banners/' . ($settings->site_banner ?? 'no-image.webp')) }}",
-      "url": "{{ ($settings->site_url ?? 'https://nobifashion.vn') }}",
+    "image": "{{ asset('clients/assets/img/banners/' . ($settings->site_banner ?? 'no-image.webp')) }}",
+      "url": "{{ $siteUrl }}",
       "telephone": "{{ ($settings->contact_phone ?? '0827 786 198') }}",
       "email": "{{ ($settings->contact_email ?? 'xanhworldvietnam@gmail.com') }}",
       "priceRange": "₫₫",
@@ -71,7 +79,7 @@
         "@type": "OpeningHoursSpecification",
         "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
         "opens": "08:00",
-        "closes": "17:30"
+        "closes": "21:00"
       }],
       "sameAs": [
         "{{ ($settings->facebook_link ?? 'https://www.facebook.com/nobifashionvietnam') }}",
@@ -86,7 +94,7 @@
           "@type": "ListItem",
           "position": 1,
           "item": {
-            "@id": "{{ ($settings->site_url ?? 'https://xanhworld.vn') }}",
+            "@id": "{{ $siteUrl }}",
             "name": "Trang chủ THẾ GIỚI CÂY XANH XWORLD"
           }
         }
@@ -128,7 +136,7 @@
           "@type": "ListItem",
           "position": {{ $position }},
           "item": {
-            "@id": "{{ ($settings->site_url ?? 'https://xanhworld.vn') . ($product->meta_canonical ?? ($settings->site_url ?? 'https://xanhworld.vn')) }}",
+            "@id": "{{ $productUrl }}",
             "name": "{{ $product->meta_title . ' | ' . ($settings->site_name ?? $settings->subname) ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD - Cây xanh & phụ kiện decor') }}"
           }
         }
@@ -136,7 +144,10 @@
     },
   {
     "@type": "Product",
-    "@id": "{{ ($product->canonical_url ?? ($settings->site_url ?? 'https://xanhworld.vn')) }}/#product",
+    "@id": "{{ $productUrl }}#product",
+    "mainEntityOfPage": {
+      "@id": "{{ $productUrl }}"
+    },
     "name": "{{ $product->meta_title . ' | ' . ($settings->site_name ?? $settings->subname) ?? ($product->name ?? 'Cây xanh & phụ kiện - THẾ GIỚI CÂY XANH XWORLD') }}",
     "image": {
       "@type": "ImageObject",
@@ -147,18 +158,20 @@
     "description": "{{ $product->meta_desc ?? 'THẾ GIỚI CÂY XANH XWORLD: Cây xanh khỏe mạnh, chậu trang trí, phụ kiện setup góc sống xanh. Giao cây tận nơi, hướng dẫn chăm sóc & bảo hành cây.' }}",
     "sku": "{{ ($product->sku ?? 'SKU-DEFAULT') }}",
     "mpn": "{{ ($product->sku ?? 'SKU-DEFAULT') }}",
-    "productID": "sku:{{ ($product->sku ?? 'SKU-DEFAULT') }}",
     "brand": {
       "@type": "Brand",
-      "@id": "{{ ($settings->site_url ?? 'https://xanhworld.vn') }}#brand-xworld",
+      "@id": "{{ $siteUrl }}#brand-xworld",
       "name": "{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}"
     },
     "manufacturer": {
       "@type": "Organization",
-      "@id": "{{ ($settings->site_url ?? 'https://xanhworld.vn') }}#manufacturer-xworld",
+      "@id": "{{ $siteUrl }}#manufacturer-xworld",
       "name": "{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}"
     },
-      "countryOfOrigin": "{{ ($product->countryOfOrigin ?? 'VN') }}",
+      "countryOfOrigin": {
+        "@type": "Country",
+        "name": "{{ ($product->countryOfOrigin ?? 'VN') }}"
+      },
       @php
         $schemaRatingTotal = $ratingStats['total_comments'] ?? ($product->approved_comments_count ?? 0);
         $schemaRatingAvg = $ratingStats['average_rating'] ?? ($product->approved_rating_avg ?? null);
@@ -171,28 +184,34 @@
         },
       @endif
       "isFamilyFriendly": true,
-      "keywords": {!! json_encode($product->meta_keywords ?? [
-  'quần áo',
-  'phụ kiện',
-  'thời trang nam',
-  'thời trang nữ',
-  'áo phông',
-  'sơ mi',
-  'quần jean',
-  'váy',
-  'túi xách',
-  'mũ nón',
-  'thắt lưng'
-]) !!},
+      "keywords": {!! json_encode(
+        $product->meta_keywords 
+        ?? array_merge([
+            'cây xanh',
+            'cây cảnh',
+            'cây phong thủy',
+            'cây để bàn',
+            'cây nội thất',
+            'cây văn phòng',
+            'cây lọc không khí',
+            'chậu cây cảnh',
+            'trang trí không gian xanh',
+            'thế giới cây xanh'
+        ], array_filter([
+            $product->name,
+            $product->slug,
+            'mua '.$product->name,
+        ]))
+    ) !!},
       "releaseDate": "{{ (($product->created_at ?? null) ? $product->created_at->format('Y-m-d') : now()->format('Y-m-d')) }}",
       "audience": {
         "@type": "PeopleAudience",
-        "@id": "{{ ($settings->site_url ?? 'https://nobifashion.vn') }}#audience-{{ ($product->brand->slug ?? 'nobi-fashion') }}",
-        "audienceType": "Người tiêu dùng yêu thời trang"
+        "@id": "{{ $siteUrl }}#audience-{{ ($product->brand->slug ?? 'xanhworld') }}",
+        "audienceType": "Người yêu cây cảnh và phong thủy"
       },
       "offers": {
         "@type": "Offer",
-        "url": "{{ ($product->canonical_url ?? ($settings->site_url ?? 'https://nobifashion.vn')) }}",
+        "url": "{{ $productUrl }}",
         "priceCurrency": "VND",
         "price": "{{ ($product->price ?? 199000) }}",
         "priceValidUntil": "{{ (\Carbon\Carbon::now()->addMonths(6)->format('Y-m-d')) }}",
@@ -200,8 +219,8 @@
         "itemCondition": "https://schema.org/NewCondition",
         "seller": {
           "@type": "Organization",
-          "@id": "{{ ($settings->site_url ?? 'https://nobifashion.vn') }}#organization",
-          "name": "{{ $settings->site_name ?? 'NOBI FASHION' }}"
+          "@id": "{{ $siteUrl }}#organization",
+          "name": "{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}"
         },
         "shippingDetails": {
           "@type": "OfferShippingDetails",
@@ -309,7 +328,7 @@
         "@type": "HowTo",
         "name": "{{ ($product->howtos->first()->title ?? 'Hướng dẫn chăm sóc cây đúng cách') }}",
         "description": "{{ ($product->howtos->first()->description ?? 'Các bước chăm sóc, tưới nước và bố trí ánh sáng để cây phát triển khỏe mạnh tại nhà.') }}",
-        "image": "{{ asset('clients/assets/img/clothers/' . ($product->primary_image->url ?? 'no-image.jpg')) }}",
+        "image": "{{ asset('clients/assets/img/clothes/' . ($product->primaryImage->url ?? 'no-image.jpg')) }}",
         "totalTime": "PT15M",
         "estimatedCost": { "@type": "MonetaryAmount", "currency": "VND", "value": "10000" },
 
