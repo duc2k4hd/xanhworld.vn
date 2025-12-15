@@ -123,19 +123,37 @@
                     </div>
 
                     @php
-                        $item = $product->isInFlashSale() ? $product->currentFlashSaleItem()->first() : $product;
-
-                        $original = $item->original_price ?? ($item->price ?? 0);
-                        $sale = $item->sale_price ?? 0;
-                        // dd($product->currentFlashSale()->first())
-                        $availableStock = max(0, (int) ($quantityProductDetail ?? 0));
-                        $isOutOfStock = $availableStock <= 0;
+                        $variants = $product->variants ?? collect();
+                        $hasVariants = $variants->isNotEmpty();
+                        $firstVariant = $variants->first();
+                        
+                        // Nếu có variants, lấy giá và tồn kho từ variant đầu tiên
+                        if ($hasVariants && $firstVariant) {
+                            $original = $firstVariant->price ?? 0;
+                            $sale = $firstVariant->sale_price ?? null;
+                            if ($sale && $sale > 0 && $sale < $original) {
+                                // Có giá sale
+                            } else {
+                                $sale = null;
+                            }
+                            $availableStock = $firstVariant->stock_quantity ?? null;
+                            $isOutOfStock = $availableStock !== null && $availableStock <= 0;
+                        } else {
+                            // Không có variants, lấy từ product
+                            $item = $product->isInFlashSale() ? $product->currentFlashSaleItem()->first() : $product;
+                            $original = $item->original_price ?? ($item->price ?? 0);
+                            $sale = $item->sale_price ?? 0;
+                            $availableStock = max(0, (int) ($quantityProductDetail ?? 0));
+                            $isOutOfStock = $availableStock <= 0;
+                        }
                     @endphp
 
                     {{-- Tính % giảm --}}
-                    <span class="xanhworld_single_info_specifications_sale">
-                        -{{ round((($original - $sale) / $original) * 100) }}%
-                    </span>
+                    @if($original > 0 && $sale && $sale > 0 && $sale < $original)
+                        <span class="xanhworld_single_info_specifications_sale">
+                            -{{ round((($original - $sale) / $original) * 100) }}%
+                        </span>
+                    @endif
                     
                     @php
                         $overlayImages = ($product->images && $product->images->count() > 0)
@@ -285,10 +303,9 @@
                     </div>
 
                     {{-- Giá sản phẩm --}}
-
-                    <p class="xanhworld_single_info_specifications_price">
+                    <p class="xanhworld_single_info_specifications_price" id="product_price_display">
                         @if ($original > 0)
-                            @if ($sale > 0 && $sale < $original)
+                            @if ($sale && $sale > 0 && $sale < $original)
                                 {{-- Có giá khuyến mãi hợp lệ --}}
                                 <meta content="VND">
                                 <span class="xanhworld_single_info_specifications_new_price">
@@ -320,21 +337,78 @@
                         </a>
                     </p>
 
+                    @if($hasVariants)
+                        <!-- Variant Selector -->
+                        <div class="xanhworld_single_info_specifications_variants">
+                            {{-- <label class="xanhworld_single_info_specifications_variants_label">
+                                Chọn biến thể:
+                            </label> --}}
+                            <div class="xanhworld_single_info_specifications_variants_list">
+                                @foreach($variants as $variant)
+                                    @php
+                                        $variantPrice = $variant->display_price;
+                                        $variantSalePrice = $variant->sale_price;
+                                        $variantStock = $variant->stock_quantity;
+                                        $isOutOfStock = $variantStock !== null && $variantStock <= 0;
+                                        
+                                        // Lấy thông tin từ attributes
+                                        $attrs = is_array($variant->attributes) ? $variant->attributes : (is_string($variant->attributes) ? json_decode($variant->attributes, true) : []);
+                                        $size = $attrs['size'] ?? null;
+                                        $hasPot = $attrs['has_pot'] ?? null;
+                                        $comboType = $attrs['combo_type'] ?? null;
+                                        $notes = $attrs['notes'] ?? null;
+                                        
+                                        // Xây dựng mô tả chi tiết
+                                        $details = [];
+                                        if ($size) $details[] = $size;
+                                        if ($hasPot === true || $hasPot === '1' || $hasPot === 1) $details[] = 'Có chậu';
+                                        if ($comboType) $details[] = $comboType;
+                                        if ($notes) $details[] = $notes;
+                                        $detailsText = !empty($details) ? ' ('.implode(', ', $details).')' : '';
+                                    @endphp
+                                    <button type="button" 
+                                        class="xanhworld_single_info_specifications_variant_item {{ $loop->first ? 'active' : '' }} {{ $isOutOfStock ? 'disabled' : '' }}"
+                                        data-variant-id="{{ $variant->id }}"
+                                        data-variant-price="{{ $variantPrice }}"
+                                        data-variant-original-price="{{ $variant->price }}"
+                                        data-variant-sale-price="{{ $variantSalePrice ?? 'null' }}"
+                                        data-variant-stock="{{ $variantStock ?? 'null' }}"
+                                        onclick="selectVariant({{ $variant->id }}, {{ $variant->price }}, {{ $variantSalePrice ? $variantSalePrice : 'null' }}, {{ $variantStock ?? 'null' }})"
+                                        {{ $isOutOfStock ? 'disabled' : '' }}>
+                                        <span class="variant-name">{{ $variant->name }}{!! $detailsText !!}</span>
+                                        <span class="variant-price">{{ number_format($variantPrice, 0, ',', '.') }}₫</span>
+                                        @if($variant->isOnSale())
+                                            <span class="variant-discount">-{{ $variant->discount_percent }}%</span>
+                                        @endif
+                                        @if($variant->stock_quantity !== null && $variant->stock_quantity <= 0)
+                                            <span class="variant-out-of-stock">Hết hàng</span>
+                                        @endif
+                                    </button>
+                                @endforeach
+                            </div>
+                            <input type="hidden" name="product_variant_id" id="selected_variant_id" value="{{ $variants->first()?->id }}">
+                        </div>
+                    @endif
+
                     <!-- Product Actions Form -->
                     <form class="xanhworld_single_info_specifications_actions" action="{{ route('client.cart.store') }}"
                         method="POST">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
+                        @if($hasVariants)
+                            <input type="hidden" name="product_variant_id" id="form_variant_id" value="{{ $variants->first()?->id }}">
+                        @endif
                         <!-- Quantity Box -->
                         <div class="xanhworld_single_info_specifications_actions_qty"
-                            data-max-stock="{{ max(1, $quantityProductDetail) }}">
+                            data-max-stock="{{ $hasVariants && $firstVariant ? ($firstVariant->stock_quantity ?? 9999) : max(1, $quantityProductDetail) }}"
+                            id="quantity_box">
                             <button type="button" class="xanhworld_single_info_specifications_actions_btn"
                                 onclick="decreaseQty()">−</button>
                             <span class="xanhworld_single_info_specifications_actions_value">1</span>
                             <button type="button" class="xanhworld_single_info_specifications_actions_btn"
                                 onclick="increaseQty()">+</button>
                         </div>
-                        <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="quantity" value="1" id="quantity_input">
 
                         <!-- Add to Cart -->
                         <button type="submit" name="action" value="add_to_cart"
@@ -350,7 +424,7 @@
                         </a>
                         
                         <!-- Favorite button -->
-                        <button type="button" @if(in_array($product->id, $favoriteProductIds ?? [])) onclick="removeWishlist({{ $product->id }})" @else onclick="addWishlist({{ $product->id }})" @endif class="xanhworld_fav_btn {{ in_array($product->id, $favoriteProductIds ?? []) ? 'active' : '' }}" aria-label="Yêu thích" style="">
+                        <button type="button" @if(in_array($product->id, $favoriteProductIds ?? [])) onclick="removeWishlist({{ $product->id }})" @else onclick="addWishlist({{ $product->id }})" @endif class="xanhworld_fav_btn {{ in_array($product->id, $favoriteProductIds ?? []) ? 'active xanhworld_single_info_specifications_wishlish' : '' }}" aria-label="Yêu thích" style="">
                             @if(in_array($product->id, $favoriteProductIds ?? []))
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path fill="#ff0000" d="M305 151.1L320 171.8L335 151.1C360 116.5 400.2 96 442.9 96C516.4 96 576 155.6 576 229.1L576 231.7C576 343.9 436.1 474.2 363.1 529.9C350.7 539.3 335.5 544 320 544C304.5 544 289.2 539.4 276.9 529.9C203.9 474.2 64 343.9 64 231.7L64 229.1C64 155.6 123.6 96 197.1 96C239.8 96 280 116.5 305 151.1z"/></svg>
                             @else

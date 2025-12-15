@@ -3,18 +3,24 @@
 namespace App\Services;
 
 use App\Models\Order;
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 class GHNService
 {
     protected $baseUrl;
+
     protected $token;
+
     protected $shopId;
+
     protected $fromDistrictId;
+
     protected $serviceId;
+
     protected $serviceTypeId;
+
     protected $fromWardCode;
 
     public function __construct()
@@ -23,19 +29,19 @@ class GHNService
         // Production: https://online-gateway.ghn.vn/shiip/public-api/v2/
         // Test: https://dev-online-gateway.ghn.vn/shiip/public-api/v2/
         $this->baseUrl = config('services.ghn.base_url', 'https://online-gateway.ghn.vn/shiip/public-api/');
-        
+
         // Đảm bảo baseUrl có dấu / ở cuối
-        if (!str_ends_with($this->baseUrl, '/')) {
+        if (! str_ends_with($this->baseUrl, '/')) {
             $this->baseUrl .= '/';
         }
-        
+
         $this->token = config('services.ghn.token');
         $this->shopId = (int) config('services.ghn.shop_id', 5236454);
         $this->fromDistrictId = (int) config('services.ghn.from_district_id', 1588); // Quận Lê Chân
         $this->serviceId = (int) config('services.ghn.service_id', 53320); // GHN Tiêu chuẩn
         $this->serviceTypeId = (int) config('services.ghn.service_type_id', 2); // Hàng dưới 20kg
         $this->fromWardCode = (string) config('services.ghn.from_ward_code', 30212); // Phường Vĩnh Niệm
-        
+
         // Validate required config
         if (empty($this->token)) {
             throw new \Exception('GHN token is not configured. Please set APP_API_GHN in .env');
@@ -47,9 +53,8 @@ class GHNService
 
     /**
      * Tạo token để in đơn hàng GHN
-     * 
-     * @param array|string $orderCodes Mã đơn hàng GHN (có thể là string hoặc array)
-     * @return array
+     *
+     * @param  array|string  $orderCodes  Mã đơn hàng GHN (có thể là string hoặc array)
      */
     public function generatePrintToken($orderCodes): array
     {
@@ -63,7 +68,7 @@ class GHNService
                 throw new Exception('Vui lòng cung cấp mã đơn hàng GHN.');
             }
 
-            $endpoint = $this->baseUrl . 'v2/a5/gen-token';
+            $endpoint = $this->baseUrl.'v2/a5/gen-token';
 
             $payload = [
                 'order_codes' => $orderCodes,
@@ -87,8 +92,8 @@ class GHNService
             ]);
 
             // Check response
-            if (!$response->successful()) {
-                $errorMsg = $responseData['message'] ?? 'HTTP ' . $response->status();
+            if (! $response->successful()) {
+                $errorMsg = $responseData['message'] ?? 'HTTP '.$response->status();
                 throw new Exception($this->translateGhnError($errorMsg));
             }
 
@@ -99,19 +104,19 @@ class GHNService
 
             $token = $responseData['data']['token'] ?? null;
 
-            if (!$token) {
+            if (! $token) {
                 throw new Exception('Không thể tạo token in đơn hàng từ GHN.');
             }
 
             // Tạo các link in theo các format khác nhau
-            $basePrintUrl = str_contains($this->baseUrl, 'dev-') 
+            $basePrintUrl = str_contains($this->baseUrl, 'dev-')
                 ? 'https://dev-online-gateway.ghn.vn/a5/public-api'
                 : 'https://online-gateway.ghn.vn/a5/public-api';
 
             $printUrls = [
-                'a5' => $basePrintUrl . '/printA5?token=' . $token,
-                '80x80' => $basePrintUrl . '/print80x80?token=' . $token,
-                '52x70' => $basePrintUrl . '/print52x70?token=' . $token,
+                'a5' => $basePrintUrl.'/printA5?token='.$token,
+                '80x80' => $basePrintUrl.'/print80x80?token='.$token,
+                '52x70' => $basePrintUrl.'/print52x70?token='.$token,
             ];
 
             return [
@@ -139,7 +144,7 @@ class GHNService
     public function getPickShifts(): array
     {
         try {
-            $endpoint = $this->baseUrl . 'v2/shift/date';
+            $endpoint = $this->baseUrl.'v2/shift/date';
 
             Log::info('Getting GHN pick shifts', [
                 'endpoint' => $endpoint,
@@ -158,8 +163,8 @@ class GHNService
             ]);
 
             // Check response
-            if (!$response->successful()) {
-                $errorMsg = $responseData['message'] ?? 'HTTP ' . $response->status();
+            if (! $response->successful()) {
+                $errorMsg = $responseData['message'] ?? 'HTTP '.$response->status();
                 throw new Exception($this->translateGhnError($errorMsg));
             }
 
@@ -195,17 +200,17 @@ class GHNService
     {
         try {
             // Validate order có đủ thông tin không
-            if (!$order->receiver_name || !$order->receiver_phone || !$order->shipping_address) {
+            if (! $order->receiver_name || ! $order->receiver_phone || ! $order->shipping_address) {
                 throw new Exception('Đơn hàng thiếu thông tin người nhận.');
             }
 
-            if (!$order->shipping_district_id || !$order->shipping_ward_id) {
+            if (! $order->shipping_district_id || ! $order->shipping_ward_id) {
                 throw new Exception('Đơn hàng thiếu thông tin địa chỉ giao hàng (quận/huyện, phường/xã).');
             }
 
             // Kiểm tra xem đơn hàng đã có tracking code chưa
             if ($order->shipping_tracking_code) {
-                throw new Exception('Đơn hàng đã có mã vận đơn GHN: ' . $order->shipping_tracking_code);
+                throw new Exception('Đơn hàng đã có mã vận đơn GHN: '.$order->shipping_tracking_code);
             }
 
             // Chuẩn bị items cho GHN
@@ -214,7 +219,7 @@ class GHNService
             // Chuẩn bị dữ liệu gửi đến GHN
             // Đảm bảo tất cả các trường số là integer/float đúng định dạng
             $pickShiftId = $options['pick_shift_id'] ?? $options['pick_shift'] ?? null;
-            
+
             // Cast các giá trị số đảm bảo không null
             // Không tự tính từ sản phẩm nữa, chỉ dùng dữ liệu admin nhập (hoặc default tối thiểu)
             $weightValue = (int) round((float) ($options['weight'] ?? 200)); // Tối thiểu 200g
@@ -223,7 +228,7 @@ class GHNService
             $heightValue = (int) round((float) ($options['height'] ?? 10));
             $insuranceValue = (int) round((float) ($options['insurance_value'] ?? $order->final_price ?? 0));
             $finalPrice = (float) ($order->final_price ?? 0);
-            
+
             $data = [
                 // 1: Shop trả, 2: Người nhận trả
                 'payment_type_id' => isset($options['payment_type_id'])
@@ -256,7 +261,7 @@ class GHNService
                 'to_ward_code' => (string) $order->shipping_ward_id,
                 'to_district_id' => (int) $order->shipping_district_id,
                 'cod_amount' => $order->payment_method === 'cod' ? (int) round($finalPrice) : 0,
-                'content' => 'Đơn hàng ' . $order->code,
+                'content' => 'Đơn hàng '.$order->code,
                 'weight' => $weightValue,
                 'length' => $lengthValue,
                 'width' => $widthValue,
@@ -268,13 +273,13 @@ class GHNService
             ];
 
             // Thêm các trường optional nếu có giá trị
-            if (!empty($options['pick_station_id'])) {
+            if (! empty($options['pick_station_id'])) {
                 $data['pick_station_id'] = (int) $options['pick_station_id'];
             }
-            if (!empty($options['deliver_station_id'])) {
+            if (! empty($options['deliver_station_id'])) {
                 $data['deliver_station_id'] = (int) $options['deliver_station_id'];
             }
-            if (!empty($options['coupon'])) {
+            if (! empty($options['coupon'])) {
                 $data['coupon'] = (string) $options['coupon'];
             }
             if ($pickShiftId !== null && $pickShiftId !== '') {
@@ -291,15 +296,15 @@ class GHNService
             // Production: https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/create
             // Test: https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/create
             // baseUrl đã có / ở cuối, nên chỉ cần thêm path
-            $endpoint = $this->baseUrl . 'v2/shipping-order/create';
-            
+            $endpoint = $this->baseUrl.'v2/shipping-order/create';
+
             Log::info('Creating GHN order', [
                 'order_id' => $order->id,
                 'order_code' => $order->code,
                 'endpoint' => $endpoint,
                 'shop_id' => $this->shopId,
                 'token_length' => strlen($this->token ?? ''),
-                'data' => $data
+                'data' => $data,
             ]);
 
             // Gọi API GHN
@@ -317,12 +322,12 @@ class GHNService
                 'body' => $response->body(),
                 'response' => $responseData,
                 'order_id' => $order->id,
-                'endpoint' => $endpoint
+                'endpoint' => $endpoint,
             ]);
 
             // Kiểm tra response
-            if (!$response->successful()) {
-                $errorMsg = $responseData['message'] ?? 'HTTP ' . $response->status();
+            if (! $response->successful()) {
+                $errorMsg = $responseData['message'] ?? 'HTTP '.$response->status();
                 throw new Exception($this->translateGhnError($errorMsg));
             }
 
@@ -332,7 +337,7 @@ class GHNService
             }
 
             if (empty($responseData['data']['order_code'])) {
-                throw new Exception("GHN API did not return order_code");
+                throw new Exception('GHN API did not return order_code');
             }
 
             $ghnData = $responseData['data'];
@@ -373,7 +378,7 @@ class GHNService
                 'order_id' => $order->id,
                 'ghn_order_code' => $responseData['data']['order_code'],
                 'sort_code' => $responseData['data']['sort_code'] ?? null,
-                'expected_delivery_time' => $responseData['data']['expected_delivery_time'] ?? null
+                'expected_delivery_time' => $responseData['data']['expected_delivery_time'] ?? null,
             ]);
 
             return [
@@ -383,18 +388,18 @@ class GHNService
                 'expected_delivery_time' => $responseData['data']['expected_delivery_time'] ?? null,
                 'total_fee' => $responseData['data']['total_fee'] ?? null,
                 'fee' => $responseData['data']['fee'] ?? null,
-                'data' => $responseData['data']
+                'data' => $responseData['data'],
             ];
 
         } catch (Exception $e) {
             Log::error('Failed to create GHN order', [
                 'order_id' => $order->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -405,11 +410,11 @@ class GHNService
     public function syncOrderStatus(Order $order): array
     {
         try {
-            if (!$order->shipping_tracking_code) {
+            if (! $order->shipping_tracking_code) {
                 throw new Exception('Đơn hàng chưa có mã vận đơn GHN.');
             }
 
-            $endpoint = $this->baseUrl . 'v2/shipping-order/detail';
+            $endpoint = $this->baseUrl.'v2/shipping-order/detail';
 
             $payload = [
                 'order_code' => $order->shipping_tracking_code,
@@ -435,8 +440,8 @@ class GHNService
                 'order_id' => $order->id,
             ]);
 
-            if (!$response->successful() || ($responseData['code'] ?? 0) !== 200) {
-                $message = $responseData['message'] ?? ('HTTP ' . $response->status());
+            if (! $response->successful() || ($responseData['code'] ?? 0) !== 200) {
+                $message = $responseData['message'] ?? ('HTTP '.$response->status());
                 throw new Exception($this->translateGhnError($message));
             }
 
@@ -480,7 +485,7 @@ class GHNService
             $statusLower = strtolower($status ?? '');
             if (str_contains($statusLower, 'cancel') || str_contains($statusLower, 'hủy') || str_contains($statusLower, 'huỷ')) {
                 $update['delivery_status'] = 'cancelled';
-            } elseif (!empty($definition['delivery_bucket'])) {
+            } elseif (! empty($definition['delivery_bucket'])) {
                 $update['delivery_status'] = $this->mapBucketToDeliveryStatus($definition['delivery_bucket']);
             } elseif (isset($data['cancel_reason']) || isset($data['cancel_reason_id'])) {
                 // Nếu có cancel_reason hoặc cancel_reason_id thì đơn đã bị hủy
@@ -510,11 +515,11 @@ class GHNService
     public function getOrderInfo(string $orderCode): array
     {
         try {
-            if (!$orderCode) {
+            if (! $orderCode) {
                 throw new Exception('Vui lòng nhập mã vận đơn GHN.');
             }
 
-            $endpoint = $this->baseUrl . 'v2/shipping-order/detail';
+            $endpoint = $this->baseUrl.'v2/shipping-order/detail';
             $payload = ['order_code' => $orderCode];
 
             $response = Http::withHeaders([
@@ -524,8 +529,8 @@ class GHNService
 
             $responseData = $response->json();
 
-            if (!$response->successful() || ($responseData['code'] ?? 0) !== 200) {
-                $message = $responseData['message'] ?? ('HTTP ' . $response->status());
+            if (! $response->successful() || ($responseData['code'] ?? 0) !== 200) {
+                $message = $responseData['message'] ?? ('HTTP '.$response->status());
                 throw new Exception($this->translateGhnError($message));
             }
 
@@ -562,12 +567,12 @@ class GHNService
     public function cancelOrder(Order $order, ?string $note = null): array
     {
         try {
-            if (!$order->shipping_tracking_code) {
+            if (! $order->shipping_tracking_code) {
                 throw new Exception('Không có mã vận đơn GHN để hủy.');
             }
 
             // Docs: https://online-gateway.ghn.vn/shiip/public-api/v2/switch-status/cancel
-            $endpoint = $this->baseUrl . 'v2/switch-status/cancel';
+            $endpoint = $this->baseUrl.'v2/switch-status/cancel';
             $payload = [
                 'order_codes' => [$order->shipping_tracking_code],
             ];
@@ -585,8 +590,8 @@ class GHNService
 
             $responseData = $response->json();
 
-            if (!$response->successful() || ($responseData['code'] ?? 0) !== 200) {
-                $message = $responseData['message'] ?? ('HTTP ' . $response->status());
+            if (! $response->successful() || ($responseData['code'] ?? 0) !== 200) {
+                $message = $responseData['message'] ?? ('HTTP '.$response->status());
                 throw new Exception($this->translateGhnError($message));
             }
 
@@ -621,7 +626,7 @@ class GHNService
             ];
 
             // Luôn cập nhật delivery_status khi hủy
-            if (!empty($definition['delivery_bucket'])) {
+            if (! empty($definition['delivery_bucket'])) {
                 $update['delivery_status'] = $this->mapBucketToDeliveryStatus($definition['delivery_bucket']);
             } else {
                 // Nếu không có bucket nhưng đang hủy thì set cancelled
@@ -652,11 +657,11 @@ class GHNService
     public function updateGhnOrder(Order $order, array $payload): array
     {
         try {
-            if (!$order->shipping_tracking_code) {
+            if (! $order->shipping_tracking_code) {
                 throw new Exception('Đơn hàng chưa có mã vận đơn GHN.');
             }
 
-            $endpoint = $this->baseUrl . 'v2/shipping-order/update';
+            $endpoint = $this->baseUrl.'v2/shipping-order/update';
 
             $defaults = [
                 'order_code' => $order->shipping_tracking_code,
@@ -670,7 +675,7 @@ class GHNService
                 'to_ward_code' => (string) $order->shipping_ward_id,
                 'to_district_id' => (int) $order->shipping_district_id,
                 'cod_amount' => $order->payment_method === 'cod' ? (int) $order->final_price : 0,
-                'content' => 'Đơn hàng ' . $order->code,
+                'content' => 'Đơn hàng '.$order->code,
                 'weight' => $this->calculateWeight($order),
                 'length' => 10,
                 'width' => 10,
@@ -707,8 +712,8 @@ class GHNService
 
             $responseData = $response->json();
 
-            if (!$response->successful() || ($responseData['code'] ?? 0) !== 200) {
-                $message = $responseData['message'] ?? ('HTTP ' . $response->status());
+            if (! $response->successful() || ($responseData['code'] ?? 0) !== 200) {
+                $message = $responseData['message'] ?? ('HTTP '.$response->status());
                 throw new Exception($this->translateGhnError($message));
             }
 
@@ -755,6 +760,7 @@ class GHNService
         foreach ($order->items as $item) {
             $totalWeight += ($item->quantity ?? 1) * 200; // 200g mỗi sản phẩm
         }
+
         return max(200, $totalWeight); // Tối thiểu 200g
     }
 
@@ -777,12 +783,25 @@ class GHNService
     private function formatOrderItems(Order $order): array
     {
         $items = [];
-        
+
+        $order->loadMissing(['items.product', 'items.variant']);
+
         foreach ($order->items as $item) {
             $product = $item->product;
+            $variant = $item->variant;
+
+            // Tên sản phẩm kèm variant nếu có
+            $productName = $product->name ?? 'Sản phẩm';
+            if ($variant && $variant->is_active) {
+                $productName .= ' - '.$variant->name;
+            }
+
+            // SKU từ variant hoặc product
+            $sku = $variant && $variant->sku ? $variant->sku : ($product->sku ?? $product->id);
+
             $items[] = [
-                'name' => $product->name ?? 'Sản phẩm',
-                'code' => $product->sku ?? $product->id,
+                'name' => $productName,
+                'code' => $sku,
                 'quantity' => (int) ($item->quantity ?? 1),
                 'price' => (int) ($item->price ?? 0),
                 'length' => 12,
@@ -790,8 +809,8 @@ class GHNService
                 'height' => 12,
                 'weight' => 200, // 200g mỗi sản phẩm
                 'category' => [
-                    'level1' => 'Thời trang'
-                ]
+                    'level1' => 'Thời trang',
+                ],
             ];
         }
 
@@ -804,22 +823,22 @@ class GHNService
     public function createTicket(Order $order, array $data): array
     {
         try {
-            if (!$order->shipping_tracking_code) {
+            if (! $order->shipping_tracking_code) {
                 throw new Exception('Đơn hàng chưa có mã vận đơn GHN.');
             }
 
-            $endpoint = $this->baseUrl . 'ticket/create';
+            $endpoint = $this->baseUrl.'ticket/create';
 
             // Validate category
             $allowedCategories = [
                 'Tư vấn',
                 'Hối Giao/Lấy/Trả hàng',
                 'Thay đổi thông tin',
-                'Khiếu nại'
+                'Khiếu nại',
             ];
 
             $category = $data['category'] ?? 'Tư vấn';
-            if (!in_array($category, $allowedCategories)) {
+            if (! in_array($category, $allowedCategories)) {
                 throw new Exception('Loại ticket không hợp lệ.');
             }
 
@@ -850,7 +869,7 @@ class GHNService
             ]);
 
             // If there's a file attachment
-            if (!empty($data['attachment']) && $data['attachment']->isValid()) {
+            if (! empty($data['attachment']) && $data['attachment']->isValid()) {
                 $http = $http->attach('attachments', file_get_contents($data['attachment']->getRealPath()), $data['attachment']->getClientOriginalName());
             }
 
@@ -866,8 +885,8 @@ class GHNService
             ]);
 
             // Check response
-            if (!$response->successful()) {
-                $errorMsg = $responseData['message'] ?? 'HTTP ' . $response->status();
+            if (! $response->successful()) {
+                $errorMsg = $responseData['message'] ?? 'HTTP '.$response->status();
                 throw new Exception($this->translateGhnError($errorMsg));
             }
 
@@ -879,7 +898,7 @@ class GHNService
             $ticketData = $responseData['data'] ?? [];
 
             if (empty($ticketData['id'])) {
-                throw new Exception("GHN API did not return ticket ID");
+                throw new Exception('GHN API did not return ticket ID');
             }
 
             // Save ticket info to order
@@ -917,12 +936,12 @@ class GHNService
         } catch (Exception $e) {
             Log::error('Failed to create GHN ticket', [
                 'order_id' => $order->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -933,11 +952,11 @@ class GHNService
     public function getTicket(int $ticketId): array
     {
         try {
-            if (!$ticketId) {
+            if (! $ticketId) {
                 throw new Exception('Vui lòng nhập mã ticket.');
             }
 
-            $endpoint = $this->baseUrl . 'ticket/detail';
+            $endpoint = $this->baseUrl.'ticket/detail';
 
             $payload = [
                 'ticket_id' => $ticketId,
@@ -963,8 +982,8 @@ class GHNService
             ]);
 
             // Check response
-            if (!$response->successful()) {
-                $errorMsg = $responseData['message'] ?? 'HTTP ' . $response->status();
+            if (! $response->successful()) {
+                $errorMsg = $responseData['message'] ?? 'HTTP '.$response->status();
                 throw new Exception($this->translateGhnError($errorMsg));
             }
 
@@ -976,7 +995,7 @@ class GHNService
             $ticketData = $responseData['data'] ?? [];
 
             if (empty($ticketData['id'])) {
-                throw new Exception("GHN API did not return ticket data");
+                throw new Exception('GHN API did not return ticket data');
             }
 
             return [
@@ -1005,7 +1024,7 @@ class GHNService
         try {
             $result = $this->getTicket($ticketId);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 return $result;
             }
 
@@ -1034,7 +1053,7 @@ class GHNService
             }
 
             // If ticket not found in list, add it
-            if (!$updated) {
+            if (! $updated) {
                 $tickets[] = [
                     'id' => $ticketData['id'],
                     'order_code' => $ticketData['order_code'] ?? $order->shipping_tracking_code,
@@ -1083,11 +1102,11 @@ class GHNService
     public function replyTicket(int $ticketId, array $data): array
     {
         try {
-            if (!$ticketId) {
+            if (! $ticketId) {
                 throw new Exception('Vui lòng nhập mã ticket.');
             }
 
-            $endpoint = $this->baseUrl . 'ticket/reply';
+            $endpoint = $this->baseUrl.'ticket/reply';
 
             // Prepare request data
             $requestData = [
@@ -1111,7 +1130,7 @@ class GHNService
             ]);
 
             // If there's a file attachment
-            if (!empty($data['attachment']) && $data['attachment']->isValid()) {
+            if (! empty($data['attachment']) && $data['attachment']->isValid()) {
                 $http = $http->attach('attachments', file_get_contents($data['attachment']->getRealPath()), $data['attachment']->getClientOriginalName());
             }
 
@@ -1127,8 +1146,8 @@ class GHNService
             ]);
 
             // Check response
-            if (!$response->successful()) {
-                $errorMsg = $responseData['message'] ?? 'HTTP ' . $response->status();
+            if (! $response->successful()) {
+                $errorMsg = $responseData['message'] ?? 'HTTP '.$response->status();
                 throw new Exception($this->translateGhnError($errorMsg));
             }
 
@@ -1166,7 +1185,7 @@ class GHNService
     public function getTicketList(?string $orderCode = null): array
     {
         try {
-            $endpoint = $this->baseUrl . 'ticket/index';
+            $endpoint = $this->baseUrl.'ticket/index';
 
             Log::info('Getting GHN ticket list', [
                 'order_code' => $orderCode,
@@ -1187,8 +1206,8 @@ class GHNService
             ]);
 
             // Check response
-            if (!$response->successful()) {
-                $errorMsg = $responseData['message'] ?? 'HTTP ' . $response->status();
+            if (! $response->successful()) {
+                $errorMsg = $responseData['message'] ?? 'HTTP '.$response->status();
                 throw new Exception($this->translateGhnError($errorMsg));
             }
 
@@ -1200,7 +1219,7 @@ class GHNService
             $tickets = $responseData['data'] ?? [];
 
             // Filter by order_code if provided
-            if ($orderCode && !empty($tickets)) {
+            if ($orderCode && ! empty($tickets)) {
                 $tickets = array_filter($tickets, function ($ticket) use ($orderCode) {
                     return ($ticket['order_code'] ?? '') === $orderCode;
                 });
@@ -1232,13 +1251,13 @@ class GHNService
     public function syncTicketList(Order $order): array
     {
         try {
-            if (!$order->shipping_tracking_code) {
+            if (! $order->shipping_tracking_code) {
                 throw new Exception('Đơn hàng chưa có mã vận đơn GHN.');
             }
 
             $result = $this->getTicketList($order->shipping_tracking_code);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 return $result;
             }
 
@@ -1258,7 +1277,7 @@ class GHNService
             $mergedTickets = [];
             foreach ($ghnTickets as $ghnTicket) {
                 $ticketId = $ghnTicket['id'] ?? null;
-                
+
                 if ($ticketId) {
                     // If ticket exists, merge data (keep local data like created_by)
                     if (isset($existingTicketsMap[$ticketId])) {
@@ -1298,6 +1317,7 @@ class GHNService
             usort($mergedTickets, function ($a, $b) {
                 $timeA = strtotime($a['created_at'] ?? 0);
                 $timeB = strtotime($b['created_at'] ?? 0);
+
                 return $timeB - $timeA;
             });
 
@@ -1330,7 +1350,7 @@ class GHNService
      */
     private function translateGhnError(?string $message): string
     {
-        if (!$message) {
+        if (! $message) {
             return 'GHN: Lỗi không xác định.';
         }
 
@@ -1355,6 +1375,7 @@ class GHNService
         if (preg_match('/Not support change field:\s*\[([^\]]+)\]\s*with order status:\s*(\w+)/i', $message, $matches)) {
             $fields = str_replace(['[', ']', ','], ['', '', ', '], trim($matches[1]));
             $status = $matches[2];
+
             return "GHN không cho phép thay đổi các trường {$fields} khi vận đơn đang ở trạng thái {$status}.";
         }
 
@@ -1362,7 +1383,6 @@ class GHNService
             return 'GHN: Không tìm thấy vận đơn. Vui lòng kiểm tra lại mã vận đơn.';
         }
 
-        return 'GHN: ' . $message;
+        return 'GHN: '.$message;
     }
 }
-

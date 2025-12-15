@@ -31,6 +31,7 @@ class HomeController extends Controller
             $products = Product::active()
                 ->featured()
                 ->withApprovedCommentsMeta()
+                ->with('variants')
                 ->take(18)
                 ->get() ?? collect();
             Product::preloadImages($products);
@@ -42,6 +43,7 @@ class HomeController extends Controller
         $productRandom = Cache::remember('products_random_home', now()->addDays(30), function () {
             $products = Product::active()
                 ->withApprovedCommentsMeta()
+                ->with('variants')
                 ->when(
                     $category = Category::where('slug', 'cay-phong-thuy')->first(),
                     function ($query) use ($category) {

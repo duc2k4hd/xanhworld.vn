@@ -53,13 +53,18 @@ class CartItem extends Model
 
     public function syncPrice(): void
     {
-        $this->loadMissing('product.currentFlashSaleItem.flashSale');
+        $this->loadMissing(['product.currentFlashSaleItem.flashSale', 'variant']);
 
         if (! $this->product) {
             return;
         }
 
-        $resolved = $this->product->resolveCartPrice();
+        // Lấy giá từ variant hoặc product
+        if ($this->variant && $this->variant->is_active) {
+            $resolved = (float) $this->variant->display_price;
+        } else {
+            $resolved = $this->product->resolveCartPrice();
+        }
 
         if ((float) $this->price !== (float) $resolved) {
             $this->price = $resolved;

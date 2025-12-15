@@ -31,7 +31,7 @@ class ResetUnpaidOrders extends Command
                     ->orWhere('delivery_status', '!=', 'confirmed');
             })
             ->whereNotIn('status', ['cancelled', 'completed'])
-            ->with(['items.product'])
+            ->with(['items.product', 'items.variant'])
             ->get();
 
         if ($orders->isEmpty()) {
@@ -44,6 +44,7 @@ class ResetUnpaidOrders extends Command
 
         $totalQuantityRestored = 0;
         $restoredProducts = [];
+        $restoredVariants = [];
 
         DB::beginTransaction();
 
@@ -51,16 +52,26 @@ class ResetUnpaidOrders extends Command
             foreach ($orders as $order) {
                 $this->line("  - Đơn hàng #{$order->code} (ID: {$order->id})");
 
-                // Đếm số lượng sản phẩm cần trả về
+                // Đếm số lượng sản phẩm cần trả về (từ variant hoặc product)
                 foreach ($order->items as $item) {
-                    $productId = $item->product_id;
                     $quantity = $item->quantity;
 
-                    if (! isset($restoredProducts[$productId])) {
-                        $restoredProducts[$productId] = 0;
+                    // Nếu có variant, hoàn kho từ variant
+                    if ($item->product_variant_id && $item->variant) {
+                        $variantId = $item->product_variant_id;
+                        if (! isset($restoredVariants[$variantId])) {
+                            $restoredVariants[$variantId] = 0;
+                        }
+                        $restoredVariants[$variantId] += $quantity;
+                    } else {
+                        // Nếu không có variant, hoàn kho từ product
+                        $productId = $item->product_id;
+                        if (! isset($restoredProducts[$productId])) {
+                            $restoredProducts[$productId] = 0;
+                        }
+                        $restoredProducts[$productId] += $quantity;
                     }
 
-                    $restoredProducts[$productId] += $quantity;
                     $totalQuantityRestored += $quantity;
                 }
 
@@ -75,7 +86,25 @@ class ResetUnpaidOrders extends Command
                 $this->line('    ✓ Đã hủy đơn hàng');
             }
 
-            // Trả về số lượng sản phẩm vào kho
+            // Trả về số lượng sản phẩm vào kho từ variant
+            foreach ($restoredVariants as $variantId => $quantity) {
+                $variant = \App\Models\ProductVariant::find($variantId);
+
+                if ($variant) {
+                    $oldStock = $variant->stock_quantity ?? 0;
+                    $newStock = $oldStock + $quantity;
+
+                    $variant->update([
+                        'stock_quantity' => $newStock,
+                    ]);
+
+                    $this->line("    ✓ Biến thể #{$variantId} ({$variant->name}): +{$quantity} (Từ {$oldStock} → {$newStock})");
+                } else {
+                    $this->warn("    ⚠ Biến thể #{$variantId} không tồn tại, bỏ qua.");
+                }
+            }
+
+            // Trả về số lượng sản phẩm vào kho từ product
             foreach ($restoredProducts as $productId => $quantity) {
                 $product = Product::find($productId);
 

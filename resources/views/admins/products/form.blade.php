@@ -51,6 +51,36 @@
         $includedCategoryIds = (array) $includedCategoryIds;
     }
     $includedCategoryIds = array_values(array_unique(array_map('intval', array_filter($includedCategoryIds))));
+
+    // Load variants
+    $productVariants = [];
+    if ($product->exists) {
+        $variants = old('variants', $product->allVariants->toArray() ?? []);
+        foreach ($variants as $variant) {
+            // Xử lý attributes - có thể là array hoặc JSON string
+            $attributes = $variant['attributes'] ?? null;
+            if (is_string($attributes)) {
+                $attributes = json_decode($attributes, true) ?: [];
+            }
+            if (!is_array($attributes)) {
+                $attributes = [];
+            }
+            
+            $productVariants[] = [
+                'id' => $variant['id'] ?? null,
+                'name' => $variant['name'] ?? '',
+                'sku' => $variant['sku'] ?? '',
+                'price' => $variant['price'] ?? 0,
+                'sale_price' => $variant['sale_price'] ?? null,
+                'cost_price' => $variant['cost_price'] ?? null,
+                'stock_quantity' => $variant['stock_quantity'] ?? null,
+                'image_id' => $variant['image_id'] ?? null,
+                'attributes' => $attributes,
+                'is_active' => $variant['is_active'] ?? true,
+                'sort_order' => $variant['sort_order'] ?? 0,
+            ];
+        }
+    }
 @endphp
 
 @section('title', $pageTitle)
@@ -1252,6 +1282,85 @@
             </div>
         </div>
 
+        <div class="card">
+            <div class="repeater-header">
+                <h3>Biến thể sản phẩm (Variants)</h3>
+                <button type="button" class="btn btn-secondary" data-add="#variant-list" data-template="#variant-template">+ Thêm biến thể</button>
+            </div>
+            <div class="repeater-list" id="variant-list">
+                @foreach($productVariants as $index => $variant)
+                    <div class="repeater-item">
+                        <div class="repeater-header">
+                            <strong>Biến thể #{{ $index + 1 }}</strong>
+                            <button type="button" class="btn-link" data-remove data-item=".repeater-item">Xóa</button>
+                        </div>
+                        <input type="hidden" name="variants[{{ $index }}][id]" value="{{ $variant['id'] ?? null }}">
+                        <div class="grid-2">
+                            <div>
+                                <label>Tên biến thể <span style="color:red;">*</span> (VD: 1m, 2m có chậu, Combo 3 cây)</label>
+                                <input type="text" class="form-control" name="variants[{{ $index }}][name]" value="{{ $variant['name'] ?? '' }}" required placeholder="1m có chậu">
+                            </div>
+                            <div>
+                                <label>SKU</label>
+                                <input type="text" class="form-control" name="variants[{{ $index }}][sku]" value="{{ $variant['sku'] ?? '' }}" placeholder="PROD-1M-CHAU">
+                            </div>
+                            <div>
+                                <label>Kích thước (VD: 1m, 2m, 5m)</label>
+                                <input type="text" class="form-control" name="variants[{{ $index }}][size]" value="{{ old("variants.{$index}.size", $variant['attributes']['size'] ?? '') }}" placeholder="1m">
+                            </div>
+                            <div>
+                                <label>Có chậu</label>
+                                <select class="form-control" name="variants[{{ $index }}][has_pot]">
+                                    <option value="">-- Chọn --</option>
+                                    @php
+                                        $hasPotValue = old("variants.{$index}.has_pot", $variant['attributes']['has_pot'] ?? '');
+                                        $hasPotBool = $hasPotValue === '1' || $hasPotValue === 1 || $hasPotValue === true;
+                                    @endphp
+                                    <option value="1" {{ $hasPotBool ? 'selected' : '' }}>Có chậu</option>
+                                    <option value="0" {{ ($hasPotValue !== '' && !$hasPotBool) ? 'selected' : '' }}>Không chậu</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Loại combo (VD: Combo 3 cây, Combo 5 cây)</label>
+                                <input type="text" class="form-control" name="variants[{{ $index }}][combo_type]" value="{{ old("variants.{$index}.combo_type", $variant['attributes']['combo_type'] ?? '') }}" placeholder="Combo 3 cây">
+                            </div>
+                            <div>
+                                <label>Ghi chú thêm</label>
+                                <input type="text" class="form-control" name="variants[{{ $index }}][notes]" value="{{ old("variants.{$index}.notes", $variant['attributes']['notes'] ?? '') }}" placeholder="Thông tin bổ sung">
+                            </div>
+                            <div>
+                                <label>Giá gốc <span style="color:red;">*</span></label>
+                                <input type="number" class="form-control" name="variants[{{ $index }}][price]" value="{{ $variant['price'] ?? 0 }}" min="0" step="1000" required>
+                            </div>
+                            <div>
+                                <label>Giá khuyến mãi</label>
+                                <input type="number" class="form-control" name="variants[{{ $index }}][sale_price]" value="{{ $variant['sale_price'] ?? '' }}" min="0" step="1000" placeholder="Để trống nếu không có">
+                            </div>
+                            <div>
+                                <label>Giá vốn</label>
+                                <input type="number" class="form-control" name="variants[{{ $index }}][cost_price]" value="{{ $variant['cost_price'] ?? '' }}" min="0" step="1000" placeholder="Để trống nếu không có">
+                            </div>
+                            <div>
+                                <label>Số lượng tồn kho</label>
+                                <input type="number" class="form-control" name="variants[{{ $index }}][stock_quantity]" value="{{ $variant['stock_quantity'] ?? '' }}" min="0" placeholder="Để trống = không giới hạn">
+                            </div>
+                            <div>
+                                <label>Thứ tự sắp xếp</label>
+                                <input type="number" class="form-control" name="variants[{{ $index }}][sort_order]" value="{{ $variant['sort_order'] ?? $index }}" min="0">
+                            </div>
+                            <div>
+                                <label>Trạng thái</label>
+                                <select class="form-control" name="variants[{{ $index }}][is_active]">
+                                    <option value="1" {{ !empty($variant['is_active']) ? 'selected' : '' }}>Kích hoạt</option>
+                                    <option value="0" {{ empty($variant['is_active']) ? 'selected' : '' }}>Tắt</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:20px;">
             <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">↩️ Quay lại danh sách</a>
             <button type="submit" class="btn btn-primary">💾 Lưu sản phẩm</button>
@@ -1320,6 +1429,73 @@
                 <textarea class="form-control" name="faqs[__INDEX__][answer]" rows="2"></textarea>
             </div>
             <input type="hidden" name="faqs[__INDEX__][order]" value="__INDEX__">
+        </div>
+    </template>
+
+    <template id="variant-template">
+        <div class="repeater-item">
+            <div class="repeater-header">
+                <strong>Biến thể mới</strong>
+                <button type="button" class="btn-link" data-remove data-item=".repeater-item">Xóa</button>
+            </div>
+            <input type="hidden" name="variants[__INDEX__][id]">
+            <div class="grid-2">
+                <div>
+                    <label>Tên biến thể <span style="color:red;">*</span> (VD: 1m, 2m có chậu, Combo 3 cây)</label>
+                    <input type="text" class="form-control" name="variants[__INDEX__][name]" required placeholder="1m có chậu">
+                </div>
+                <div>
+                    <label>SKU</label>
+                    <input type="text" class="form-control" name="variants[__INDEX__][sku]" placeholder="PROD-1M-CHAU">
+                </div>
+                <div>
+                    <label>Kích thước (VD: 1m, 2m, 5m)</label>
+                    <input type="text" class="form-control" name="variants[__INDEX__][size]" placeholder="1m">
+                </div>
+                <div>
+                    <label>Có chậu</label>
+                    <select class="form-control" name="variants[__INDEX__][has_pot]">
+                        <option value="">-- Chọn --</option>
+                        <option value="1">Có chậu</option>
+                        <option value="0">Không chậu</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Loại combo (VD: Combo 3 cây, Combo 5 cây)</label>
+                    <input type="text" class="form-control" name="variants[__INDEX__][combo_type]" placeholder="Combo 3 cây">
+                </div>
+                <div>
+                    <label>Ghi chú thêm</label>
+                    <input type="text" class="form-control" name="variants[__INDEX__][notes]" placeholder="Thông tin bổ sung">
+                </div>
+                <div>
+                    <label>Giá gốc <span style="color:red;">*</span></label>
+                    <input type="number" class="form-control" name="variants[__INDEX__][price]" value="0" min="0" step="1000" required>
+                </div>
+                <div>
+                    <label>Giá khuyến mãi</label>
+                    <input type="number" class="form-control" name="variants[__INDEX__][sale_price]" min="0" step="1000" placeholder="Để trống nếu không có">
+                </div>
+                <div>
+                    <label>Giá vốn</label>
+                    <input type="number" class="form-control" name="variants[__INDEX__][cost_price]" min="0" step="1000" placeholder="Để trống nếu không có">
+                </div>
+                <div>
+                    <label>Số lượng tồn kho</label>
+                    <input type="number" class="form-control" name="variants[__INDEX__][stock_quantity]" min="0" placeholder="Để trống = không giới hạn">
+                </div>
+                <div>
+                    <label>Thứ tự sắp xếp</label>
+                    <input type="number" class="form-control" name="variants[__INDEX__][sort_order]" value="__INDEX__" min="0">
+                </div>
+                <div>
+                    <label>Trạng thái</label>
+                    <select class="form-control" name="variants[__INDEX__][is_active]">
+                        <option value="1" selected>Kích hoạt</option>
+                        <option value="0">Tắt</option>
+                    </select>
+                </div>
+            </div>
         </div>
     </template>
 

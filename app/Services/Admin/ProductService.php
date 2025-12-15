@@ -6,6 +6,7 @@ use App\Models\Image;
 use App\Models\Product;
 use App\Models\ProductFaq;
 use App\Models\ProductHowTo;
+use App\Models\ProductVariant;
 use App\Models\Setting;
 use App\Models\Tag;
 use Illuminate\Http\UploadedFile;
@@ -39,6 +40,9 @@ class ProductService
 
             // Sync How-Tos
             $this->syncHowTos($product, Arr::get($data, 'how_tos', []));
+
+            // Sync Variants
+            $this->syncVariants($product, Arr::get($data, 'variants', []));
 
             return $product->fresh();
         });
@@ -110,6 +114,11 @@ class ProductService
 
             // Sync How-Tos
             $this->syncHowTos($product, Arr::get($data, 'how_tos', []));
+
+            // Sync Variants
+            if (isset($data['variants']) && is_array($data['variants'])) {
+                $this->syncVariants($product, $data['variants']);
+            }
 
             $this->clearProductDetailCache($product->slug);
 
@@ -637,6 +646,139 @@ class ProductService
         } else {
             // Nếu không có How-Tos nào, xóa tất cả
             ProductHowTo::where('product_id', $product->id)->delete();
+        }
+    }
+
+    private function syncVariants(Product $product, array $variants): void
+    {
+        $keepIds = [];
+
+        foreach ($variants as $variant) {
+            $variantId = Arr::get($variant, 'id');
+            $name = trim(Arr::get($variant, 'name', ''));
+            $sku = trim(Arr::get($variant, 'sku', ''));
+            $price = (float) Arr::get($variant, 'price', 0);
+            $salePrice = Arr::get($variant, 'sale_price');
+            $costPrice = Arr::get($variant, 'cost_price');
+            $stockQuantity = Arr::get($variant, 'stock_quantity');
+            $imageId = Arr::get($variant, 'image_id');
+            $isActive = Arr::get($variant, 'is_active', true);
+            $sortOrder = (int) Arr::get($variant, 'sort_order', 0);
+
+            // Xây dựng attributes từ các trường riêng lẻ
+            $attributes = [];
+
+            // Kích thước
+            $size = trim(Arr::get($variant, 'size', ''));
+            if (! empty($size)) {
+                $attributes['size'] = $size;
+            }
+
+            // Có chậu - chỉ lưu nếu có giá trị hợp lệ (0 hoặc 1)
+            $hasPot = Arr::get($variant, 'has_pot');
+            if ($hasPot !== null && $hasPot !== '' && ($hasPot === '0' || $hasPot === '1' || $hasPot === 0 || $hasPot === 1)) {
+                $attributes['has_pot'] = (bool) ($hasPot === '1' || $hasPot === 1);
+            }
+
+            // Loại combo
+            $comboType = trim(Arr::get($variant, 'combo_type', ''));
+            if (! empty($comboType)) {
+                $attributes['combo_type'] = $comboType;
+            }
+
+            // Ghi chú
+            $notes = trim(Arr::get($variant, 'notes', ''));
+            if (! empty($notes)) {
+                $attributes['notes'] = $notes;
+            }
+
+            // Nếu có attributes từ input trực tiếp (JSON), merge vào (ưu tiên direct attributes)
+            $directAttributes = Arr::get($variant, 'attributes');
+            if (is_array($directAttributes) && ! empty($directAttributes)) {
+                $attributes = array_merge($attributes, $directAttributes);
+            }
+
+            // Bỏ qua nếu không có tên hoặc giá <= 0
+            if (empty($name) || $price <= 0) {
+                continue;
+            }
+
+            // Validate sale_price phải nhỏ hơn price
+            if ($salePrice !== null && $salePrice !== '') {
+                $salePrice = (float) $salePrice;
+                if ($salePrice >= $price) {
+                    $salePrice = null; // Bỏ sale_price nếu không hợp lệ
+                }
+            } else {
+                $salePrice = null;
+            }
+
+            // Validate cost_price
+            if ($costPrice !== null && $costPrice !== '') {
+                $costPrice = (float) $costPrice;
+            } else {
+                $costPrice = null;
+            }
+
+            // Validate stock_quantity
+            if ($stockQuantity !== null && $stockQuantity !== '') {
+                $stockQuantity = max(0, (int) $stockQuantity);
+            } else {
+                $stockQuantity = null;
+            }
+
+            // Validate image_id
+            if ($imageId && ! is_numeric($imageId)) {
+                $imageId = null;
+            }
+
+            $payload = [
+                'product_id' => $product->id,
+                'name' => $name,
+                'sku' => ! empty($sku) ? $sku : null,
+                'price' => $price,
+                'sale_price' => $salePrice,
+                'cost_price' => $costPrice,
+                'stock_quantity' => $stockQuantity,
+                'image_id' => $imageId ? (int) $imageId : null,
+                'attributes' => ! empty($attributes) ? $attributes : null,
+                'is_active' => (bool) $isActive,
+                'sort_order' => $sortOrder,
+                'updated_at' => now(),
+            ];
+
+            // Debug: Log attributes để kiểm tra (chỉ log khi có attributes)
+            if (! empty($attributes)) {
+                \Log::info('Variant attributes being saved', [
+                    'variant_name' => $name,
+                    'attributes' => $attributes,
+                    'attributes_json' => json_encode($attributes),
+                    'has_pot_raw' => Arr::get($variant, 'has_pot'),
+                    'size_raw' => Arr::get($variant, 'size'),
+                    'combo_type_raw' => Arr::get($variant, 'combo_type'),
+                    'notes_raw' => Arr::get($variant, 'notes'),
+                ]);
+            }
+
+            if ($variantId && ProductVariant::where('product_id', $product->id)->where('id', $variantId)->exists()) {
+                ProductVariant::where('id', $variantId)->update($payload);
+                $keepIds[] = $variantId;
+            } else {
+                $newId = ProductVariant::create(array_merge($payload, [
+                    'created_at' => now(),
+                ]))->id;
+                $keepIds[] = $newId;
+            }
+        }
+
+        // Xóa variants không còn được sử dụng
+        if (! empty($keepIds)) {
+            ProductVariant::where('product_id', $product->id)
+                ->whereNotIn('id', $keepIds)
+                ->delete();
+        } else {
+            // Nếu không có variants nào, xóa tất cả
+            ProductVariant::where('product_id', $product->id)->delete();
         }
     }
 

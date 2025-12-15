@@ -10,8 +10,8 @@ use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Models\Tag;
-use App\Services\Admin\ProductService;
 use App\Services\ActivityLogService;
+use App\Services\Admin\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -62,8 +62,11 @@ class ProductController extends Controller
             ->unique('name')
             ->values();
 
+        $product = new Product;
+        $product->load('allVariants');
+
         return view('admins.products.form', [
-            'product' => new Product,
+            'product' => $product,
             'categories' => Category::orderBy('name')->get(),
             'tags' => $productTags,
             'mediaImages' => $this->getMediaImages(100, 0)['data'],
@@ -105,7 +108,7 @@ class ProductController extends Controller
         }
 
         // Load images từ image_ids
-        $product->load(['primaryCategory', 'faqs', 'howTos']);
+        $product->load(['primaryCategory', 'faqs', 'howTos', 'allVariants']);
 
         // Chỉ lấy tags của products (entity_type = Product::class)
         $productTags = Tag::where('entity_type', Product::class)
@@ -373,15 +376,15 @@ class ProductController extends Controller
 
         // Lấy tất cả file ảnh (đệ quy) trong thư mục img hoặc folder cụ thể
         $allFiles = [];
-        $imageExtensions = ['jpg','jpeg','png','webp','gif','svg','avif','ico'];
+        $imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'avif', 'ico'];
         if (is_dir($root)) {
             foreach (File::allFiles($root) as $file) {
                 $extension = strtolower($file->getExtension());
                 // Chỉ lấy file ảnh
-                if (!in_array($extension, $imageExtensions)) {
+                if (! in_array($extension, $imageExtensions)) {
                     continue;
                 }
-                
+
                 $filename = $file->getFilename(); // chỉ tên file
                 $relative = str_replace(public_path(), '', $file->getRealPath());
                 $relative = str_replace('\\', '/', $relative);
@@ -397,7 +400,7 @@ class ProductController extends Controller
                     // relativeFromClothes = thumbs/filename.jpg
                     $filePath = str_replace('\\', '/', $file->getRealPath());
                     $rootPath = str_replace('\\', '/', $root);
-                    
+
                     if (str_starts_with($filePath, $rootPath)) {
                         $relativeFromClothes = substr($filePath, strlen($rootPath));
                         $relativeFromClothes = ltrim($relativeFromClothes, '/\\');
@@ -405,7 +408,7 @@ class ProductController extends Controller
                         // Fallback: nếu không match, dùng tên file
                         $relativeFromClothes = $filename;
                     }
-                    
+
                 } else {
                     // Nếu không có folder, dùng tên file
                     $relativeFromClothes = $filename;
@@ -421,7 +424,7 @@ class ProductController extends Controller
                         $mimeType = 'image/'.$extension;
                     }
                 }
-                
+
                 // Dùng relativeFromClothes làm key để tìm trong database
                 $allFiles[$relativeFromClothes] = [
                     'name' => $filename,

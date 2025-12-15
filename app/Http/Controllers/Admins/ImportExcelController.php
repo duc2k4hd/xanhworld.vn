@@ -8,6 +8,7 @@ use App\Models\Image;
 use App\Models\Product;
 use App\Models\ProductFaq;
 use App\Models\ProductHowTo;
+use App\Models\ProductVariant;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +39,7 @@ class ImportExcelController extends Controller
             'primaryCategory',
             'faqs',
             'howTos',
+            'variants',
         ])->get();
 
         // Load images từ image_ids JSON
@@ -65,6 +67,9 @@ class ImportExcelController extends Controller
 
         // Sheet 4: How-Tos
         $this->buildHowTosSheet($spreadsheet, $products);
+
+        // Sheet 5: Variants
+        $this->buildVariantsSheet($spreadsheet, $products);
 
         $fileName = 'products_export_'.now()->format('Y-m-d_H-i-s').'.xlsx';
         $tempDir = storage_path('app/tmp');
@@ -107,6 +112,9 @@ class ImportExcelController extends Controller
 
             // Import How-Tos (Sheet 4)
             $this->importHowTos($spreadsheet, $errors);
+
+            // Import Variants (Sheet 5)
+            $this->importVariants($spreadsheet, $errors);
 
             DB::commit();
 
@@ -289,6 +297,55 @@ class ImportExcelController extends Controller
                     ! empty($howTo->steps) ? json_encode($howTo->steps, JSON_UNESCAPED_UNICODE) : '',
                     ! empty($howTo->supplies) ? json_encode($howTo->supplies, JSON_UNESCAPED_UNICODE) : '',
                     $howTo->is_active ? 1 : 0,
+                ], null, 'A'.$row);
+                $row++;
+            }
+        }
+    }
+
+    /**
+     * Build Variants Sheet
+     */
+    private function buildVariantsSheet(Spreadsheet $spreadsheet, $products): void
+    {
+        $sheet = $spreadsheet->createSheet();
+        $sheet->setTitle('variants');
+
+        $headers = [
+            'product_sku',
+            'variant_name',
+            'variant_sku',
+            'price',
+            'sale_price',
+            'cost_price',
+            'stock_quantity',
+            'image_id',
+            'attributes_json',
+            'is_active',
+            'sort_order',
+        ];
+
+        $sheet->fromArray($headers, null, 'A1');
+
+        $row = 2;
+        foreach ($products as $product) {
+            if (! $product->variants || $product->variants->isEmpty()) {
+                continue;
+            }
+
+            foreach ($product->variants as $variant) {
+                $sheet->fromArray([
+                    $product->sku,
+                    $variant->name,
+                    $variant->sku,
+                    $variant->price,
+                    $variant->sale_price,
+                    $variant->cost_price,
+                    $variant->stock_quantity,
+                    $variant->image_id,
+                    $variant->attributes ? json_encode($variant->attributes, JSON_UNESCAPED_UNICODE) : null,
+                    $variant->is_active ? 1 : 0,
+                    $variant->sort_order,
                 ], null, 'A'.$row);
                 $row++;
             }
@@ -782,6 +839,140 @@ class ImportExcelController extends Controller
 
             // Nếu FAQ được tạo mới hoặc thay đổi → xóa cache
             if ($wasCreated || $wasChanged) {
+                Cache::forget('product_detail_'.$product->slug);
+            }
+        }
+    }
+
+    /**
+     * Import Variants
+     */
+    private function importVariants($spreadsheet, array &$errors): void
+    {
+        $sheet = $spreadsheet->getSheetByName('variants');
+        if (! $sheet) {
+            // Không có sheet variants thì bỏ qua (giữ logic cũ)
+            return;
+        }
+
+        $rows = $sheet->toArray();
+        $headers = array_shift($rows);
+
+        // Map header -> index
+        $headerIndex = [];
+        foreach ($headers as $index => $header) {
+            $headerIndex[strtolower(trim($header))] = $index;
+        }
+
+        $requiredCols = ['product_sku', 'variant_name'];
+        foreach ($requiredCols as $col) {
+            if (! array_key_exists($col, $headerIndex)) {
+                throw new \Exception("Sheet \"variants\" thiếu cột bắt buộc: {$col}");
+            }
+        }
+
+        $processed = []; // product_id => [variant_ids_kept]
+
+        foreach ($rows as $rowIndex => $row) {
+            $rowNumber = $rowIndex + 2; // +2 vì header ở dòng 1
+
+            $productSku = trim((string) ($row[$headerIndex['product_sku']] ?? ''));
+            $variantName = trim((string) ($row[$headerIndex['variant_name']] ?? ''));
+            $variantSku = array_key_exists('variant_sku', $headerIndex) ? trim((string) ($row[$headerIndex['variant_sku']] ?? '')) : null;
+            $price = (float) ($row[$headerIndex['price']] ?? 0);
+            $salePrice = array_key_exists('sale_price', $headerIndex) ? $row[$headerIndex['sale_price']] : null;
+            $costPrice = array_key_exists('cost_price', $headerIndex) ? $row[$headerIndex['cost_price']] : null;
+            $stockQuantity = array_key_exists('stock_quantity', $headerIndex) ? $row[$headerIndex['stock_quantity']] : null;
+            $imageId = array_key_exists('image_id', $headerIndex) ? $row[$headerIndex['image_id']] : null;
+            $attributesJson = array_key_exists('attributes_json', $headerIndex) ? $row[$headerIndex['attributes_json']] : null;
+            $isActive = array_key_exists('is_active', $headerIndex) ? $row[$headerIndex['is_active']] : 1;
+            $sortOrder = array_key_exists('sort_order', $headerIndex) ? (int) $row[$headerIndex['sort_order']] : 0;
+
+            if (empty($productSku) || empty($variantName) || $price <= 0) {
+                continue; // Bỏ qua dòng không hợp lệ
+            }
+
+            $product = Product::where('sku', $productSku)->first();
+            if (! $product) {
+                $errors[] = [
+                    'type' => 'PRODUCT_NOT_FOUND',
+                    'sku' => $productSku,
+                    'message' => "Không tìm thấy sản phẩm với SKU '{$productSku}' khi import biến thể.",
+                    'row' => $rowNumber,
+                    'sheet' => 'variants',
+                ];
+
+                continue;
+            }
+
+            // Parse attributes JSON
+            $attributes = null;
+            if (! empty($attributesJson)) {
+                $decoded = json_decode($attributesJson, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $attributes = $decoded;
+                } else {
+                    $errors[] = [
+                        'type' => 'INVALID_ATTRIBUTES_JSON',
+                        'sku' => $productSku,
+                        'message' => "JSON attributes không hợp lệ tại dòng {$rowNumber}: {$attributesJson}",
+                        'row' => $rowNumber,
+                        'sheet' => 'variants',
+                    ];
+                }
+            }
+
+            // Lấy variant theo sku nếu có, nếu không dùng name
+            $variantQuery = ProductVariant::where('product_id', $product->id);
+            if (! empty($variantSku)) {
+                $variantQuery->where('sku', $variantSku);
+            } else {
+                $variantQuery->where('name', $variantName);
+            }
+            $variant = $variantQuery->first();
+
+            // Chuẩn bị data
+            $variantData = [
+                'name' => $variantName,
+                'sku' => $variantSku ?: null,
+                'price' => (float) $price,
+                'sale_price' => $salePrice !== null && $salePrice !== '' ? (float) $salePrice : null,
+                'cost_price' => $costPrice !== null && $costPrice !== '' ? (float) $costPrice : null,
+                'stock_quantity' => $stockQuantity !== null && $stockQuantity !== '' ? (int) $stockQuantity : null,
+                'image_id' => $imageId && is_numeric($imageId) ? (int) $imageId : null,
+                'attributes' => $attributes,
+                'is_active' => (bool) $isActive,
+                'sort_order' => $sortOrder,
+            ];
+
+            if ($variant) {
+                $variant->update($variantData);
+                $variantId = $variant->id;
+            } else {
+                $variantId = ProductVariant::create(array_merge($variantData, [
+                    'product_id' => $product->id,
+                ]))->id;
+            }
+
+            // Ghi nhận variant đã xử lý
+            if (! isset($processed[$product->id])) {
+                $processed[$product->id] = [];
+            }
+            $processed[$product->id][] = $variantId;
+
+            // Clear cache product
+            Cache::forget('product_detail_'.$product->slug);
+        }
+
+        // Xóa các biến thể không có trong file cho từng sản phẩm đã xử lý
+        foreach ($processed as $productId => $keepIds) {
+            ProductVariant::where('product_id', $productId)
+                ->whereNotIn('id', $keepIds)
+                ->delete();
+
+            // Xóa cache sản phẩm
+            $product = Product::find($productId);
+            if ($product) {
                 Cache::forget('product_detail_'.$product->slug);
             }
         }

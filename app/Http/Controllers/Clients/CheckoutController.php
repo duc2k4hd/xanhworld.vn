@@ -221,7 +221,16 @@ class CheckoutController extends Controller
                     'options' => $item->options,
                 ]);
 
-                if ($product && $product->stock_quantity !== null) {
+                // Trừ tồn kho từ variant hoặc product
+                $variant = $item->variant;
+                if ($variant && $variant->is_active) {
+                    if ($variant->stock_quantity !== null) {
+                        $deductQty = (int) $item->quantity;
+                        $currentStock = (int) $variant->stock_quantity;
+                        $variant->stock_quantity = max(0, $currentStock - $deductQty);
+                        $variant->save();
+                    }
+                } elseif ($product && $product->stock_quantity !== null) {
                     $product->decrement('stock_quantity', $item->quantity);
                 }
 

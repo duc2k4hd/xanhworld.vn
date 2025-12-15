@@ -13,7 +13,7 @@ class CartService
      */
     public function recalculateTotals(Cart $cart): Cart
     {
-        $cart->loadMissing('items.product.currentFlashSaleItem.flashSale');
+        $cart->loadMissing(['items.product.currentFlashSaleItem.flashSale', 'items.variant']);
 
         DB::transaction(function () use ($cart) {
             foreach ($cart->items as $item) {
@@ -21,15 +21,23 @@ class CartService
                     continue;
                 }
 
-                $item->product->loadMissing('currentFlashSaleItem.flashSale');
+                $item->loadMissing(['product.currentFlashSaleItem.flashSale', 'variant']);
+
+                // Lấy giá từ variant hoặc product
+                if ($item->variant && $item->variant->is_active) {
+                    $resolvedPrice = (float) $item->variant->display_price;
+                } else {
+                    $item->product->loadMissing('currentFlashSaleItem.flashSale');
+                    $resolvedPrice = $item->product->resolveCartPrice();
+                }
 
                 $item->update([
-                    'price' => $item->product->resolveCartPrice(),
+                    'price' => $resolvedPrice,
                 ]);
             }
         });
 
-        return $cart->fresh('items.product');
+        return $cart->fresh(['items.product', 'items.variant']);
     }
 
     /**
@@ -41,7 +49,7 @@ class CartService
     {
         $errors = [];
 
-        $cart->loadMissing('items.product.currentFlashSaleItem.flashSale');
+        $cart->loadMissing(['items.product.currentFlashSaleItem.flashSale', 'items.variant']);
 
         if ($cart->items->isEmpty()) {
             $errors[] = 'Giỏ hàng không có sản phẩm nào.';
@@ -65,28 +73,54 @@ class CartService
                 continue;
             }
 
-            $requestedQty = (int) ($item->quantity ?? 0);
+            $item->loadMissing('variant');
+            $variant = $item->variant;
 
-            if ($requestedQty <= 0) {
-                $errors[] = sprintf('Số lượng của sản phẩm "%s" không hợp lệ.', $product->name);
+            // Kiểm tra variant có thuộc về product không
+            if ($variant && $variant->product_id !== $product->id) {
+                $errors[] = sprintf('Biến thể của sản phẩm "%s" không hợp lệ.', $product->name);
 
                 continue;
             }
 
-            if (! is_null($product->stock_quantity) && $requestedQty > $product->stock_quantity) {
+            // Kiểm tra variant có active không
+            if ($variant && ! $variant->is_active) {
+                $errors[] = sprintf('Biến thể của sản phẩm "%s" đã ngừng kinh doanh.', $product->name);
+
+                continue;
+            }
+
+            $requestedQty = (int) ($item->quantity ?? 0);
+
+            if ($requestedQty <= 0) {
+                $productName = $variant ? $product->name.' - '.$variant->name : $product->name;
+                $errors[] = sprintf('Số lượng của sản phẩm "%s" không hợp lệ.', $productName);
+
+                continue;
+            }
+
+            // Kiểm tra tồn kho từ variant hoặc product
+            $availableStock = $variant && $variant->is_active ? $variant->stock_quantity : $product->stock_quantity;
+            if ($availableStock !== null && $requestedQty > $availableStock) {
+                $productName = $variant ? $product->name.' - '.$variant->name : $product->name;
                 $errors[] = sprintf(
                     'Sản phẩm "%s" chỉ còn %d sản phẩm trong kho.',
-                    $product->name,
-                    (int) $product->stock_quantity
+                    $productName,
+                    (int) $availableStock
                 );
             }
 
             if (! $skipPriceCheck) {
-                $resolvedPrice = $product->resolveCartPrice();
+                // So sánh giá từ variant hoặc product
+                $resolvedPrice = $variant && $variant->is_active
+                    ? (float) $variant->display_price
+                    : $product->resolveCartPrice();
+
                 if ((float) $item->price !== (float) $resolvedPrice) {
+                    $productName = $variant ? $product->name.' - '.$variant->name : $product->name;
                     $errors[] = sprintf(
                         'Giá của sản phẩm "%s" đã thay đổi, vui lòng tải lại giỏ hàng.',
-                        $product->name
+                        $productName
                     );
                 }
             }
@@ -95,5 +129,3 @@ class CartService
         return array_values(array_unique($errors));
     }
 }
-
-

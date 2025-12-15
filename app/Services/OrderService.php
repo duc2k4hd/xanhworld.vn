@@ -94,7 +94,18 @@ class OrderService
                         continue;
                     }
 
-                    if (! is_null($item->product->stock_quantity)) {
+                    $item->loadMissing('variant');
+
+                    // Nếu có variant, hoàn kho từ variant
+                    if ($item->variant && $item->variant->is_active) {
+                        if ($item->variant->stock_quantity !== null) {
+                            $deductQty = (int) $item->quantity;
+                            $currentStock = (int) $item->variant->stock_quantity;
+                            $item->variant->stock_quantity = $currentStock + $deductQty;
+                            $item->variant->save();
+                        }
+                    } elseif (! is_null($item->product->stock_quantity)) {
+                        // Nếu không có variant, hoàn kho từ product
                         app(InventoryService::class)->adjustStock(
                             $item->product,
                             (int) $item->quantity,
@@ -169,6 +180,9 @@ class OrderService
             $productIds = array_unique(array_column($items, 'product_id'));
             $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
+            $variantIds = array_filter(array_column($items, 'product_variant_id'));
+            $variants = ! empty($variantIds) ? \App\Models\ProductVariant::whereIn('id', $variantIds)->get()->keyBy('id') : collect();
+
             $subtotal = 0;
             $hasFlashSale = false;
 
@@ -178,22 +192,41 @@ class OrderService
                     throw new \RuntimeException('Không tìm thấy sản phẩm ID: '.$row['product_id']);
                 }
 
+                $variantId = $row['product_variant_id'] ?? null;
+                $variant = $variantId && $variants->has($variantId) ? $variants[$variantId] : null;
+
+                // Validate variant thuộc về product
+                if ($variant && $variant->product_id !== $product->id) {
+                    throw new \RuntimeException('Biến thể không thuộc về sản phẩm này.');
+                }
+
                 $qty = (int) ($row['quantity'] ?? 0);
-                $price = (float) ($row['price'] ?? $product->resolveCartPrice());
+
+                // Lấy giá từ variant hoặc product
+                if ($variant && $variant->is_active) {
+                    $price = (float) ($row['price'] ?? $variant->display_price);
+                    $availableStock = $variant->stock_quantity;
+                } else {
+                    $price = (float) ($row['price'] ?? $product->resolveCartPrice());
+                    $availableStock = $product->stock_quantity;
+                }
 
                 if ($qty <= 0) {
                     throw new \RuntimeException('Số lượng sản phẩm không hợp lệ.');
                 }
 
-                if (! is_null($product->stock_quantity) && $product->stock_quantity < $qty) {
+                // Kiểm tra tồn kho từ variant hoặc product
+                if ($availableStock !== null && $availableStock < $qty) {
+                    $productName = $variant ? $product->name.' - '.$variant->name : $product->name;
                     throw new \RuntimeException(
-                        'Sản phẩm "'.$product->name.'" không đủ tồn kho (còn '.$product->stock_quantity.', yêu cầu '.$qty.').'
+                        'Sản phẩm "'.$productName.'" không đủ tồn kho (còn '.$availableStock.', yêu cầu '.$qty.').'
                     );
                 }
 
                 $row['quantity'] = $qty;
                 $row['price'] = $price;
                 $row['total_price'] = $qty * $price;
+                $row['product_variant_id'] = $variantId;
 
                 $subtotal += $row['total_price'];
 
@@ -259,10 +292,14 @@ class OrderService
                 $isFlashSale = $product->isInFlashSale();
                 $flashSaleItem = $isFlashSale ? $product->currentFlashSaleItem()->first() : null;
 
+                $variantId = $row['product_variant_id'] ?? null;
+                $variant = $variantId && $variants->has($variantId) ? $variants[$variantId] : null;
+
                 $orderItem = new OrderItem;
                 $orderItem->order_id = $order->id;
                 $orderItem->uuid = (string) Str::uuid();
                 $orderItem->product_id = $product->id;
+                $orderItem->product_variant_id = $variantId;
                 $orderItem->is_flash_sale = $isFlashSale ? 1 : 0;
                 $orderItem->flash_sale_item_id = $flashSaleItem?->id;
                 $orderItem->quantity = $row['quantity'];
@@ -270,7 +307,15 @@ class OrderService
                 $orderItem->total_price = $row['total_price'];
                 $orderItem->save();
 
-                if (! is_null($product->stock_quantity)) {
+                // Trừ tồn kho từ variant hoặc product
+                if ($variant && $variant->is_active) {
+                    if ($variant->stock_quantity !== null) {
+                        $deductQty = (int) $row['quantity'];
+                        $currentStock = (int) $variant->stock_quantity;
+                        $variant->stock_quantity = max(0, $currentStock - $deductQty);
+                        $variant->save();
+                    }
+                } elseif (! is_null($product->stock_quantity)) {
                     $this->inventoryService->adjustStock(
                         $product,
                         -$row['quantity'],
@@ -302,5 +347,3 @@ class OrderService
         return $code;
     }
 }
-
-

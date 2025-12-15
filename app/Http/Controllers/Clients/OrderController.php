@@ -102,10 +102,10 @@ class OrderController extends Controller
             $query->where('payment_status', $filters['payment_status']);
         }
 
-        $orders = $query->paginate(10);
+        $orders = $query->with(['items.product', 'items.variant.primaryVariantImage'])->paginate(10);
 
         Product::preloadImages(
-            $orders->getCollection()->flatMap(fn($order) => $order->items->pluck('product'))->filter()
+            $orders->getCollection()->flatMap(fn ($order) => $order->items->pluck('product'))->filter()
         );
 
         return view('clients.pages.order.index', compact('orders', 'filters'));
@@ -125,6 +125,7 @@ class OrderController extends Controller
 
         $order = Order::where('code', $code)
             ->where('account_id', $accountId)
+            ->with(['items.product', 'items.variant.primaryVariantImage'])
             ->firstOrFail();
 
         if ($order->status !== 'pending') {
@@ -158,12 +159,12 @@ class OrderController extends Controller
 
         $order = Order::where('code', $code)
             ->where('account_id', $accountId)
-            ->with('items.product')
+            ->with(['items.product', 'items.variant'])
             ->firstOrFail();
 
         // Thêm các sản phẩm vào giỏ hàng
         $cartController = app(\App\Http\Controllers\Clients\CartController::class);
-        
+
         foreach ($order->items as $item) {
             if ($item->product && $item->product->active) {
                 $cartRequest = new Request([
@@ -171,8 +172,8 @@ class OrderController extends Controller
                     'variant_id' => $item->variant_id,
                     'quantity' => $item->quantity,
                 ]);
-                $cartRequest->setUserResolver(fn() => auth('web')->user());
-                
+                $cartRequest->setUserResolver(fn () => auth('web')->user());
+
                 try {
                     $cartController->store($cartRequest);
                 } catch (\Exception $e) {

@@ -177,12 +177,21 @@ class DashboardController extends Controller
         $newContacts = Contact::whereDate('created_at', $today)->count();
         $unreadContacts = Contact::where('is_read', false)->count();
 
-        // Sản phẩm sắp hết hàng / hết hàng
+        // Sản phẩm sắp hết hàng / hết hàng (bao gồm cả variant)
         $lowStockProducts = Product::where('is_active', true)
             ->whereNotNull('stock_quantity')
             ->orderBy('stock_quantity')
             ->limit(10)
             ->get(['id', 'sku', 'name', 'stock_quantity']);
+
+        // Lấy thêm variants có stock thấp
+        $lowStockVariants = \App\Models\ProductVariant::where('is_active', true)
+            ->whereNotNull('stock_quantity')
+            ->where('stock_quantity', '<=', 10)
+            ->with('product:id,sku,name')
+            ->orderBy('stock_quantity')
+            ->limit(10)
+            ->get();
 
         // Thống kê 7 ngày gần nhất
         $dailyStats = [];
@@ -232,7 +241,8 @@ class DashboardController extends Controller
             'unreadContacts',
             'dailyStats',
             'monthlyStats',
-            'lowStockProducts'
+            'lowStockProducts',
+            'lowStockVariants'
         ));
     }
 }

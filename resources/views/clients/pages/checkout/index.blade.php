@@ -661,9 +661,19 @@
                                         data-item-qty="{{ $item->quantity }}"
                                         data-item-total="{{ $item->subtotal }}"
                                         data-item-options='@json($optionsArray ?? [])'>
-                                        <img src="{{ asset('clients/assets/img/clothes/' . ($item->product?->primaryImage?->url ?? 'no-image.webp')) }}" alt="{{ $item->product?->name }}">
+                                        @php
+                                            $imageUrl = $item->variant?->primaryVariantImage
+                                                ? asset('clients/assets/img/clothes/' . $item->variant->primaryVariantImage->url)
+                                                : ($item->product?->primaryImage
+                                                    ? asset('clients/assets/img/clothes/' . $item->product->primaryImage->url)
+                                                    : asset('clients/assets/img/clothes/no-image.webp'));
+                                        @endphp
+                                        <img src="{{ $imageUrl }}" alt="{{ $item->product?->name }}">
                                         <div style="flex:1;">
                                             <h4>{{ $item->product?->name ?? 'Sản phẩm đã xóa' }}</h4>
+                                            @if($item->variant)
+                                                <span class="spec-attr variant-name" style="display:block;font-weight: 600; color: #059669; margin-bottom: 4px;">{{ $item->variant->name }}</span>
+                                            @endif
                                     <span>{{ number_format($item->price, 0, ',', '.') }}₫ x {{ $item->quantity }}</span>
                                             @if($item->options)
                                                 <small style="display:block;color:#9ca3af;font-size:13px;">

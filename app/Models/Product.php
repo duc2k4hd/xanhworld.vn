@@ -83,12 +83,88 @@ class Product extends Model
     }
 
     /**
-     * Get variants accessor (backward compatibility)
-     * Returns empty collection since variants are not used in new migration
+     * Relationship với ProductVariant
      */
-    public function getVariantsAttribute()
+    public function variants()
     {
-        return collect([]);
+        return $this->hasMany(ProductVariant::class)->where('is_active', true)->orderBy('sort_order');
+    }
+
+    /**
+     * Tất cả variants (kể cả inactive)
+     */
+    public function allVariants()
+    {
+        return $this->hasMany(ProductVariant::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Kiểm tra sản phẩm có variants không
+     */
+    public function hasVariants(): bool
+    {
+        return $this->variants()->exists();
+    }
+
+    /**
+     * Lấy giá thấp nhất từ variants
+     */
+    public function getMinVariantPriceAttribute(): ?float
+    {
+        if (! $this->hasVariants()) {
+            return null;
+        }
+
+        $variants = $this->variants()->get();
+        if ($variants->isEmpty()) {
+            return null;
+        }
+
+        $prices = $variants->map(function ($variant) {
+            return (float) ($variant->sale_price ?? $variant->price);
+        });
+
+        return $prices->min();
+    }
+
+    /**
+     * Lấy giá cao nhất từ variants
+     */
+    public function getMaxVariantPriceAttribute(): ?float
+    {
+        if (! $this->hasVariants()) {
+            return null;
+        }
+
+        $variants = $this->variants()->get();
+        if ($variants->isEmpty()) {
+            return null;
+        }
+
+        $prices = $variants->map(function ($variant) {
+            return (float) ($variant->sale_price ?? $variant->price);
+        });
+
+        return $prices->max();
+    }
+
+    /**
+     * Lấy tổng số lượng tồn kho từ tất cả variants
+     */
+    public function getTotalVariantStockAttribute(): ?int
+    {
+        if (! $this->hasVariants()) {
+            return null;
+        }
+
+        $variants = $this->variants()->get();
+
+        // Nếu có variant không giới hạn tồn kho (null) thì trả về null
+        if ($variants->contains(fn ($v) => $v->stock_quantity === null)) {
+            return null;
+        }
+
+        return $variants->sum('stock_quantity');
     }
 
     public function scopeInCategory($query, array $categoryIds)

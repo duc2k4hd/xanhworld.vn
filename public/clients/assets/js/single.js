@@ -799,6 +799,89 @@ function currentQty() {
     );
 }
 
+// Variant selection handler
+function selectVariant(variantId, price, salePrice, stock) {
+    // Update active state
+    const clickedButton = event?.target?.closest('.xanhworld_single_info_specifications_variant_item') || 
+                          document.querySelector(`[data-variant-id="${variantId}"]`);
+    
+    document.querySelectorAll('.xanhworld_single_info_specifications_variant_item').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (clickedButton) {
+        clickedButton.classList.add('active');
+    }
+    
+    // Update hidden input
+    const variantInput = document.getElementById('selected_variant_id');
+    const formVariantInput = document.getElementById('form_variant_id');
+    if (variantInput) variantInput.value = variantId;
+    if (formVariantInput) formVariantInput.value = variantId;
+    
+    // Update price display
+    const priceElement = document.querySelector('.xanhworld_single_info_specifications_new_price');
+    const oldPriceElement = document.querySelector('.xanhworld_single_info_specifications_old_price');
+    
+    // Update price display
+    if (priceElement) {
+        const displayPrice = salePrice && salePrice > 0 && salePrice < price ? salePrice : price;
+        priceElement.textContent = formatCurrencyVND(displayPrice) + '₫';
+    }
+    
+    // Update old price (strikethrough)
+    if (oldPriceElement) {
+        if (salePrice && salePrice > 0 && salePrice < price) {
+            oldPriceElement.textContent = formatCurrencyVND(price) + '₫';
+            oldPriceElement.style.display = 'inline';
+        } else {
+            oldPriceElement.style.display = 'none';
+        }
+    }
+    
+    // Update max stock for quantity
+    const quantityBox = document.getElementById('quantity_box');
+    if (quantityBox) {
+        if (stock !== null && stock !== undefined) {
+            const maxStock = Math.max(1, stock);
+            quantityBox.setAttribute('data-max-stock', maxStock);
+            const currentQty = parseInt(document.querySelector('.xanhworld_single_info_specifications_actions_value')?.textContent || '1');
+            if (currentQty > maxStock) {
+                const qtyValueEl = document.querySelector('.xanhworld_single_info_specifications_actions_value');
+                const qtyInputEl = document.getElementById('quantity_input');
+                if (qtyValueEl) qtyValueEl.textContent = maxStock;
+                if (qtyInputEl) qtyInputEl.value = maxStock;
+            }
+        } else {
+            quantityBox.setAttribute('data-max-stock', '9999');
+        }
+    }
+    
+    // Check if out of stock
+    const addToCartBtn = document.querySelector('.xanhworld_single_info_specifications_actions_cart');
+    const buyNowBtn = document.querySelector('.xanhworld_single_info_specifications_actions_buy');
+    
+    if (stock !== null && stock <= 0) {
+        if (addToCartBtn) {
+            addToCartBtn.classList.add('disabled');
+            addToCartBtn.disabled = true;
+        }
+        if (buyNowBtn) {
+            buyNowBtn.classList.add('disabled');
+            buyNowBtn.style.pointerEvents = 'none';
+        }
+    } else {
+        if (addToCartBtn) {
+            addToCartBtn.classList.remove('disabled');
+            addToCartBtn.disabled = false;
+        }
+        if (buyNowBtn) {
+            buyNowBtn.classList.remove('disabled');
+            buyNowBtn.style.pointerEvents = 'auto';
+        }
+    }
+}
+
 function increaseQty() {
     const qty = currentQty();
     if (qty >= qtyMax) {

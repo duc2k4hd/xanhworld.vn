@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -19,7 +20,7 @@ class CartController extends Controller
         $cart = $this->getCart($request, withItems: true);
 
         if ($cart) {
-            $cart->items->loadMissing('product.currentFlashSaleItem.flashSale');
+            $cart->items->loadMissing(['product.currentFlashSaleItem.flashSale', 'variant']);
             $cart->items->each->syncPrice();
             $cart->setRelation('cartItems', $cart->items);
 
@@ -55,6 +56,7 @@ class CartController extends Controller
     {
         $data = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
+            'product_variant_id' => ['nullable', 'exists:product_variants,id'],
             'quantity' => ['nullable', 'integer', 'min:1'],
         ]);
 
@@ -64,21 +66,51 @@ class CartController extends Controller
             ->with('currentFlashSaleItem.flashSale')
             ->findOrFail($data['product_id']);
 
-        if ($product->stock_quantity !== null && $product->stock_quantity < 1) {
-            throw ValidationException::withMessages([
-                'product_id' => 'Sản phẩm đã hết hàng.',
-            ]);
+        $variant = null;
+        if (! empty($data['product_variant_id'])) {
+            $variant = \App\Models\ProductVariant::where('id', $data['product_variant_id'])
+                ->where('product_id', $product->id)
+                ->where('is_active', true)
+                ->first();
+
+            if (! $variant) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => 'Biến thể không tồn tại hoặc không thuộc về sản phẩm này.',
+                ]);
+            }
+
+            if ($variant->stock_quantity !== null && $variant->stock_quantity < 1) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => 'Biến thể này đã hết hàng.',
+                ]);
+            }
+        } else {
+            // Nếu sản phẩm có variants nhưng không chọn variant
+            if ($product->hasVariants()) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => 'Vui lòng chọn biến thể sản phẩm.',
+                ]);
+            }
+
+            if ($product->stock_quantity !== null && $product->stock_quantity < 1) {
+                throw ValidationException::withMessages([
+                    'product_id' => 'Sản phẩm đã hết hàng.',
+                ]);
+            }
         }
-        $result = $this->addProductToCart($request, $product, $quantity);
+
+        $result = $this->addProductToCart($request, $product, $quantity, $variant);
 
         if ($result['added_quantity'] <= 0) {
             $remaining = null;
-            if (! is_null($product->stock_quantity)) {
-                $remaining = max(0, (int) $product->stock_quantity - (int) $result['current_quantity']);
+            if ($variant) {
+                $remaining = $variant->stock_quantity !== null ? max(0, (int) $variant->stock_quantity - (int) $result['current_quantity']) : null;
+            } else {
+                $remaining = $product->stock_quantity !== null ? max(0, (int) $product->stock_quantity - (int) $result['current_quantity']) : null;
             }
 
             $message = 'Bạn đã thêm tối đa số lượng sản phẩm này vào giỏ hàng.';
-            if (! is_null($remaining)) {
+            if ($remaining !== null) {
                 $message = $remaining > 0
                     ? "Chỉ còn lại tối đa {$remaining} sản phẩm có thể thêm vào giỏ."
                     : 'Không thể thêm thêm vì đã hết tồn kho cho sản phẩm này.';
@@ -98,6 +130,7 @@ class CartController extends Controller
     {
         $data = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
+            'product_variant_id' => ['nullable', 'exists:product_variants,id'],
             'quantity' => ['nullable', 'integer', 'min:1'],
         ]);
 
@@ -107,22 +140,50 @@ class CartController extends Controller
             ->with('currentFlashSaleItem.flashSale')
             ->findOrFail($data['product_id']);
 
-        if ($product->stock_quantity !== null && $product->stock_quantity < 1) {
-            throw ValidationException::withMessages([
-                'product_id' => 'Sản phẩm đã hết hàng.',
-            ]);
+        $variant = null;
+        if (! empty($data['product_variant_id'])) {
+            $variant = \App\Models\ProductVariant::where('id', $data['product_variant_id'])
+                ->where('product_id', $product->id)
+                ->where('is_active', true)
+                ->first();
+
+            if (! $variant) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => 'Biến thể không tồn tại hoặc không thuộc về sản phẩm này.',
+                ]);
+            }
+
+            if ($variant->stock_quantity !== null && $variant->stock_quantity < 1) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => 'Biến thể này đã hết hàng.',
+                ]);
+            }
+        } else {
+            if ($product->hasVariants()) {
+                throw ValidationException::withMessages([
+                    'product_variant_id' => 'Vui lòng chọn biến thể sản phẩm.',
+                ]);
+            }
+
+            if ($product->stock_quantity !== null && $product->stock_quantity < 1) {
+                throw ValidationException::withMessages([
+                    'product_id' => 'Sản phẩm đã hết hàng.',
+                ]);
+            }
         }
 
-        $result = $this->addProductToCart($request, $product, $quantity);
+        $result = $this->addProductToCart($request, $product, $quantity, $variant);
 
         if ($result['added_quantity'] <= 0) {
             $remaining = null;
-            if (! is_null($product->stock_quantity)) {
-                $remaining = max(0, (int) $product->stock_quantity - (int) $result['current_quantity']);
+            if ($variant) {
+                $remaining = $variant->stock_quantity !== null ? max(0, (int) $variant->stock_quantity - (int) $result['current_quantity']) : null;
+            } else {
+                $remaining = $product->stock_quantity !== null ? max(0, (int) $product->stock_quantity - (int) $result['current_quantity']) : null;
             }
 
             $message = 'Bạn đã thêm tối đa số lượng sản phẩm này vào giỏ hàng.';
-            if (! is_null($remaining)) {
+            if ($remaining !== null) {
                 $message = $remaining > 0
                     ? "Chỉ còn lại tối đa {$remaining} sản phẩm có thể thêm vào giỏ."
                     : 'Không thể thêm thêm vì đã hết tồn kho cho sản phẩm này.';
@@ -140,6 +201,9 @@ class CartController extends Controller
 
         $cartItem = $result['cart_item'];
 
+        // Lấy giá từ variant hoặc product
+        $displayPrice = $variant ? (float) $variant->display_price : $product->resolveCartPrice();
+
         return response()->json([
             'success' => true,
             'message' => 'Đã thêm sản phẩm đi kèm vào giỏ hàng.',
@@ -150,7 +214,7 @@ class CartController extends Controller
                 'product_id' => $product->id,
                 'name' => $product->name,
                 'quantity' => $result['current_quantity'],
-                'price' => $product->resolveCartPrice(),
+                'price' => $displayPrice,
                 'thumbnail' => asset('clients/assets/img/clothes/'.($product->primaryImage->url ?? 'no-image.webp')),
             ],
         ]);
@@ -167,23 +231,58 @@ class CartController extends Controller
 
         $quantities = $request->input('items', []);
 
+        // Debug log
+        Log::info('Cart update request', [
+            'all_input' => $request->all(),
+            'items' => $quantities,
+            'items_type' => gettype($quantities),
+            'items_count' => is_array($quantities) ? count($quantities) : 0,
+        ]);
+
         if (! is_array($quantities) || empty($quantities)) {
+            Log::warning('Cart update: No items in request', [
+                'quantities' => $quantities,
+                'all_input' => $request->all(),
+            ]);
+
             return redirect()->route('client.cart.index')
                 ->with('info', 'Không có thay đổi nào được gửi lên.');
         }
 
         DB::transaction(function () use ($cart, $quantities) {
-            $cart->items->loadMissing('product.currentFlashSaleItem.flashSale');
+            $cart->items->loadMissing(['product.currentFlashSaleItem.flashSale', 'variant']);
 
             foreach ($cart->items as $item) {
-                if (! array_key_exists($item->id, $quantities)) {
+                // Try both string and integer keys
+                $itemId = $item->id;
+                $quantityValue = null;
+
+                if (array_key_exists($itemId, $quantities)) {
+                    $quantityValue = $quantities[$itemId];
+                } elseif (array_key_exists((string) $itemId, $quantities)) {
+                    $quantityValue = $quantities[(string) $itemId];
+                }
+
+                if ($quantityValue === null) {
+                    Log::debug('Cart update: Item not in request', [
+                        'item_id' => $itemId,
+                        'available_keys' => array_keys($quantities),
+                    ]);
+
                     continue;
                 }
 
-                $requestedQuantity = (int) $quantities[$item->id];
+                $requestedQuantity = (int) $quantityValue;
                 $requestedQuantity = max($requestedQuantity, 0);
 
+                Log::debug('Cart update: Processing item', [
+                    'item_id' => $itemId,
+                    'requested_quantity' => $requestedQuantity,
+                    'current_quantity' => $item->quantity,
+                ]);
+
                 $product = $item->product;
+                $variant = $item->variant;
 
                 if (! $product) {
                     $item->delete();
@@ -191,9 +290,23 @@ class CartController extends Controller
                     continue;
                 }
 
-                $unitPrice = $product->resolveCartPrice();
+                // Kiểm tra variant có thuộc về product không
+                if ($variant && $variant->product_id !== $product->id) {
+                    $item->delete();
+
+                    continue;
+                }
+
+                // Lấy giá và tồn kho từ variant hoặc product
+                if ($variant && $variant->is_active) {
+                    $unitPrice = (float) $variant->display_price;
+                    $availableStock = $variant->stock_quantity;
+                } else {
+                    $unitPrice = $product->resolveCartPrice();
+                    $availableStock = $product->stock_quantity;
+                }
+
                 $maxPerUser = $product->flashSaleLimitPerUser();
-                $availableStock = $product->stock_quantity;
 
                 if ($maxPerUser && $requestedQuantity > $maxPerUser) {
                     $requestedQuantity = $maxPerUser;
@@ -213,8 +326,19 @@ class CartController extends Controller
                     'quantity' => $requestedQuantity,
                     'price' => $unitPrice,
                 ]);
+
+                Log::debug('Cart update: Item updated', [
+                    'item_id' => $item->id,
+                    'old_quantity' => $item->getOriginal('quantity'),
+                    'new_quantity' => $requestedQuantity,
+                    'saved_quantity' => $item->fresh()->quantity,
+                ]);
             }
         });
+
+        // Reload cart to ensure fresh data
+        $cart->refresh();
+        $cart->load('items.product', 'items.variant');
 
         return redirect()
             ->route('client.cart.index')
@@ -284,6 +408,7 @@ class CartController extends Controller
         if ($withItems) {
             $query->with([
                 'items.product.currentFlashSaleItem.flashSale',
+                'items.variant',
             ]);
         }
 
@@ -303,7 +428,7 @@ class CartController extends Controller
         return $cart?->loadMissing('items');
     }
 
-    protected function addProductToCart(Request $request, Product $product, int $quantity = 1): array
+    protected function addProductToCart(Request $request, Product $product, int $quantity = 1, ?\App\Models\ProductVariant $variant = null): array
     {
         $cart = $this->getCart($request, createIfMissing: true, seedProductId: $product->id);
 
@@ -313,9 +438,25 @@ class CartController extends Controller
             'cart_item' => null,
         ];
 
-        DB::transaction(function () use ($cart, $product, $quantity, &$result) {
-            $cartItem = $cart->items()->where('product_id', $product->id)->lockForUpdate()->first();
-            $unitPrice = $product->resolveCartPrice();
+        DB::transaction(function () use ($cart, $product, $quantity, $variant, &$result) {
+            // Tìm cart item với cùng product_id và variant_id
+            $query = $cart->items()->where('product_id', $product->id);
+            if ($variant) {
+                $query->where('product_variant_id', $variant->id);
+            } else {
+                $query->whereNull('product_variant_id');
+            }
+            $cartItem = $query->lockForUpdate()->first();
+
+            // Lấy giá từ variant hoặc product
+            if ($variant) {
+                $unitPrice = (float) $variant->display_price;
+                $availableStock = $variant->stock_quantity;
+            } else {
+                $unitPrice = $product->resolveCartPrice();
+                $availableStock = $product->stock_quantity;
+            }
+
             $maxPerUser = $product->flashSaleLimitPerUser();
 
             $isFlashSale = $product->isInFlashSale();
@@ -328,8 +469,8 @@ class CartController extends Controller
                 $newQuantity = $maxPerUser;
             }
 
-            if ($product->stock_quantity !== null && $newQuantity > $product->stock_quantity) {
-                $newQuantity = $product->stock_quantity;
+            if ($availableStock !== null && $newQuantity > $availableStock) {
+                $newQuantity = $availableStock;
             }
 
             if ($cartItem) {
@@ -342,6 +483,7 @@ class CartController extends Controller
             } else {
                 $cartItem = $cart->items()->create([
                     'product_id' => $product->id,
+                    'product_variant_id' => $variant?->id,
                     'quantity' => $newQuantity,
                     'price' => $unitPrice,
                     'is_flash_sale' => $isFlashSale,

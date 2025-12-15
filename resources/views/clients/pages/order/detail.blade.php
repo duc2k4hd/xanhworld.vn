@@ -419,11 +419,21 @@
                             <tr>
                                 <td>
                                     <div class="item-product">
+                                        @php
+                                            $imageUrl = $item->variant?->primaryVariantImage
+                                                ? asset('clients/assets/img/clothes/' . $item->variant->primaryVariantImage->url)
+                                                : ($item->product?->primaryImage
+                                                    ? asset('clients/assets/img/clothes/' . $item->product->primaryImage->url)
+                                                    : asset('clients/assets/img/clothes/no-image.webp'));
+                                        @endphp
                                         <img
-                                            src="{{ asset('clients/assets/img/clothes/' . ($item->product?->primaryImage?->url ?? 'no-image.webp')) }}"
+                                            src="{{ $imageUrl }}"
                                             alt="{{ $item->product?->name ?? 'Sản phẩm' }}">
                                         <div>
                                             <h4>{{ $item->product?->name ?? 'Sản phẩm đã xóa' }}</h4>
+                                            @if($item->variant)
+                                                <span class="spec-attr variant-name" style="display:block;font-weight: 600; color: #059669; margin: 4px 0;">{{ $item->variant->name }}</span>
+                                            @endif
                                             <span>Mã SKU: {{ $item->product?->sku ?? 'N/A' }}</span>
                                         </div>
                                     </div>

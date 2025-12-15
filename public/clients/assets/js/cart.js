@@ -757,32 +757,141 @@ document.addEventListener('DOMContentLoaded', () => {
         recalcSummary();
     };
 
+    const updateForm = document.getElementById('cart-update-form');
+    let updateTimeout = null;
+
+    if (!updateForm) {
+        console.warn('[Cart] Update form not found!');
+    }
+
+    const autoUpdateCart = () => {
+        // Clear previous timeout
+        if (updateTimeout) {
+            clearTimeout(updateTimeout);
+        }
+
+        // Auto submit after 1.5 seconds of no changes
+        updateTimeout = setTimeout(() => {
+            if (updateForm) {
+                // Collect all input values before submit
+                const formData = new FormData(updateForm);
+                const items = {};
+                rows.forEach((row) => {
+                    const input = row.querySelector('.xanhworld_cart_item_quantity_input');
+                    if (input && input.name) {
+                        const itemId = input.dataset.itemId || input.name.match(/\[(\d+)\]/)?.[1];
+                        const value = parseInt(input.value, 10) || 0;
+                        if (itemId) {
+                            items[itemId] = value;
+                        }
+                    }
+                });
+                
+                console.log('[Cart] Auto-updating cart...', {
+                    items: items,
+                    formData: Object.fromEntries(formData.entries())
+                });
+                
+                // Ensure all inputs are in the form
+                rows.forEach((row) => {
+                    const input = row.querySelector('.xanhworld_cart_item_quantity_input');
+                    if (input && !updateForm.contains(input)) {
+                        // Input is outside form, need to add it
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = input.name;
+                        hiddenInput.value = input.value;
+                        updateForm.appendChild(hiddenInput);
+                    }
+                });
+                
+                // Show loading indicator
+                const updateBtn = document.querySelector('.xanhworld_cart_update');
+                if (updateBtn) {
+                    const originalText = updateBtn.innerHTML;
+                    updateBtn.disabled = true;
+                    updateBtn.innerHTML = 'Đang cập nhật...';
+                    
+                    // Re-enable after 5 seconds if form doesn't submit
+                    setTimeout(() => {
+                        if (updateBtn.disabled) {
+                            updateBtn.disabled = false;
+                            updateBtn.innerHTML = originalText;
+                        }
+                    }, 5000);
+                }
+                updateForm.submit();
+            } else {
+                console.error('[Cart] Update form not found, cannot auto-update');
+            }
+        }, 1500);
+    };
+
     rows.forEach((row) => {
         const input = row.querySelector('.xanhworld_cart_item_quantity_input');
         const increaseBtn = row.querySelector('.xanhworld_cart_item_quantity_increase');
         const decreaseBtn = row.querySelector('.xanhworld_cart_item_quantity_decrease');
 
+        if (!input) {
+            return;
+        }
+
         increaseBtn?.addEventListener('click', () => {
-            if (! input) {
-                return;
-            }
             input.stepUp();
             updateRow(row);
+            autoUpdateCart();
         });
 
         decreaseBtn?.addEventListener('click', () => {
-            if (! input) {
-                return;
-            }
             input.stepDown();
             if (parseInt(input.value, 10) < 0) {
                 input.value = 0;
             }
             updateRow(row);
+            autoUpdateCart();
         });
 
-        input?.addEventListener('change', () => updateRow(row));
+        input.addEventListener('change', () => {
+            updateRow(row);
+            autoUpdateCart();
+        });
+
+        input.addEventListener('input', () => {
+            updateRow(row);
+            autoUpdateCart();
+        });
 
         updateRow(row);
     });
+
+    // Manual update button (if user wants to update manually)
+    const manualUpdateBtn = document.querySelector('.xanhworld_cart_update');
+    if (manualUpdateBtn && updateForm) {
+        manualUpdateBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (updateTimeout) {
+                clearTimeout(updateTimeout);
+            }
+            
+            // Ensure all inputs with form attribute are included
+            const inputs = document.querySelectorAll('input[name^="items["]');
+            inputs.forEach((input) => {
+                if (input.getAttribute('form') === 'cart-update-form') {
+                    // Create hidden input inside form if input is outside
+                    if (!updateForm.contains(input)) {
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = input.name;
+                        hiddenInput.value = input.value;
+                        updateForm.appendChild(hiddenInput);
+                    }
+                }
+            });
+            
+            console.log('[Cart] Manual update triggered', {
+                formData: new FormData(updateForm)
+            });
+            updateForm.submit();
+        });
+    }
 });

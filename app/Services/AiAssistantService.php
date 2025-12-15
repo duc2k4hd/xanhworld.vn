@@ -99,11 +99,28 @@ class AiAssistantService
         if ($products->isNotEmpty()) {
             $productsText = $products->map(function (Product $product) {
                 $price = $this->formatPrice($product);
-                $stock = $product->stock_quantity !== null
-                    ? $product->stock_quantity.' sản phẩm'
-                    : 'chưa xác định';
 
-                return "- {$product->name} | Giá: {$price} | Kho: {$stock} | Liên kết: ".route('client.product.detail', $product->slug);
+                // Lấy stock từ variant nếu có, nếu không thì từ product
+                $product->loadMissing('variants');
+                $hasVariants = $product->hasVariants();
+
+                if ($hasVariants) {
+                    $variants = $product->variants;
+                    $stockInfo = $variants->map(function ($variant) {
+                        $stock = $variant->stock_quantity !== null
+                            ? $variant->stock_quantity.' sản phẩm'
+                            : 'không giới hạn';
+
+                        return "{$variant->name}: {$stock}";
+                    })->implode(', ');
+                    $stock = $stockInfo ?: 'chưa xác định';
+                } else {
+                    $stock = $product->stock_quantity !== null
+                        ? $product->stock_quantity.' sản phẩm'
+                        : 'chưa xác định';
+                }
+
+                return "- {$product->name}".($hasVariants ? ' (có biến thể)' : '')." | Giá: {$price} | Kho: {$stock} | Liên kết: ".route('client.product.detail', $product->slug);
             })->implode("\n");
 
             $contextParts[] = "Sản phẩm liên quan:\n{$productsText}";
@@ -111,7 +128,7 @@ class AiAssistantService
 
         if ($posts->isNotEmpty()) {
             $postsText = $posts->map(function (Post $post) {
-                return "- {$post->title} | Chủ đề: ".($post->category?->name ?? 'Chưa phân loại')." | Liên kết: ".route('client.blog.show', $post->slug);
+                return "- {$post->title} | Chủ đề: ".($post->category?->name ?? 'Chưa phân loại').' | Liên kết: '.route('client.blog.show', $post->slug);
             })->implode("\n");
 
             $contextParts[] = "Bài viết liên quan:\n{$postsText}";
@@ -232,7 +249,7 @@ class AiAssistantService
 
     private function buildPayload(string $question, string $contextText, string $historyText, ?Account $account = null): array
     {
-        $systemPrompt = <<<PROMPT
+        $systemPrompt = <<<'PROMPT'
 Bạn là trợ lý AI của thương hiệu THẾ GIỚI CÂY XANH XWORLD. 
 - Luôn ưu tiên dữ liệu nội bộ được cung cấp trong phần "Sản phẩm liên quan" hoặc "Bài viết liên quan".
 - Khi không có dữ liệu nội bộ phù hợp, bạn cung cấp lời khuyên tổng quát về cây xanh, chăm sóc cây cảnh, trang trí nội thất.

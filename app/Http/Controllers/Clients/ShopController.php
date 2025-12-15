@@ -165,7 +165,8 @@ class ShopController extends Controller
                 'is_featured',
             ])
             ->active()
-            ->withApprovedCommentsMeta();
+            ->withApprovedCommentsMeta()
+            ->with('variants');
     }
 
     protected function resolveFilters(Request $request): array

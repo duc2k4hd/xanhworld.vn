@@ -63,10 +63,17 @@
                                         @continue
                                     @endif
                                     @php
-                                        $unitPrice = (float) ($item->price ?? $product->resolveCartPrice());
+                                        $variant = $item->variant;
+                                        // Lấy giá và tồn kho từ variant hoặc product
+                                        if ($variant && $variant->is_active) {
+                                            $unitPrice = (float) $variant->display_price;
+                                            $stockQuantity = $variant->stock_quantity;
+                                        } else {
+                                            $unitPrice = (float) ($item->price ?? $product->resolveCartPrice());
+                                            $stockQuantity = $product->stock_quantity;
+                                        }
                                         $quantity = max((int) ($item->quantity ?? 1), 1);
                                         $lineTotal = (float) ($item->subtotal ?? ($unitPrice * $quantity));
-                                        $stockQuantity = $product->stock_quantity;
                                         $maxPerUser = $product->flashSaleLimitPerUser();
                                         $inputMax = $stockQuantity;
                                         if ($maxPerUser) {
@@ -109,6 +116,10 @@
                                                         </p>
                                                         <p class="xanhworld_cart_item_product_variant">
                                                             <span class="xanhworld_cart_item_specifications">
+                                                                @if($item->variant)
+                                                                    <span class="spec-attr variant-name" style="font-weight: 600; color: #059669;">{{ $item->variant->name }}</span>
+                                                                    <span class="spec-separator"> - </span>
+                                                                @endif
                                                                 @if($product->sku)
                                                                     <span class="spec-attr">SKU: {{ $product->sku }}</span>
                                                                     <span class="spec-separator"> - </span>

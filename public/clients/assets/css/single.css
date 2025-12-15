@@ -380,6 +380,42 @@
     white-space: nowrap;
 }
 
+.xanhworld_single_info_specifications_wishlish {
+    position: relative;
+}
+
+.xanhworld_single_info_specifications_wishlish::after {
+    content: 'Đã yêu thích';
+    position: absolute;
+    width: 70px;
+    font-size: 10px;
+    color: white;
+    background-color: red;
+    border-radius: 8px;
+    padding: 3px 5px;
+    top: -30px;
+    left: 25px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.xanhworld_single_info_specifications_wishlish::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid red;
+    top: -9px;
+    left: 21px;
+    z-index: 1001;
+    transform: rotate(30deg);
+}
+
 .xanhworld_single_info_specifications_countdown {
     display: flex;
     align-items: center;
@@ -1890,3 +1926,94 @@
         flex: 1 1 100%;
     }
 }
+
+/* Variant Selector */
+.xanhworld_single_info_specifications_variants {
+    margin: 0 0 20px 0;
+}
+
+.xanhworld_single_info_specifications_variants_label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.xanhworld_single_info_specifications_variants_list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.xanhworld_single_info_specifications_variant_item {
+    padding: 12px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 100px;
+    position: relative;
+}
+
+.xanhworld_single_info_specifications_variant_item:hover {
+    border-color: #059669;
+    background: #f0fdf4;
+}
+
+.xanhworld_single_info_specifications_variant_item.active {
+    border-color: #059669;
+    background: #dcfce7;
+    font-weight: 600;
+}
+
+.xanhworld_single_info_specifications_variant_item .variant-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.xanhworld_single_info_specifications_variant_item .variant-price {
+    font-size: 14px;
+    color: #e74c3c;
+    font-weight: 700;
+}
+
+.xanhworld_single_info_specifications_variant_item .variant-discount {
+    font-size: 11px;
+    background: #e74c3c;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 2px;
+}
+
+.xanhworld_single_info_specifications_variant_item .variant-out-of-stock {
+    font-size: 11px;
+    color: #999;
+    font-style: italic;
+}
+
+.xanhworld_single_info_specifications_variant_item:disabled,
+.xanhworld_single_info_specifications_variant_item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .xanhworld_single_info_specifications_variants_list {
+        gap: 8px;
+    }
+    
+    .xanhworld_single_info_specifications_variant_item {
+        padding: 10px 16px;
+        min-width: 80px;
+    }
+}
+

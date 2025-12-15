@@ -61,6 +61,48 @@ class InventoryService
     }
 
     /**
+     * Điều chỉnh tồn kho cho variant và ghi lại log.
+     */
+    public function adjustVariantStock(\App\Models\ProductVariant $variant, int $quantityChange, string $type, ?Account $account = null, ?string $referenceType = null, ?int $referenceId = null, ?string $note = null): void
+    {
+        $before = (int) ($variant->stock_quantity ?? 0);
+        $after = $before + $quantityChange;
+
+        if ($after < 0) {
+            throw new \RuntimeException('Tồn kho variant không đủ để trừ bớt.');
+        }
+
+        $variant->stock_quantity = $after;
+        $variant->save();
+
+        // Gửi thông báo cho admin nếu tồn kho xuống thấp / hết hàng
+        $lowThreshold = 5;
+        $product = $variant->product;
+
+        if ($before > 0 && $after <= 0) {
+            app(\App\Services\NotificationService::class)->notifyVariantStockAlert(
+                $variant->id,
+                $product->id,
+                (string) ($variant->sku ?? $product->sku),
+                (string) $product->name,
+                (string) $variant->name,
+                0,
+                true
+            );
+        } elseif ($before > $lowThreshold && $after <= $lowThreshold && $after > 0) {
+            app(\App\Services\NotificationService::class)->notifyVariantStockAlert(
+                $variant->id,
+                $product->id,
+                (string) ($variant->sku ?? $product->sku),
+                (string) $product->name,
+                (string) $variant->name,
+                $after,
+                false
+            );
+        }
+    }
+
+    /**
      * Kiểm tra đủ tồn kho cho danh sách item, nếu thiếu ném exception.
      *
      * @param  array<int, array{product:Product, quantity:int}>  $items

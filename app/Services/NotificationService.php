@@ -213,6 +213,37 @@ class NotificationService
     }
 
     /**
+     * Thông báo biến thể sản phẩm sắp hết hàng / hết hàng cho admin
+     */
+    public function notifyVariantStockAlert(int $variantId, int $productId, string $sku, string $productName, string $variantName, int $stock, bool $outOfStock = false): Notification
+    {
+        $type = $outOfStock ? Notification::TYPE_STOCK_OUT : Notification::TYPE_STOCK_LOW;
+        $title = $outOfStock ? 'Biến thể đã hết hàng' : 'Biến thể sắp hết hàng';
+        $fullName = "{$productName} - {$variantName}";
+        $message = $outOfStock
+            ? "Biến thể [{$sku}] {$fullName} đã hết hàng (tồn kho: 0)."
+            : "Biến thể [{$sku}] {$fullName} sắp hết hàng (tồn kho: {$stock}).";
+
+        return $this->notifyAdmins(
+            $type,
+            $title,
+            $message,
+            route('admin.products.inventory', $productId),
+            'fa-box-open',
+            $outOfStock ? Notification::PRIORITY_HIGH : Notification::PRIORITY_NORMAL,
+            [
+                'variant_id' => $variantId,
+                'product_id' => $productId,
+                'sku' => $sku,
+                'product_name' => $productName,
+                'variant_name' => $variantName,
+                'stock' => $stock,
+                'out_of_stock' => $outOfStock,
+            ]
+        );
+    }
+
+    /**
      * Đánh dấu thông báo đã đọc
      */
     public function markAsRead(int $notificationId, ?int $accountId = null): bool

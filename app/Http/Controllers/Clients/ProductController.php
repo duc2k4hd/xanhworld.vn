@@ -17,8 +17,7 @@ class ProductController extends Controller
 {
     public function __construct(
         private ProductViewService $productViewService
-    ) {
-    }
+    ) {}
 
     public function detail($slug)
     {
@@ -26,7 +25,10 @@ class ProductController extends Controller
             ->active()
             ->value('stock_quantity') ?? 0;
         $product = Cache::rememberForever('product_detail_'.$slug, function () use ($slug) {
-            $product = Product::where('slug', $slug)->active()->first();
+            $product = Product::where('slug', $slug)
+                ->active()
+                ->with('variants')
+                ->first();
 
             if ($product) {
                 Product::preloadImages([$product]);
@@ -37,6 +39,10 @@ class ProductController extends Controller
 
         if ($product) {
             Product::preloadImages([$product]);
+            // Load variants nếu chưa có
+            if (! $product->relationLoaded('variants')) {
+                $product->load('variants');
+            }
         }
 
         if (! $product) {
@@ -163,7 +169,7 @@ class ProductController extends Controller
                 $comment->setRelation('adminReply', $adminReplies->get($comment->id));
             }
         });
-        
+
         // Get total count for "load more" functionality
         $totalComments = Comment::where('commentable_type', 'product')
             ->where('commentable_id', $product->id)

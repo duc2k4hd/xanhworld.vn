@@ -324,6 +324,11 @@
                                 <tr>
                                     <td>
                                         <strong>{{ $item->product?->name ?? 'Sản phẩm đã xóa' }}</strong>
+                                        @if($item->variant)
+                                            <div style="color:#059669;font-weight:600;font-size:14px;margin-top:4px;">
+                                                {{ $item->variant->name }}
+                                            </div>
+                                        @endif
                                         @if($item->options)
                                             <div style="color:#94a3b8;font-size:13px;">
                                                 {{ collect((array) $item->options)->map(fn($value, $key) => ucfirst($key).': '.$value)->join(', ') }}
