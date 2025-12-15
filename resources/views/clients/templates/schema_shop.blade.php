@@ -1,14 +1,18 @@
 <!-- 🌐 SCHEMA TRANG CỬA HÀNG / DANH MỤC - THẾ GIỚI CÂY XANH XWORLD -->
+@php
+    $siteUrl = rtrim($settings->site_url ?? url('/'), '/');
+    $currentUrl = url()->current();
+@endphp
 <script type="application/ld+json">
-    {
-"@context": "https://schema.org",
-"@graph": [
+{
+  "@context": "https://schema.org",
+  "@graph": [
   {
     "@type": "Organization",
-    "@id": "{{ ($settings->site_url ?? url('/')) }}#organization",
+    "@id": "{{ $siteUrl }}#organization",
     "name": "{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}",
     "image": "{{ asset('clients/assets/img/banners/' . ($settings->site_banner ?? 'banner.jpg')) }}",
-    "url": "{{ $settings->site_url ?? url('/') }}",
+    "url": "{{ $siteUrl }}",
     "logo": {
       "@type": "ImageObject",
       "url": "{{ asset('clients/assets/img/business/' . ($settings->site_logo ?? 'logo.png')) }}",
@@ -40,25 +44,26 @@
   },
   {
     "@type": "WebSite",
-    "@id": "{{ ($settings->site_url ?? url('/')) }}#website",
-    "url": "{{ $settings->site_url ?? url('/') }}",
+    "@id": "{{ $siteUrl }}#website",
+    "url": "{{ $siteUrl }}",
     "name": "{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}",
-    "publisher": { "@id": "{{ ($settings->site_url ?? url('/')) }}#organization" },
+    "publisher": { "@id": "{{ $siteUrl }}#organization" },
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "{{ ($settings->site_url ?? url('/')) }}/tim-kiem/{search_term_string}",
+      "target": "{{ $siteUrl }}/tim-kiem/{search_term_string}",
       "query-input": "required name=search_term_string"
     }
   },
   {
     "@type": "WebPage",
-    "@id": "{{ url()->current() }}#webpage",
-    "url": "{{ url()->current() }}",
+    "@id": "{{ $currentUrl }}#webpage",
+    "url": "{{ $currentUrl }}",
     "name": "{{ $category->name ?? ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}",
+    "description": "{{ 'Danh mục cây cảnh phong thủy, cây nội thất, cây để bàn, cây xanh trang trí không gian sống và làm việc tại Thế Giới Cây Xanh XWORLD.' }}",
     "inLanguage": "vi",
-    "isPartOf": { "@id": "{{ ($settings->site_url ?? url('/')) }}#website" },
-    "about": { "@id": "{{ ($settings->site_url ?? url('/')) }}#organization" },
-    "breadcrumb": { "@id": "{{ ($settings->site_url ?? url('/')) }}#breadcrumb" },
+    "isPartOf": { "@id": "{{ $siteUrl }}#website" },
+    "about": { "@id": "{{ $siteUrl }}#organization" },
+    "breadcrumb": { "@id": "{{ $siteUrl }}#breadcrumb" },
     "primaryImageOfPage": {
       "@type": "ImageObject",
       "url": "{{ asset('clients/assets/img/business/' . ($settings->site_logo ?? 'logo.png')) }}"
@@ -68,14 +73,14 @@
   },
   {
     "@type": "LocalBusiness",
-    "@id": "{{ ($settings->site_url ?? url('/')) }}#localbusiness",
+    "@id": "{{ $siteUrl }}#localbusiness",
     "name": "{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}",
     "image": "{{ asset('clients/assets/img/banners/' . ($settings->site_banner ?? 'banner.jpg')) }}",
     "logo": {
       "@type": "ImageObject",
       "url": "{{ asset('clients/assets/img/business/' . ($settings->site_logo ?? 'logo.png')) }}"
     },
-    "url": "{{ $settings->site_url ?? url('/') }}",
+    "url": "{{ $siteUrl }}",
     "telephone": "{{ $settings->contact_phone ?? '' }}",
     "email": "{{ $settings->contact_email ?? '' }}",
     "priceRange": "₫₫",
@@ -106,13 +111,13 @@
   },
   {
     "@type": "BreadcrumbList",
-    "@id": "{{ ($settings->site_url ?? url('/')) }}#breadcrumb",
+    "@id": "{{ $siteUrl }}#breadcrumb",
     "itemListElement": [
       {
         "@type": "ListItem",
         "position": 1,
         "item": {
-          "@id": "{{ $settings->site_url ?? url('/') }}",
+          "@id": "{{ $siteUrl }}",
           "name": "Trang chủ"
         }
       },
@@ -138,18 +143,28 @@
   },
   {
     "@type": "ItemList",
-    "@id": "{{ url()->current() }}#itemlist",
-    "url": "{{ url()->current() }}",
+    "@id": "{{ $currentUrl }}#itemlist",
+    "url": "{{ $currentUrl }}",
     "name": "Danh sách sản phẩm {{ $category->name ?? 'cây xanh, chậu cảnh và phụ kiện' }}",
-    "itemListOrder": "https://schema.org/ItemListOrderDescending",
+    "itemListOrder": "https://schema.org/ItemListOrderAscending",
+    "mainEntityOfPage": {
+      "@id": "{{ ($siteUrl. '/'. $category->slug) ?? url()->current() }}"
+    },
     "numberOfItems": {{ method_exists($products, 'total') ? $products->total() : $products->count() }},
     "itemListElement":[
       @foreach($products as $index => $product)
+      @php
+        $productUrl = $product->canonical_url ?? route('client.product.detail', ['slug' => $product->slug]);
+      @endphp
       {
         "@type": "ListItem",
         "position": {{ $loop->iteration }},
-        "url": "{{ $product->canonical_url }}",
-        "name": "{{ $product->name }}"
+        "item": {
+          "@type": "Product",
+          "@id": "{{ $productUrl }}",
+          "url": "{{ $productUrl }}",
+          "name": "{{ $product->name }}"
+        }
       }{{ !$loop->last ? ',' : '' }}
       @endforeach
     ]
