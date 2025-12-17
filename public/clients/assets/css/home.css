@@ -1175,6 +1175,10 @@
     gap: 20px;
     align-items: flex-start;
     margin: 20px 0;
+}
+
+.xanhworld_main_product_category_products_viewport {
+    width: 100%;
     overflow: scroll;
 }
 
