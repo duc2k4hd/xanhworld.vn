@@ -551,7 +551,7 @@
                             @foreach ($newProducts as $product)
                                 <div class="xanhworld_shop_products_filter_new_products_item">
                                     <div class="xanhworld_shop_products_filter_new_products_item_image">
-                                        <a href="{{ $product->canonical_url }}">
+                                        <a href="{{ $product->meta_canonical ?? ($settings->site_url ?? 'https://xanhworld.vn'). $product->slug }}">
                                             <img class="xanhworld_shop_products_filter_new_products_item_image_img"
                                                 src="{{ asset('clients/assets/img/clothes/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}"
                                                 alt="{{ $product?->primaryImage?->alt ?? $product?->name }}"
@@ -559,7 +559,7 @@
                                         </a>
                                     </div>
                                     <div class="xanhworld_shop_products_filter_new_products_item_info">
-                                        <a href="{{ $product->canonical_url }}">
+                                        <a href="{{ $product->meta_canonical ?? $settings->site_url ?? 'https://xanhworld.vn'. $product->slug }}">
                                             <h4 class="xanhworld_shop_products_filter_new_products_item_info_title">
                                                 {{ $product->name }}</h4>
                                         </a>
