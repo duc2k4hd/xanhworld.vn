@@ -67,7 +67,8 @@
     font-family: 'Arial', sans-serif;
     transition: all 0.3s ease;
     position: sticky;
-    top: 0;
+    top: 52px;
+    height: fit-content;
 }
 
 .xanhworld_shop_products_filter::-webkit-scrollbar {
