@@ -382,10 +382,10 @@ class ShopController extends Controller
         }
 
         return [
-            'title' => 'Shop '.$defaultSiteName.' - Thế giới cây xanh',
+            'title' => 'Cửa hàng '.$defaultSiteName.' - Thế giới cây xanh',
             'description' => 'Khám phá bộ sưu tập cây xanh, chậu cảnh và phụ kiện tại '.$defaultSiteName.'.',
             'keywords' => 'shop '.$defaultSiteName.', cây xanh, chậu cảnh, phụ kiện garden',
-            'canonical' => $settings->site_url ? $settings->site_url.'/shop' : url()->current(),
+            'canonical' => $settings->site_url ? $settings->site_url.'/cua-hang' : url()->current(),
             'image' => asset('clients/assets/img/business/'.($settings->site_banner ?? $settings->site_logo)),
         ];
     }

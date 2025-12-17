@@ -148,7 +148,7 @@
     "name": "Danh sách sản phẩm {{ $category->name ?? 'cây xanh, chậu cảnh và phụ kiện' }}",
     "itemListOrder": "https://schema.org/ItemListOrderAscending",
     "mainEntityOfPage": {
-      "@id": "{{ ($siteUrl. '/'. $category->slug) ?? url()->current() }}"
+      "@id": "{{ ($siteUrl. '/'. ($category?->slug ?? 'cua-hang')) ?? url()->current() }}"
     },
     "numberOfItems": {{ method_exists($products, 'total') ? $products->total() : $products->count() }},
     "itemListElement":[
@@ -159,12 +159,8 @@
       {
         "@type": "ListItem",
         "position": {{ $loop->iteration }},
-        "item": {
-          "@type": "Product",
-          "@id": "{{ $productUrl }}",
-          "url": "{{ $productUrl }}",
-          "name": "{{ $product->name }}"
-        }
+        "url": "{{ $productUrl }}",
+        "name": "{{ $product->name }}"
       }{{ !$loop->last ? ',' : '' }}
       @endforeach
     ]
