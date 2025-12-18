@@ -312,9 +312,10 @@ class Product extends Model
         return $query->where('is_featured', 1);
     }
 
-    public static function getRelatedProducts(self $product, int $limit = 12)
+    public static function getRelatedProducts(self $product, int $limit = 10)
     {
         $currentId = $product->id;
+        $half = intdiv($limit, 2);
 
         $baseQuery = static::query()
             ->active()
@@ -326,48 +327,52 @@ class Product extends Model
                     ->orWhereJsonContains('category_ids', (string) $product->primary_category_id);
             });
 
-        $beforeLimit = floor($limit / 2);
-        $afterLimit = $limit - $beforeLimit;
-
+        // 1️⃣ Lấy các sản phẩm trước
         $before = (clone $baseQuery)
             ->where('id', '<', $currentId)
-            ->orderBy('id', 'desc')
-            ->limit($beforeLimit)
-            ->get()
-            ->reverse();
-
-        $after = (clone $baseQuery)
-            ->where('id', '>', $currentId)
-            ->orderBy('id', 'asc')
-            ->limit($afterLimit)
+            ->orderByDesc('id')
+            ->limit($half)
             ->get();
 
-        $related = $before->merge($after);
+        // 2️⃣ Lấy các sản phẩm sau
+        $after = (clone $baseQuery)
+            ->where('id', '>', $currentId)
+            ->orderBy('id')
+            ->limit($half)
+            ->get();
 
-        if ($related->count() < $limit) {
-            $missing = $limit - $related->count();
+        // 3️⃣ Fallback nếu thiếu ở phía trước: lấy thêm ở phía sau
+        if ($before->count() < $half) {
+            $need = $half - $before->count();
 
-            if ($before->count() < $beforeLimit) {
-                $extra = (clone $baseQuery)
-                    ->where('id', '>', $currentId)
-                    ->orderBy('id', 'asc')
-                    ->skip($after->count())
-                    ->limit($missing)
-                    ->get();
-                $related = $related->merge($extra);
-            } elseif ($after->count() < $afterLimit) {
-                $extra = (clone $baseQuery)
-                    ->where('id', '<', $currentId)
-                    ->orderBy('id', 'desc')
-                    ->skip($before->count())
-                    ->limit($missing)
-                    ->get()
-                    ->reverse();
-                $related = $extra->merge($related);
-            }
+            $extraAfter = (clone $baseQuery)
+                ->where('id', '>', optional($after->last())->id ?? $currentId)
+                ->orderBy('id')
+                ->limit($need)
+                ->get();
+
+            $after = $after->merge($extraAfter);
         }
 
-        $collection = $related->take($limit)->values();
+        // 4️⃣ Fallback nếu thiếu ở phía sau: lấy thêm ở phía trước
+        if ($after->count() < $half) {
+            $need = $half - $after->count();
+
+            $extraBefore = (clone $baseQuery)
+                ->where('id', '<', optional($before->first())->id ?? $currentId)
+                ->orderByDesc('id')
+                ->limit($need)
+                ->get();
+
+            $before = $extraBefore->merge($before);
+        }
+
+        // 5️⃣ Sắp xếp: trước (id tăng dần) rồi tới sau
+        $collection = $before
+            ->reverse()
+            ->merge($after)
+            ->take($limit)
+            ->values();
 
         static::preloadImages($collection);
 

@@ -75,14 +75,11 @@ class ProductController extends Controller
 
         Product::preloadImages($productNew);
 
-        $productRelated = Cache::remember('related_products_'.$product->id, now()->addDays(30), function () use ($product) {
-            $related = Product::getRelatedProducts($product);
-            Product::preloadImages($related);
-
-            return $related;
+        // Sản phẩm liên quan: lấy 5 sản phẩm trước và 5 sản phẩm sau, cache vĩnh viễn
+        $productRelated = Cache::rememberForever('related_products_'.$product->id, function () use ($product) {
+            // Hàm getRelatedProducts đã tự preload images
+            return Product::getRelatedProducts($product, 10);
         });
-
-        Product::preloadImages($productRelated);
 
         // Sản phẩm đi kèm theo danh mục category_included_ids (nếu có)
         $includedProducts = collect();
