@@ -287,14 +287,6 @@ class ProductController extends Controller
             'phone.regex' => 'Số điện thoại không hợp lệ (10-11 chữ số).',
         ]);
 
-        // Ghi log tạm (có thể thay bằng lưu DB hoặc gửi mail)
-        \Log::info('Phone request', [
-            'product_id' => $validated['product_id'],
-            'phone' => $validated['phone'],
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
-
         return redirect()->back()->with('success', 'Đã nhận số điện thoại, chúng tôi sẽ liên hệ sớm.');
     }
 }
