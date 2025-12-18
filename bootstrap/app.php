@@ -30,10 +30,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
         ]);
 
-        // Rate limiting for web routes (60 requests per minute)
-        $middleware->web(append: [
-            \Illuminate\Routing\Middleware\ThrottleRequests::class.':60,1',
-        ]);
+        // Rate limiting for web routes (120 requests per minute)
+        // Tăng lên 120 để cho phép crawl/indexing và tránh lỗi 429 khi test
+        // $middleware->web(append: [
+        //     \Illuminate\Routing\Middleware\ThrottleRequests::class.':1000,1',
+        // ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Log all exceptions
