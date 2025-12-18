@@ -13,10 +13,10 @@
     <meta name="description" content="{{ $pageDescription }}">
 
     <!-- 🤖 Robots -->
-    @php
+    {{-- @php
         $productCount = $productsMain->total() ?? 0;
-    @endphp
-    @if ($productCount < 1 || request()->has('category') || request()->has('keyword'))
+    @endphp --}}
+    @if (request()->has('category') || request()->has('keyword'))
         <meta name="robots" content="noindex, follow" />
     @else
         <meta name="robots" content="index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large" />
