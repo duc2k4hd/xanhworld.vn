@@ -230,6 +230,13 @@
                     menubar: false,
                     height: 500,
                     language: 'vi',
+                    statusbar: true,
+                    content_style: `
+                        body {
+                            max-height: 500px;
+                            overflow-y: scroll !important;
+                        }
+                    `,
                     branding: false,
                     plugins: 'link lists image table code autoresize',
                     toolbar: 'undo redo | styles | bold italic underline | alignleft aligncenter alignright | bullist numlist | link table nobi_gallery | code',

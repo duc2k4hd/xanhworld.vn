@@ -263,11 +263,17 @@
             tinymce.init({
                 selector: '#post-content-editor',
                 menubar: true,
-                height: 650,
+                height: 500,
                 plugins: 'code lists link image table media autoresize fullscreen codesample wordcount preview',
                 toolbar: 'undo redo | styles | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image media nobi_gallery | table codesample | fullscreen preview',
                 skin: 'oxide',
-                content_css: 'default',
+                statusbar: true,
+                content_style: `
+                    body {
+                        max-height: 500px;
+                        overflow-y: scroll !important;
+                    }
+                `,
                 automatic_uploads: false,
                 file_picker_types: 'image media',
                 file_picker_callback: (callback, value, meta) => {
