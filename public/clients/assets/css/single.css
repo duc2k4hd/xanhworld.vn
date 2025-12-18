@@ -1289,29 +1289,6 @@
     }
 }
 
-@media (min-width: 1920px) {
-    .xanhworld_single_info {
-        grid-template-columns: 500px 1fr 350px;
-    }
-
-    .xanhworld_single_info_images {
-        max-width: 500px;
-    }
-
-    .xanhworld_single_info_images_main {
-        max-width: 500px;
-        aspect-ratio: 1 / 1;
-    }
-
-    .xanhworld_single_info_images_main img {
-        aspect-ratio: 1 / 1;
-        max-width: 500px;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-}
-
 @media (max-width: 768px) {
     .xanhworld_single_product_related_grid {
         grid-template-columns: repeat(2, 1fr);
