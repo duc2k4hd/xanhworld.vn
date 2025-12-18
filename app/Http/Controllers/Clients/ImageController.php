@@ -13,18 +13,17 @@ class ImageController extends Controller
     {
         $url = $request->query('url');
         $width = (int) $request->query('width', 300);
-        $height = (int) $request->query('height', 300);
 
-        if (!$url || $width > 1900 || $height > 1900) {
+        if (!$url || $width <= 0 || $width > 1900) {
             abort(404);
         }
 
-        $path = parse_url($url, PHP_URL_PATH);
-        if (!file_exists(public_path($path))) {
+        $path = public_path(parse_url($url, PHP_URL_PATH));
+        if (!is_file($path)) {
             abort(404);
         }
 
-        $cacheDir = public_path("clients/assets/img/clothes/resize/{$width}x{$height}");
+        $cacheDir = public_path("clients/assets/img/clothes/resize/{$width}");
         if (!is_dir($cacheDir)) {
             mkdir($cacheDir, 0755, true);
         }
@@ -32,49 +31,31 @@ class ImageController extends Controller
         $filename = pathinfo($path, PATHINFO_FILENAME) . '.webp';
         $cachePath = "{$cacheDir}/{$filename}";
 
-        // ✅ CACHE HIT
-        if (file_exists($cachePath)) {
-            return response()->file($cachePath, [
-                'Content-Type' => 'image/webp',
-                'Cache-Control' => 'public, max-age=31536000, immutable',
-            ]);
+        // CACHE HIT
+        if (is_file($cachePath)) {
+            return $this->imageResponse($cachePath);
         }
 
-        // 🔒 ATOMIC LOCK (IMAGE + SIZE)
-        $lockKey = 'resize:lock:' . md5($cachePath);
-        $lock = Cache::lock($lockKey, 10); // 10s
+        // ❌ KHÔNG LOCK – KHÔNG SLEEP
+        // 👉 Nếu miss → trả ảnh gốc trước
 
-        try {
-            if ($lock->get()) {
+        dispatch(function () use ($path, $cachePath, $width) {
+            Image::make($path)
+                ->resize($width, null, function ($c) {
+                    $c->aspectRatio();
+                    $c->upsize();
+                })
+                ->encode('webp', 80)
+                ->save($cachePath);
+        })->afterResponse();
 
-                // double check sau khi lock
-                if (!file_exists($cachePath)) {
-                    Image::make(public_path($path))
-                        ->resize($width, $height, function ($c) {
-                            $c->aspectRatio();
-                            $c->upsize();
-                        })
-                        ->encode('webp', 80)
-                        ->save($cachePath);
-                }
+        return $this->imageResponse($path); // fallback
+    }
 
-                $lock->release();
-            } else {
-                // đợi lock (tránh resize trùng)
-                sleep(1);
-            }
-        } finally {
-            optional($lock)->release();
-        }
-
-        if (!file_exists($cachePath)) {
-            abort(500);
-        }
-
-        return response()->file($cachePath, [
-            'Content-Type' => 'image/webp',
+    private function imageResponse(string $path)
+    {
+        return response()->file($path, [
             'Cache-Control' => 'public, max-age=31536000, immutable',
         ]);
     }
-
 }
