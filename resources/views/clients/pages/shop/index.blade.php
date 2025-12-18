@@ -16,7 +16,7 @@
     @php
         $productCount = $productsMain->total() ?? 0;
     @endphp
-    @if ($productCount < 5)
+    @if ($productCount < 5 || request()->has('category'))
         <meta name="robots" content="noindex, follow" />
     @else
         <meta name="robots" content="index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large" />
