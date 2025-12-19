@@ -98,20 +98,20 @@
                 đến thứ 7</p>
             <div class="xanhworld_footer_content_business_socials">
                 @if ($settings->facebook_link)
-                <a aria-label="Facebook" href="{{ $settings->facebook_link ?? ''  }}"><img width="40" height="40" loading="lazy"
-                        src="/resize?url=clients/assets/img/icon/icon-facebook.webp&width=40&height=40"
+                <a aria-label="Facebook" href="{{ $settings->facebook_link ?? '#'  }}"><img width="40" height="40" loading="lazy"
+                        src="{{ asset('clients/assets/img/clothes/resize/40x40/icon-facebook.webp') }}"
                         alt="Facebook"></a>
                 @endif
                 @if ($settings->instagram_link)
-                <a aria-label="Intagram" href="{{ $settings->instagram_link ?? ''  }}"><img width="40" height="40" loading="lazy"
-                        src="/resize?url=clients/assets/img/icon/icon-Instagram.png&width=40&height=40" alt="Instagram"></a>
+                <a aria-label="Intagram" href="{{ $settings->instagram_link ?? '#'  }}"><img width="40" height="40" loading="lazy"
+                        src="{{ asset('clients/assets/img/clothes/resize/40x40/icon-Instagram.webp') }}" alt="Instagram"></a>
                 @endif
                 @if ($settings->twitter_link)
-                <a aria-label="Twitter" href="{{ $settings->twitter_link ?? ''  }}"><img width="40" height="40" loading="lazy"
-                        src="/resize?url=clients/assets/img/icon/icon-twitter.webp&width=40&height=40" alt="Twitter"></a>
+                <a aria-label="Twitter" href="{{ $settings->twitter_link ?? '#'  }}"><img width="40" height="40" loading="lazy"
+                        src="{{ asset('clients/assets/img/clothes/resize/40x40/icon-twitter.webp') }}" alt="Twitter"></a>
                 @endif
             </div>
-            <a href="{{ $settings->bo_cong_thuong ?? ''  }}">
+            <a href="{{ $settings->bo_cong_thuong ?? '#'  }}">
                 <img loading="lazy" style="object-fit: cover; height: 68px;"
                     src="{{ asset('clients/assets/img/business/setting-bo_cong_thuong-1757497818.webp') }}"
                     alt="Bộ công thương">
@@ -131,7 +131,7 @@
                 <a href="{{ route('client.policy.payment') }}">Chính sách thanh toán</a>
                 <a href="{{ route('client.policy.privacy') }}">Chính sách bảo mật thông tin</a>
                 <a href="{{ route('client.policy.privacy') }}">Chính sách bảo mật dữ liệu</a>
-                <a href="{!! $settings->dmca ?? ''  !!}" title="DMCA.com Protection Status" class="dmca-badge"> <img
+                <a href="{!! $settings->dmca ?? '#'  !!}" title="DMCA.com Protection Status" class="dmca-badge"> <img
                         loading="lazy" src="{!! $settings->dmca_logo ?? ''  !!}" alt="DMCA.com Protection Status" /></a>
                 <script defer src="https://images.dmca.com/Badges/DMCABadgeHelper.min.js"> </script>
                 {{-- <a href="{{ route('client.policy.sale') }}"> --}}

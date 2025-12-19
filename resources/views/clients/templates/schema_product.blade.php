@@ -1,11 +1,53 @@
 @php
     $siteUrl = rtrim($settings->site_url ?? 'https://xanhworld.vn', '/');
-    $productUrl = $product->canonical_url ?? ($siteUrl.'/san-pham/'.$product->slug);
+    $productUrl = $product->canonical_url ?? ($siteUrl.'/san-pham/'.($product->slug ?? 'san-pham'));
     $sameAs = array_values(array_unique(array_filter([
         $settings->facebook_link ?? 'https://www.facebook.com/nobifashion.vn',
         $settings->instagram_link ?? 'https://www.instagram.com/nobifashion.vn',
         $settings->discord_link ?? 'https://discord.gg/nobifashion',
     ])));
+    $pageTitle = $product->meta_title
+      ? $product->meta_title . ' | ' . ($settings->site_name ?? $settings->subname)
+      : ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD');
+
+    $keywords = $product->meta_keywords;
+
+    if (is_string($keywords)) {
+        $keywords = array_map('trim', explode(',', $keywords));
+    }
+
+    if (!is_array($keywords) || empty($keywords)) {
+        $keywords = [
+            'cây xanh',
+            'cây cảnh',
+            'cây phong thủy',
+            'cây để bàn',
+            'cây nội thất',
+            'cây văn phòng',
+            'cây lọc không khí',
+            'chậu cây cảnh',
+            'trang trí không gian xanh',
+            'thế giới cây xanh',
+        ];
+    }
+
+    // Lọc keywords: chỉ giữ keyword ngắn, không có dấu ":", không phải title dài
+    $keywords = array_filter($keywords, function($keyword) {
+        $keyword = trim($keyword);
+        // Bỏ qua keyword quá dài (> 50 ký tự) hoặc có dấu ":"
+        if (empty($keyword) || mb_strlen($keyword) > 50 || strpos($keyword, ':') !== false) {
+            return false;
+        }
+        return true;
+    });
+
+    // Thêm keyword từ slug (slug thường ngắn và không có dấu ":")
+    $slugKeyword = $product->slug ?? null;
+    if ($slugKeyword && mb_strlen($slugKeyword) <= 50 && strpos($slugKeyword, ':') === false) {
+        $keywords[] = $slugKeyword;
+    }
+
+    $keywords = array_values(array_unique($keywords));
 @endphp
 <script type="application/ld+json">
 {
@@ -17,14 +59,14 @@
       "name": "{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD - Thế giới cây xanh & phụ kiện' }}",
       "url": "{{ $siteUrl }}",
       "logo": "{{ asset('clients/assets/img/business/' . ($settings->site_logo ?? 'no-image.webp')) }}",
-      "email": "{{ ($settings->contact_email ?? 'support@nobifashion.vn') }}",
+      "email": "{{ ($settings->contact_email ?? 'xanhworldvietnam@gmail.com') }}",
       "address": {
         "@type": "PostalAddress",
-        "streetAddress": "{{ ($settings->contact_address ?? 'Số 123 Đường Thời Trang, Quận Trung Tâm') }}",
+        "streetAddress": "{{ ($settings->contact_address ?? 'Xóm 3 - Xã Hà Đông - Thành Phố Hải Phòng') }}",
         "addressRegion": "{{ ($settings->city ?? 'Hải Phòng') }}",
         "postalCode": "{{ ($settings->postalCode ?? '180000') }}",
         "addressCountry": "VN",
-        "addressLocality": "{{ ($settings->addressLocality ?? 'Hải Phòng') }}"
+        "addressLocality": "{{ ($settings->city ?? 'Hải Phòng') }}"
       },
       "contactPoint": [
         {
@@ -39,7 +81,7 @@
       "@type": "WebPage",
       "@id": "{{ $productUrl }}#webpage",
       "url": "{{ $productUrl }}",
-      "name": "{{ $product->meta_title . ' | ' . ($settings->site_name ?? $settings->subname) ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD - Cây xanh & phụ kiện decor') }}",
+      "name": "{{ $pageTitle }}",
       "description": "{{ $product->meta_desc ?? 'THẾ GIỚI CÂY XANH XWORLD: Cây xanh, chậu cảnh, phụ kiện decor. Setup góc làm việc, ban công, sân vườn xanh mát. Giao cây tận nơi, bảo hành cây khỏe.' }}",
       "inLanguage": "{{ ($settings->site_language ?? 'vi') }}",
       "isPartOf": {
@@ -59,7 +101,7 @@
       },
     "image": "{{ asset('clients/assets/img/banners/' . ($settings->site_banner ?? 'no-image.webp')) }}",
       "url": "{{ $siteUrl }}",
-      "telephone": "{{ ($settings->contact_phone ?? '0827 786 198') }}",
+      "telephone": "{{ $settings->contact_phone ?? '0827786198' }}",
       "email": "{{ ($settings->contact_email ?? 'xanhworldvietnam@gmail.com') }}",
       "priceRange": "₫₫",
       "address": {
@@ -77,13 +119,13 @@
       },
       "openingHoursSpecification": [{
         "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+          "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
         "opens": "08:00",
         "closes": "21:00"
       }],
       "sameAs": [
-        "{{ ($settings->facebook_link ?? 'https://www.facebook.com/nobifashionvietnam') }}",
-        "{{ ($settings->instagram_link ?? 'https://www.instagram.com/nobifashionvietnam') }}",
+        "{{ ($settings->facebook_link ?? 'https://www.facebook.com/xanhworldvietnam') }}",
+        "{{ ($settings->instagram_link ?? 'https://www.instagram.com/xanhworldvietnam') }}",
         "{{ ($settings->discord_link ?? 'https://discord.gg/nobifashion') }}"
       ]
     },
@@ -100,7 +142,7 @@
         }
         @php
           $position = 2;
-          $categoryBreadcrumb = $product?->primaryCategory?->first() ?? null;
+          $categoryBreadcrumb = $product->primaryCategory;
           $breadcrumbPath = collect();
           while ($categoryBreadcrumb) {
             $breadcrumbPath->prepend($categoryBreadcrumb);
@@ -112,14 +154,14 @@
             "@type": "ListItem",
             "position": {{ $position }},
             "item": {
-              "@id": "{{ route('client.product.category.index', $breadcrumb->slug) }}",
+              "@id": "@if(Route::has('client.product.category.index')){{ route('client.product.category.index', $breadcrumb->slug) }}@else{{ $siteUrl . '/' . $breadcrumb->slug }}@endif",
               "name": "{{ $breadcrumb->name }}"
             }
           }
           @php $position++; @endphp
         @endforeach
         @if ($product->primaryCategory)
-          @php $lastCategory = $product?->extraCategories()?->last(); @endphp
+          @php $lastCategory = $product->extraCategories()->last(); @endphp
           @if ($lastCategory && !$breadcrumbPath->contains('id', $lastCategory->id))
             ,{
               "@type": "ListItem",
@@ -137,7 +179,7 @@
           "position": {{ $position }},
           "item": {
             "@id": "{{ $productUrl }}",
-            "name": "{{ $product->meta_title . ' | ' . ($settings->site_name ?? $settings->subname) ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD - Cây xanh & phụ kiện decor') }}"
+            "name": "{{ $pageTitle }}"
           }
         }
       ]
@@ -148,10 +190,10 @@
     "mainEntityOfPage": {
       "@id": "{{ $productUrl }}"
     },
-    "name": "{{ $product->meta_title . ' | ' . ($settings->site_name ?? $settings->subname) ?? ($product->name ?? 'Cây xanh & phụ kiện - THẾ GIỚI CÂY XANH XWORLD') }}",
+    "name": "{{ $pageTitle }}",
     "image": {
       "@type": "ImageObject",
-      "url": "{{ asset('clients/assets/img/clothes/' . ($product->primaryImage->url ?? 'no-image.jpg')) }}",
+      "url": "{{ asset('clients/assets/img/clothes/' . (optional($product->primaryImage)->url ?? 'no-image.jpg')) }}",
       "width": 600,
       "height": 600
     },
@@ -170,7 +212,7 @@
     },
       "countryOfOrigin": {
         "@type": "Country",
-        "name": "{{ ($product->countryOfOrigin ?? 'VN') }}"
+        "name": "{{ 'Việt Nam' }}"
       },
       @php
         $schemaRatingTotal = $ratingStats['total_comments'] ?? ($product->approved_comments_count ?? 0);
@@ -184,36 +226,18 @@
         },
       @endif
       "isFamilyFriendly": true,
-      "keywords": {!! json_encode(
-        $product->meta_keywords 
-        ?? array_merge([
-            'cây xanh',
-            'cây cảnh',
-            'cây phong thủy',
-            'cây để bàn',
-            'cây nội thất',
-            'cây văn phòng',
-            'cây lọc không khí',
-            'chậu cây cảnh',
-            'trang trí không gian xanh',
-            'thế giới cây xanh'
-        ], array_filter([
-            $product->name,
-            $product->slug,
-            'mua '.$product->name,
-        ]))
-    ) !!},
+      "keywords": {!! json_encode($keywords, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!},
       "releaseDate": "{{ (($product->created_at ?? null) ? $product->created_at->format('Y-m-d') : now()->format('Y-m-d')) }}",
       "audience": {
         "@type": "PeopleAudience",
-        "@id": "{{ $siteUrl }}#audience-{{ ($product->brand->slug ?? 'xanhworld') }}",
+        "@id": "{{ $siteUrl }}#audience-{{ optional($product->brand)->slug ?? 'xanhworld' }}",
         "audienceType": "Người yêu cây cảnh và phong thủy"
       },
       "offers": {
         "@type": "Offer",
         "url": "{{ $productUrl }}",
         "priceCurrency": "VND",
-        "price": "{{ ($product->price ?? 199000) }}",
+        "price": {{ (int) ($product->price ?? 199000) }},
         "priceValidUntil": "{{ (\Carbon\Carbon::now()->addMonths(6)->format('Y-m-d')) }}",
         "availability": "{{ ($product->in_stock ?? true) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}",
         "itemCondition": "https://schema.org/NewCondition",
@@ -274,7 +298,7 @@
               "name": "{{ $faq->question ?? 'Cây có khỏe, đúng giống và đúng kích thước như mô tả không?' }}",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "{{ $faq->answer ?? 'XWORLD cam kết cây đúng giống, đúng kích thước, được chăm kỹ trước khi giao và hướng dẫn chăm sóc chi tiết.' }}"
+                "text": {!! json_encode($faq->answer ?? '...', JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
               }
             }{{ !$loop->last ? ',' : '' }}
           @endforeach
@@ -328,7 +352,7 @@
         "@type": "HowTo",
         "name": "{{ ($product->howtos->first()->title ?? 'Hướng dẫn chăm sóc cây đúng cách') }}",
         "description": "{{ ($product->howtos->first()->description ?? 'Các bước chăm sóc, tưới nước và bố trí ánh sáng để cây phát triển khỏe mạnh tại nhà.') }}",
-        "image": "{{ asset('clients/assets/img/clothes/' . ($product->primaryImage->url ?? 'no-image.jpg')) }}",
+        "image": "{{ asset('clients/assets/img/clothes/' . (optional($product->primaryImage)->url ?? 'no-image.jpg')) }}",
         "totalTime": "PT15M",
         "estimatedCost": { "@type": "MonetaryAmount", "currency": "VND", "value": "10000" },
 

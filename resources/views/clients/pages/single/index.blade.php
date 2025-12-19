@@ -112,10 +112,10 @@
                     <div class="xanhworld_single_info_images_main">
                         <img loading="eager" fetchpriority="high" width="400" height="400" decoding="async"
                             srcset="
-                                /resize?url=clients/assets/img/clothes/{{ $product?->primaryImage?->url ?? 'no-image.webp' }}&width=400&height=400 400w
+                                {{ asset('clients/assets/img/clothes/resize/400x400/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }} 400w
                             "
                             sizes="(max-width: 1050px) 400px, 400px"
-                            src="{{ asset('clients/assets/img/clothes/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}"
+                            src="{{ asset('clients/assets/img/clothes/resize/400x400/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}"
                             alt="{{ $product->primaryImage->alt ?? null ?: ($product->name ?? 'NOBI FASHION') }}"
                             title="{{ $product->primaryImage->title ?? null ?: ($product->name ?? 'NOBI FASHION') }}"
                             class="xanhworld_single_info_images_main_image"
@@ -165,23 +165,22 @@
                         @if ($product->images && $product->images->count() > 0)
                             @foreach ($product->images as $img)
                                 <img data-src="{{ asset('clients/assets/img/clothes/' . ($img->url ?? 'no-image.webp')) }}"
-                                     width="80" height="80"
-                                     decoding="async"
-                                     src="{{ asset('clients/assets/img/clothes/' . ($img->url ?? 'no-image.webp')) }}"
-                                
-                                     srcset="
-                                        /resize?url=clients/assets/img/clothes/{{ $img->url ?? 'no-image.webp' }}&width=85&height=85 85w
-                                     "
-                                
-                                     sizes="(max-width: 1050px) 85px, 85px"
-                                
-                                     alt="{{ $img->alt ?? ($product->name ?? 'NOBI FASHION') }}"
-                                     title="{{ $img->title ?? ($product->name ?? 'NOBI FASHION') }}"
-                                     class="xanhworld_single_info_images_gallery_image {{ $img->is_primary ? 'xanhworld_single_info_images_gallery_image_active' : '' }}">
-
-
+                                    onerror="this.onerror=null;this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
+                                    width="80" height="80"
+                                    decoding="async"
+                                    src="{{ asset('clients/assets/img/clothes/resize/85x85/' . ($img->url ?? 'no-image.webp')) }}"
+                            
+                                    srcset="
+                                        {{ asset('clients/assets/img/clothes/resize/85x85/' . ($img->url ?? 'no-image.webp')) }} 85w
+                                    "
+                            
+                                    sizes="(max-width: 1050px) 85px, 85px"
+                            
+                                    alt="{{ $img->alt ?? ($product->name ?? 'NOBI FASHION') }}"
+                                    title="{{ $img->title ?? ($product->name ?? 'NOBI FASHION') }}"
+                                    class="xanhworld_single_info_images_gallery_image {{ $img->is_primary ? 'xanhworld_single_info_images_gallery_image_active' : '' }}">
                                 @php
-                                    $listImg[] = asset('clients/assets/img/clothes/' . ($img->url ?? 'no-image.webp'));
+                                    $listImg[] = asset('clients/assets/img/clothes/resize/85x85/' . ($img->url ?? 'no-image.webp'));
                                 @endphp
                             @endforeach
                         @endif

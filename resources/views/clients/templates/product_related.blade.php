@@ -12,10 +12,10 @@
                 <!-- Item -->
                 <div class="xanhworld_single_product_related_item">
                     <a href="/san-pham/{{ $related->slug ?? 'san-pham-lien-quan' }}" class="xanhworld_single_product_related_img">
-                        <img loading="lazy" decoding="async" src="{{ asset('clients/assets/img/clothes/'. ($related->primaryImage->url ?? 'no-image.webp')) }}" 
+                        <img loading="lazy" decoding="async" src="{{ asset('clients/assets/img/clothes/resize/215x215/' . ($related->primaryImage->url ?? 'no-image.webp')) }}" 
                             srcset="
-                                /resize?url=clients/assets/img/clothes/{{ ($related->primaryImage->url ?? 'no-image.webp') }}&width=215&height=215 215w,
-                                /resize?url=clients/assets/img/clothes/{{ ($related->primaryImage->url ?? 'no-image.webp') }}&width=175&height=175 175w
+                                {{ asset('clients/assets/img/clothes/resize/215x215/' . ($related->primaryImage->url ?? 'no-image.webp')) }} 215w,
+                                {{ asset('clients/assets/img/clothes/resize/175x175/' . ($related->primaryImage->url ?? 'no-image.webp')) }} 175w
                             "
                             sizes="(max-width: 1050px) 175px, 215px"
                             alt="{{ $related->name }}">

@@ -923,6 +923,7 @@ class ProductService
      * - Ảnh phụ: tạo 1 kích thước 85x85.
      * - Ảnh gốc giữ nguyên, không đổi tên, không đổi vị trí.
      * - Ảnh resize lưu tại: public/clients/assets/img/clothes/resize/{width}x{height}/
+     *   với tên file GIỮ NGUYÊN tên gốc (baseName.extension, không thêm hậu tố kích thước).
      * - Ghi đè nếu file đã tồn tại (idempotent).
      */
     private function processProductImages(Product $product): void
@@ -1020,7 +1021,8 @@ class ProductService
                 mkdir($resizeDir, 0755, true);
             }
 
-            $targetFilename = $baseName.'-'.$width.'x'.$height.'.'.$extension;
+            // Tên file giữ nguyên như ảnh gốc: baseName.extension
+            $targetFilename = $baseName.'.'.$extension;
             $targetPath = $resizeDir.DIRECTORY_SEPARATOR.$targetFilename;
 
             try {
