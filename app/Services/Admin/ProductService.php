@@ -16,12 +16,13 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Intervention\Image\ImageManagerStatic as InterventionImage;
 
 class ProductService
 {
     public function create(array $data): Product
     {
-        return DB::transaction(function () use ($data) {
+        $product = DB::transaction(function () use ($data) {
             $payload = $this->extractProductPayload($data);
             $payload['category_ids'] = $this->resolveCategoryIds($data);
 
@@ -46,6 +47,11 @@ class ProductService
 
             return $product->fresh();
         });
+
+        // Sau khi đã lưu xong product và images, xử lý resize ảnh
+        $this->processProductImages($product);
+
+        return $product;
     }
 
     public function clearProductDetailCache(string $slug)
@@ -55,7 +61,7 @@ class ProductService
 
     public function update(Product $product, array $data): Product
     {
-        return DB::transaction(function () use ($product, $data) {
+        $product = DB::transaction(function () use ($product, $data) {
             $payload = $this->extractProductPayload($data);
             $payload['category_ids'] = $this->resolveCategoryIds($data);
 
@@ -124,6 +130,11 @@ class ProductService
 
             return $product->fresh();
         });
+
+        // Sau khi update xong, luôn xử lý lại ảnh (idempotent, sẽ ghi đè nếu đã tồn tại)
+        $this->processProductImages($product);
+
+        return $product;
     }
 
     public function delete(Product $product): void
@@ -902,6 +913,134 @@ class ProductService
         $path = public_path('clients/assets/img/clothes/'.$filename);
         if (file_exists($path)) {
             @unlink($path);
+        }
+    }
+
+    /**
+     * Xử lý resize ảnh sản phẩm sau khi create/update.
+     *
+     * - Ảnh chính: tạo 6 kích thước (400, 85, 230, 215, 175, 155) dạng WxH.
+     * - Ảnh phụ: tạo 1 kích thước 85x85.
+     * - Ảnh gốc giữ nguyên, không đổi tên, không đổi vị trí.
+     * - Ảnh resize lưu tại: public/clients/assets/img/clothes/resize/{width}x{height}/
+     * - Ghi đè nếu file đã tồn tại (idempotent).
+     */
+    private function processProductImages(Product $product): void
+    {
+        try {
+            $imageIds = $product->image_ids ?? [];
+            if (empty($imageIds) || ! is_array($imageIds)) {
+                return;
+            }
+
+            /** @var \Illuminate\Support\Collection<int,\App\Models\Image> $images */
+            $images = Image::whereIn('id', $imageIds)
+                ->orderBy('order')
+                ->get();
+
+            if ($images->isEmpty()) {
+                return;
+            }
+
+            $primaryImage = $images->firstWhere('is_primary', true) ?? $images->first();
+            if (! $primaryImage || ! $primaryImage->url) {
+                return;
+            }
+
+            // Kích thước cho ảnh chính
+            $mainSizes = [
+                [400, 400],
+                [85, 85],
+                [230, 230],
+                [215, 215],
+                [175, 175],
+                [155, 155],
+            ];
+
+            $this->generateResizedImagesForSingle($primaryImage->url, $mainSizes);
+
+            // Ảnh phụ: tất cả ảnh còn lại
+            $galleryImages = $images->filter(function (Image $image) use ($primaryImage) {
+                return $image->id !== $primaryImage->id && ! empty($image->url);
+            });
+
+            if ($galleryImages->isEmpty()) {
+                return;
+            }
+
+            $gallerySize = [[85, 85]];
+            foreach ($galleryImages as $galleryImage) {
+                $this->generateResizedImagesForSingle($galleryImage->url, $gallerySize);
+            }
+        } catch (\Throwable $e) {
+            // Không được làm hỏng flow lưu sản phẩm nếu resize lỗi
+            Log::error('processProductImages failed', [
+                'product_id' => $product->id,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Tạo các bản resize cho một file ảnh gốc.
+     *
+     * @param  string  $relativePath  Đường dẫn tương đối lưu trong DB (ví dụ: "thumbs/cay-phat-tai.webp" hoặc "cay-phat-tai.webp")
+     * @param  array<int,array{0:int,1:int}>  $sizes  Danh sách [width, height]
+     */
+    private function generateResizedImagesForSingle(string $relativePath, array $sizes): void
+    {
+        if ($relativePath === '') {
+            return;
+        }
+
+        $originalPath = public_path('clients/assets/img/clothes/'.$relativePath);
+        if (! is_file($originalPath)) {
+            return;
+        }
+
+        $resizeRoot = public_path('clients/assets/img/clothes/resize');
+        if (! is_dir($resizeRoot)) {
+            mkdir($resizeRoot, 0755, true);
+        }
+
+        $extension = pathinfo($originalPath, PATHINFO_EXTENSION) ?: 'webp';
+        $baseName = pathinfo($originalPath, PATHINFO_FILENAME);
+
+        foreach ($sizes as $size) {
+            [$width, $height] = $size;
+
+            if (! $width || ! $height) {
+                continue;
+            }
+
+            // Mỗi kích thước nằm trong 1 folder riêng: resize/{width}x{height}/
+            $sizeFolder = $width.'x'.$height;
+            $resizeDir = $resizeRoot.DIRECTORY_SEPARATOR.$sizeFolder;
+            if (! is_dir($resizeDir)) {
+                mkdir($resizeDir, 0755, true);
+            }
+
+            $targetFilename = $baseName.'-'.$width.'x'.$height.'.'.$extension;
+            $targetPath = $resizeDir.DIRECTORY_SEPARATOR.$targetFilename;
+
+            try {
+                $image = InterventionImage::make($originalPath);
+
+                // Đảm bảo đúng kích thước WxH, không méo, không phóng to quá mức
+                $image->fit($width, $height, function ($constraint) {
+                    $constraint->upsize();
+                });
+
+                // Ghi đè nếu file đã tồn tại
+                $image->save($targetPath);
+            } catch (\Throwable $e) {
+                Log::error('generateResizedImagesForSingle failed', [
+                    'source' => $relativePath,
+                    'width' => $width,
+                    'height' => $height,
+                    'message' => $e->getMessage(),
+                ]);
+            }
         }
     }
 }
