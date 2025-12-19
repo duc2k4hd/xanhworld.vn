@@ -13,9 +13,9 @@
 @section('head')
     @if ($product?->primaryImage?->url)
         <link rel="preload"
-              as="image"
-              href="/resize?url=clients/assets/img/clothes/{{ $product->primaryImage->url }}&width=400&height=400"
-              fetchpriority="high">
+            as="image"
+            href="{{ asset('clients/assets/img/clothes/resize/400x400/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}"
+            fetchpriority="high">
     @else
         <link rel="preload" as="image" href="{{ asset('clients/assets/img/clothes/no-image.webp') }}"
             fetchpriority="high">
