@@ -175,18 +175,34 @@ class CartController extends Controller
         $result = $this->addProductToCart($request, $product, $quantity, $variant);
 
         if ($result['added_quantity'] <= 0) {
-            $remaining = null;
+            // Lấy stock hiện tại (có thể đã thay đổi sau khi thêm)
+            $currentStock = null;
             if ($variant) {
-                $remaining = $variant->stock_quantity !== null ? max(0, (int) $variant->stock_quantity - (int) $result['current_quantity']) : null;
+                $currentStock = $variant->fresh()->stock_quantity;
             } else {
-                $remaining = $product->stock_quantity !== null ? max(0, (int) $product->stock_quantity - (int) $result['current_quantity']) : null;
+                $currentStock = $product->fresh()->stock_quantity;
             }
 
-            $message = 'Bạn đã thêm tối đa số lượng sản phẩm này vào giỏ hàng.';
-            if ($remaining !== null) {
-                $message = $remaining > 0
-                    ? "Chỉ còn lại tối đa {$remaining} sản phẩm có thể thêm vào giỏ."
-                    : 'Không thể thêm thêm vì đã hết tồn kho cho sản phẩm này.';
+            // Tính remaining dựa trên stock hiện tại và số lượng đã có trong giỏ
+            $remaining = null;
+            if ($currentStock !== null) {
+                // Nếu đã có trong giỏ, remaining = stock - số lượng đã có
+                // Nếu chưa có trong giỏ, remaining = stock
+                $remaining = max(0, (int) $currentStock - (int) $result['current_quantity']);
+            }
+
+            // Kiểm tra flash sale limit
+            $maxPerUser = $product->flashSaleLimitPerUser();
+            if ($maxPerUser && $result['current_quantity'] >= $maxPerUser) {
+                $message = "Bạn chỉ có thể mua tối đa {$maxPerUser} sản phẩm này trong chương trình Flash Sale.";
+            } elseif ($remaining !== null) {
+                if ($remaining <= 0) {
+                    $message = 'Không thể thêm thêm vì đã hết tồn kho cho sản phẩm này.';
+                } else {
+                    $message = "Chỉ còn lại tối đa {$remaining} sản phẩm có thể thêm vào giỏ.";
+                }
+            } else {
+                $message = 'Bạn đã thêm tối đa số lượng sản phẩm này vào giỏ hàng.';
             }
 
             return response()->json([

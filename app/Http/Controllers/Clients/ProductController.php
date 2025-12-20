@@ -116,6 +116,7 @@ class ProductController extends Controller
                                         }
                                     });
                             })
+                            ->with('variants')
                             ->inRandomOrder()
                             ->limit(10)
                             ->get();

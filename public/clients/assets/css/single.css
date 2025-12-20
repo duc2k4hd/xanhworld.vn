@@ -462,12 +462,11 @@
     width: 60px;
     height: 60px;
     line-height: 60px;
-    background-color: var(--primary-color);
+    background-color: #d10024;
     color: white !important;
     top: -20px;
     left: -20px;
     text-align: center;
-    color: #d10024;
     font-weight: 600;
     font-size: 1.1rem;
     border-radius: 50%;
@@ -570,17 +569,32 @@
     color: var(--primary-color);
 }
 
+.xanhworld_single_info_specifications_title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+    justify-content: start;
+}
+
 .xanhworld_single_info_specifications_title_hot {
-    background: #d10024;
+    height: 50px;
+    aspect-ratio: 1 / 1;
     color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-right: 10px;
-    display: inline-block;
-    vertical-align: middle;
-    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.xanhworld_single_info_specifications_title_hot img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    aspect-ratio: 1 / 1;
+}
+
+.xanhworld_single_info_specifications_title_hot img:hover {
+    transform: scale(1.05);
 }
 
 .xanhworld_single_info_specifications_price {
@@ -1796,7 +1810,7 @@
     margin-top: 16px;
     border: 1px solid #f2f2f2;
     border-radius: 12px;
-    padding: 16px;
+    padding: 10px 0;
     background: #fff8f8;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
@@ -1832,6 +1846,8 @@
     padding-bottom: 8px;
     cursor: grab;
     scroll-behavior: smooth;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .xanhworld_single_accessories_scroller::-webkit-scrollbar {
@@ -1860,10 +1876,11 @@
 .xanhworld_single_accessories_item_thumb {
     display: block;
     width: 100%;
-    height: 110px;
     border-radius: 10px;
     overflow: hidden;
     margin-bottom: 8px;
+    aspect-ratio: 1 / 1;
+    border: 0.1px solid #ffd8d8;
 }
 
 .xanhworld_single_accessories_item_thumb img {
@@ -1871,6 +1888,7 @@
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease;
+    aspect-ratio: 1 / 1;
 }
 
 .xanhworld_single_accessories_item_thumb:hover img {
@@ -1883,6 +1901,11 @@
     margin-bottom: 4px;
     color: #333;
     min-height: 38px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .xanhworld_single_accessories_item_price {

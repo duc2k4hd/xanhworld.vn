@@ -164,18 +164,12 @@ setTimeout(() => {
 const mainMenu = document.querySelector(".xanhworld_header_main_nav");
 
 if (mainMenu) {
-    let menuScrollTimer = null;
-
     window.addEventListener("scroll", () => {
-        clearTimeout(menuScrollTimer);
-
-        menuScrollTimer = setTimeout(() => {
-            if (window.scrollY > 240) {
-                mainMenu.classList.add("xanhworld_header_main_nav_fixed");
-            } else {
-                mainMenu.classList.remove("xanhworld_header_main_nav_fixed");
-            }
-        }, 200); // ⏱ chạy sau khi dừng cuộn 200ms
+        if (window.scrollY > 240) {
+            mainMenu.classList.add("xanhworld_header_main_nav_fixed");
+        } else {
+            mainMenu.classList.remove("xanhworld_header_main_nav_fixed");
+        }
     });
 }
 
@@ -378,30 +372,23 @@ document
 const backToTopBtn = document.querySelector(".xanhworld_back_to_top");
 
 if (backToTopBtn) {
-
-    let scrollTimer = null;
-
     window.addEventListener("scroll", () => {
-        clearTimeout(scrollTimer);
+        if (window.scrollY > 300) {
+            backToTopBtn.style.display = "flex";
 
-        scrollTimer = setTimeout(() => {
-            if (window.scrollY > 300) {
-                backToTopBtn.style.display = "flex";
-
-                const orderSummary = document.querySelector(".xanhworld_order_summary");
-                if (orderSummary) {
-                    orderSummary.classList.add("shop_haiphonglife_order_summary_fixed");
-                }
-
-            } else {
-                backToTopBtn.style.display = "none";
-
-                const orderSummary = document.querySelector(".xanhworld_order_summary");
-                if (orderSummary) {
-                    orderSummary.classList.remove("shop_haiphonglife_order_summary_fixed");
-                }
+            const orderSummary = document.querySelector(".xanhworld_order_summary");
+            if (orderSummary) {
+                orderSummary.classList.add("xanhworld_order_summary_fixed");
             }
-        }, 200); // ⏱ delay 200ms sau khi người dùng dừng cuộn
+
+        } else {
+            backToTopBtn.style.display = "none";
+
+            const orderSummary = document.querySelector(".xanhworld_order_summary");
+            if (orderSummary) {
+                orderSummary.classList.remove("xanhworld_order_summary_fixed");
+            }
+        }
     });
 
     backToTopBtn.addEventListener("click", () => {
@@ -1269,6 +1256,204 @@ function initAccessoryQuickAdd() {
     buttons.forEach((btn) => {
         btn.addEventListener("click", () => handleAccessoryAdd(btn, csrf));
     });
+
+    // Xử lý modal variant cho accessories
+    const modal = document.getElementById('accessory-variant-modal');
+    if (modal) {
+        // Đảm bảo modal ẩn mặc định khi khởi tạo
+        if (modal.classList.contains('active')) {
+            modal.classList.remove('active');
+        }
+        // Đảm bảo body không bị lock scroll
+        if (document.body.style.overflow === 'hidden') {
+            document.body.style.overflow = '';
+        }
+
+        const modalOverlay = modal.querySelector('.xanhworld_variant_modal_overlay');
+        const modalClose = modal.querySelector('.xanhworld_variant_modal_close');
+        const modalCancel = document.getElementById('accessory-modal-cancel-btn');
+        const quantityInput = document.getElementById('accessory-modal-quantity');
+        const quantityDecrease = modal.querySelector('[data-action="decrease"]');
+        const quantityIncrease = modal.querySelector('[data-action="increase"]');
+        const addToCartBtn = document.getElementById('accessory-modal-add-to-cart-btn');
+
+        // Đóng modal - function global để có thể gọi từ nơi khác
+        window.closeAccessoryModal = function() {
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                // Reset form
+                const qtyInput = document.getElementById('accessory-modal-quantity');
+                if (qtyInput) {
+                    qtyInput.value = 1;
+                }
+                // Reset variant selection
+                const variantItems = modal.querySelectorAll('#accessory-modal-variants-list .xanhworld_variant_modal_variant_item');
+                variantItems.forEach(item => item.classList.remove('active'));
+                if (variantItems.length > 0 && !variantItems[0].disabled) {
+                    variantItems[0].classList.add('active');
+                }
+            }
+        };
+
+        const closeModal = window.closeAccessoryModal;
+
+        if (modalOverlay) {
+            modalOverlay.addEventListener('click', closeModal);
+        }
+        if (modalClose) {
+            modalClose.addEventListener('click', closeModal);
+        }
+        if (modalCancel) {
+            modalCancel.addEventListener('click', closeModal);
+        }
+
+        // Đóng modal khi bấm ESC (chỉ khi modal đang mở)
+        function handleEscapeKey(e) {
+            if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeModal();
+            }
+        }
+        document.addEventListener('keydown', handleEscapeKey);
+
+        // Tăng/giảm số lượng
+        if (quantityDecrease) {
+            quantityDecrease.addEventListener('click', function() {
+                const input = quantityInput;
+                const currentValue = parseInt(input.value) || 1;
+                if (currentValue > 1) {
+                    input.value = currentValue - 1;
+                }
+            });
+        }
+
+        if (quantityIncrease) {
+            quantityIncrease.addEventListener('click', function() {
+                const input = quantityInput;
+                const currentValue = parseInt(input.value) || 1;
+                const maxStock = parseInt(input.max) || 999;
+                if (currentValue < maxStock) {
+                    input.value = currentValue + 1;
+                }
+            });
+        }
+
+        // Validate số lượng khi nhập
+        if (quantityInput) {
+            quantityInput.addEventListener('change', function() {
+                const value = parseInt(this.value) || 1;
+                const maxStock = parseInt(this.max) || 999;
+                const minValue = parseInt(this.min) || 1;
+                
+                if (value < minValue) {
+                    this.value = minValue;
+                } else if (value > maxStock) {
+                    this.value = maxStock;
+                }
+            });
+        }
+
+        // Submit form thêm vào giỏ
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', function() {
+                const productId = modal.dataset.currentProductId;
+                const csrfToken = modal.dataset.currentCsrf;
+                const quantity = parseInt(quantityInput.value) || 1;
+                
+                if (!productId || !csrfToken) {
+                    showCustomToast('Lỗi: Không tìm thấy thông tin sản phẩm', 'error');
+                    return;
+                }
+
+                // Validate số lượng
+                if (quantity < 1) {
+                    showCustomToast('Số lượng phải lớn hơn 0', 'error');
+                    quantityInput.focus();
+                    return;
+                }
+
+                // Lấy variant ID nếu có
+                const selectedVariant = modal.querySelector('#accessory-modal-variants-list .xanhworld_variant_modal_variant_item.active');
+                const variantId = selectedVariant ? selectedVariant.dataset.variantId : null;
+
+                // Validate variant nếu có variants
+                const hasVariants = document.getElementById('accessory-modal-variants-section').style.display !== 'none';
+                if (hasVariants && !variantId) {
+                    showCustomToast('Vui lòng chọn biến thể sản phẩm', 'error');
+                    return;
+                }
+
+                // Validate stock
+                if (selectedVariant) {
+                    const stock = selectedVariant.dataset.variantStock;
+                    if (stock !== 'null' && stock !== null && parseInt(stock) <= 0) {
+                        showCustomToast('Sản phẩm này đã hết hàng', 'error');
+                        return;
+                    }
+                    if (stock !== 'null' && stock !== null && quantity > parseInt(stock)) {
+                        showCustomToast(`Số lượng vượt quá tồn kho (còn ${stock} sản phẩm)`, 'error');
+                        quantityInput.value = stock;
+                        quantityInput.focus();
+                        return;
+                    }
+                }
+
+                // Disable button
+                this.disabled = true;
+                const originalText = this.innerHTML;
+                this.innerHTML = '<span>Đang thêm...</span>';
+
+                // Gửi request
+                const requestBody = {
+                    product_id: productId,
+                    quantity: quantity,
+                };
+
+                if (variantId) {
+                    requestBody.product_variant_id = variantId;
+                }
+
+                fetch("/api/v1/cart/accessories", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                    body: JSON.stringify(requestBody),
+                })
+                    .then(async (response) => {
+                        const data = await response.json().catch(() => ({}));
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng');
+                        }
+                        return data;
+                    })
+                    .then((data) => {
+                        // Đóng modal trước
+                        if (typeof window.closeAccessoryModal === 'function') {
+                            window.closeAccessoryModal();
+                        }
+                        // Hiển thị thông báo thành công
+                        if (data.message) {
+                            showCustomToast(data.message, 'success');
+                        } else {
+                            showCustomToast('Đã thêm vào giỏ hàng thành công!', 'success');
+                        }
+                        // Reload trang để cập nhật giỏ hàng
+                        window.location.reload();
+                    })
+                    .catch((error) => {
+                        console.error('Error adding to cart:', error);
+                        showCustomToast(error.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng', 'error');
+                        this.disabled = false;
+                        this.innerHTML = originalText;
+                    });
+            });
+        }
+    }
 }
 
 function handleAccessoryAdd(button, csrf) {
@@ -1277,10 +1462,162 @@ function handleAccessoryAdd(button, csrf) {
         return;
     }
 
+    const hasVariants = button.dataset.accessoryHasVariants === '1';
+    const variantsData = button.dataset.accessoryVariants ? JSON.parse(button.dataset.accessoryVariants) : [];
+
+    // Nếu có variants, hiển thị modal
+    if (hasVariants && variantsData.length > 0) {
+        openAccessoryVariantModal(button, csrf, productId, variantsData);
+        return;
+    }
+
+    // Nếu không có variants, thêm trực tiếp
+    addAccessoryToCartDirect(productId, 1, button, csrf);
+}
+
+function openAccessoryVariantModal(button, csrf, productId, variantsData) {
+    const modal = document.getElementById('accessory-variant-modal');
+    if (!modal) {
+        console.error('[Accessory Modal] Modal not found');
+        // Nếu không có modal, thêm trực tiếp với variant đầu tiên
+        if (variantsData.length > 0) {
+            const firstVariant = variantsData[0];
+            addAccessoryToCartDirect(productId, 1, button, csrf, firstVariant.id);
+        } else {
+            addAccessoryToCartDirect(productId, 1, button, csrf);
+        }
+        return;
+    }
+
+    const productName = button.dataset.accessoryName || '';
+    const productImage = button.dataset.accessoryImage || '';
+    const productPrice = parseFloat(button.dataset.accessoryPrice) || 0;
+    const productSalePrice = button.dataset.accessorySalePrice ? parseFloat(button.dataset.accessorySalePrice) : null;
+
+    // Hiển thị thông tin sản phẩm
+    document.getElementById('accessory-modal-product-image').src = productImage;
+    document.getElementById('accessory-modal-product-image').alt = productName;
+    document.getElementById('accessory-modal-product-name').textContent = productName;
+    
+    // Hiển thị giá
+    let priceHtml = '';
+    if (productSalePrice && productSalePrice > 0 && productSalePrice < productPrice) {
+        priceHtml = `<span style="color: #e6525e; font-weight: bold; font-size: 18px;">${formatCurrencyVND(productSalePrice)}₫</span> <span style="text-decoration: line-through; color: #999; font-size: 14px;">${formatCurrencyVND(productPrice)}₫</span>`;
+    } else {
+        priceHtml = `<span style="color: #e6525e; font-weight: bold; font-size: 18px;">${formatCurrencyVND(productPrice)}₫</span>`;
+    }
+    document.getElementById('accessory-modal-product-price').innerHTML = priceHtml;
+
+    // Hiển thị variants
+    const variantsSection = document.getElementById('accessory-modal-variants-section');
+    const variantsList = document.getElementById('accessory-modal-variants-list');
+    variantsList.innerHTML = '';
+
+    if (variantsData.length > 0) {
+        variantsSection.style.display = 'block';
+        variantsData.forEach((variant, index) => {
+            const variantBtn = document.createElement('button');
+            variantBtn.type = 'button';
+            variantBtn.className = 'xanhworld_variant_modal_variant_item' + (index === 0 ? ' active' : '');
+            variantBtn.dataset.variantId = variant.id;
+            variantBtn.dataset.variantPrice = variant.display_price || variant.price;
+            variantBtn.dataset.variantStock = variant.stock_quantity ?? 'null';
+            
+            const attrs = variant.attributes || {};
+            const details = [];
+            if (attrs.size) details.push(attrs.size);
+            if (attrs.has_pot === true || attrs.has_pot === '1' || attrs.has_pot === 1) details.push('Có chậu');
+            if (attrs.combo_type) details.push(attrs.combo_type);
+            if (attrs.notes) details.push(attrs.notes);
+            const detailsText = details.length > 0 ? ' (' + details.join(', ') + ')' : '';
+
+            let variantHtml = `<span class="variant-name">${variant.name}${detailsText}</span>`;
+            variantHtml += `<span class="variant-price">${formatCurrencyVND(variant.display_price || variant.price)}₫</span>`;
+            
+            if (variant.sale_price && variant.sale_price > 0 && variant.sale_price < variant.price) {
+                const discount = Math.round(((variant.price - variant.sale_price) / variant.price) * 100);
+                variantHtml += `<span class="variant-discount">-${discount}%</span>`;
+            }
+            
+            if (variant.stock_quantity !== null && variant.stock_quantity <= 0) {
+                variantHtml += `<span class="variant-out-of-stock">Hết hàng</span>`;
+                variantBtn.disabled = true;
+                variantBtn.classList.add('disabled');
+            }
+
+            variantBtn.innerHTML = variantHtml;
+            variantBtn.addEventListener('click', function() {
+                if (this.disabled) return;
+                document.querySelectorAll('#accessory-modal-variants-list .xanhworld_variant_modal_variant_item').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                updateAccessoryModalPrice(this.dataset.variantPrice);
+                updateAccessoryModalStock(this.dataset.variantStock);
+            });
+            variantsList.appendChild(variantBtn);
+        });
+
+        // Chọn variant đầu tiên mặc định
+        const firstVariant = variantsList.querySelector('.xanhworld_variant_modal_variant_item');
+        if (firstVariant && !firstVariant.disabled) {
+            updateAccessoryModalPrice(firstVariant.dataset.variantPrice);
+            updateAccessoryModalStock(firstVariant.dataset.variantStock);
+        }
+    } else {
+        variantsSection.style.display = 'none';
+    }
+
+    // Reset quantity
+    document.getElementById('accessory-modal-quantity').value = 1;
+
+    // Lưu thông tin để submit
+    modal.dataset.currentProductId = productId;
+    modal.dataset.currentCsrf = csrf;
+
+    // Hiển thị modal
+    // Đảm bảo body không bị lock từ trước
+    document.body.style.overflow = '';
+    // Thêm class active để hiển thị modal
+    modal.classList.add('active');
+    // Lock scroll sau khi modal hiển thị
+    setTimeout(() => {
+        document.body.style.overflow = 'hidden';
+    }, 10);
+}
+
+function updateAccessoryModalPrice(price) {
+    const priceEl = document.getElementById('accessory-modal-product-price');
+    if (priceEl) {
+        priceEl.innerHTML = `<span style="color: #e6525e; font-weight: bold; font-size: 18px;">${formatCurrencyVND(price)}₫</span>`;
+    }
+}
+
+function updateAccessoryModalStock(stock) {
+    const quantityInput = document.getElementById('accessory-modal-quantity');
+    if (quantityInput && stock !== 'null' && stock !== null) {
+        const maxStock = parseInt(stock) || 999;
+        quantityInput.max = maxStock;
+        if (parseInt(quantityInput.value) > maxStock) {
+            quantityInput.value = maxStock;
+        }
+    }
+}
+
+// formatCurrencyVND đã được định nghĩa ở trên, không cần định nghĩa lại
+
+function addAccessoryToCartDirect(productId, quantity, button, csrf, variantId = null) {
     const originalText = button.textContent;
     button.disabled = true;
     button.dataset.loadingText = originalText;
     button.textContent = "Đang thêm...";
+
+    const requestBody = {
+        product_id: productId,
+        quantity: quantity,
+    };
+    
+    if (variantId) {
+        requestBody.product_variant_id = variantId;
+    }
 
     fetch("/api/v1/cart/accessories", {
         method: "POST",
@@ -1289,10 +1626,7 @@ function handleAccessoryAdd(button, csrf) {
             Accept: "application/json",
             "X-CSRF-TOKEN": csrf,
         },
-        body: JSON.stringify({
-            product_id: productId,
-            quantity: 1,
-        }),
+        body: JSON.stringify(requestBody),
     })
         .then(async (response) => {
             const data = await response.json().catch(() => ({}));

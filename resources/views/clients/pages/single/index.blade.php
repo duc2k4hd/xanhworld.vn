@@ -4,13 +4,7 @@
 
 @push('css_page')
     <link rel="stylesheet" href="{{ asset('clients/assets/css/single.css') }}">
-@endpush
-
-@push('js_page')
-    <script defer src="{{ asset('clients/assets/js/single.js') }}"></script>
-@endpush
-
-@section('head')
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/shop-modal.css') }}">
     @if ($product?->primaryImage?->url)
         <link rel="preload"
             as="image"
@@ -20,6 +14,16 @@
         <link rel="preload" as="image" href="{{ asset('clients/assets/img/clothes/no-image.webp') }}"
             fetchpriority="high">
     @endif
+@endpush
+
+@push('js_page')
+    <script defer src="{{ asset('clients/assets/js/single.js') }}"></script>
+@endpush
+
+@section('head')
+    @php
+        $productUrl = ($settings->site_url ?? 'https://xanhworld.vn').'/san-pham/'.($product->slug ?? '');
+    @endphp
 
     <meta name="robots" content="index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large"/>
     <meta name="keywords" content="{{ is_array($product->meta_keywords ?? null) ? implode(', ', $product->meta_keywords) : 'cây xanh, chậu cây, phụ kiện decor, cây phong thủy, cây văn phòng, THẾ GIỚI CÂY XANH XWORLD' }}">
@@ -32,13 +36,13 @@
     <meta property="og:description"
         content="{{ $product->meta_desc ?? 'THẾ GIỚI CÂY XANH XWORLD: Cây xanh, chậu cảnh, phụ kiện trang trí. Hướng dẫn setup góc làm việc, ban công, sân vườn xanh mát, giao tận nơi.' }}">
     <meta property="og:url"
-        content="{{ $product->canonical_url ?? ($settings->site_url ?? 'https://xanhworld.vn') . '/san-pham/' . ($product->slug ?? '') }}">
+        content="{{ $productUrl }}">
     <meta property="og:image"
-        content="{{ asset('clients/assets/img/business/' . ($settings->site_banner ?? null ? $settings->site_banner : $settings->site_logo ?? 'logo-xworld.png')) }}">
+        content="{{ asset('clients/assets/img/clothes/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt"
-        content="{{ $product->primaryImage->title ?? null ?: $product->name ?? ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}">
+    content="{{ $product->meta_title ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD - Cây xanh & phụ kiện decor') }}">
     <meta property="og:image:type" content="image/webp">
     <meta property="og:type" content="product">
     <meta property="og:site_name" content="{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}">
@@ -51,12 +55,9 @@
     <meta name="twitter:description"
         content="{{ $product->meta_desc ?? 'THẾ GIỚI CÂY XANH XWORLD: Giao cây tận nơi, tư vấn chăm sóc, setup góc làm việc / ban công xanh mát.' }}">
     <meta name="twitter:image"
-        content="{{ asset('clients/assets/img/clothes/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}">
+    content="{{ asset('clients/assets/img/clothes/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}">
     <meta name="twitter:creator" content="{{ $settings->seo_author ?? 'THẾ GIỚI CÂY XANH XWORLD' }}">
 
-    @php
-        $productUrl = ($settings->site_url ?? 'https://xanhworld.vn').'/san-pham/'.($product->slug ?? '');
-    @endphp
     <link rel="canonical" href="{{ $productUrl }}">
     <link rel="alternate" hreflang="vi" href="{{ $productUrl }}">
     <link rel="alternate" hreflang="x-default" href="{{ $productUrl }}">
@@ -76,7 +77,7 @@
         <section>
             @php
                 // Lấy danh mục cuối cùng của sản phẩm
-                $categoryBreadcrumb = $product?->primaryCategory?->first();
+                $categoryBreadcrumb = $product?->primaryCategory;
 
                 // Truy ngược lên cha để tạo breadcrumb path
                 $breadcrumbPath = collect();
@@ -116,8 +117,8 @@
                             "
                             sizes="(max-width: 1050px) 400px, 400px"
                             src="{{ asset('clients/assets/img/clothes/resize/400x400/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}"
-                            alt="{{ $product->primaryImage->alt ?? null ?: ($product->name ?? 'NOBI FASHION') }}"
-                            title="{{ $product->primaryImage->title ?? null ?: ($product->name ?? 'NOBI FASHION') }}"
+                            alt="{{ $product?->primaryImage?->alt ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}"
+                            title="{{ $product?->primaryImage?->title ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}"
                             class="xanhworld_single_info_images_main_image"
                             data-default-src="{{ asset('clients/assets/img/clothes/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}">
                     </div>
@@ -158,7 +159,7 @@
                     @php
                         $overlayImages = ($product->images && $product->images->count() > 0)
                             ? $product->images
-                            : collect([$product->primaryImage]);
+                            : ($product->primaryImage ? collect([$product->primaryImage]) : collect());
                     @endphp
                     
                     <div class="xanhworld_single_info_images_gallery">
@@ -176,8 +177,8 @@
                             
                                     sizes="(max-width: 1050px) 85px, 85px"
                             
-                                    alt="{{ $img->alt ?? ($product->name ?? 'NOBI FASHION') }}"
-                                    title="{{ $img->title ?? ($product->name ?? 'NOBI FASHION') }}"
+                                    alt="{{ $img->alt ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}"
+                                    title="{{ $img->title ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}"
                                     class="xanhworld_single_info_images_gallery_image {{ $img->is_primary ? 'xanhworld_single_info_images_gallery_image_active' : '' }}">
                                 @php
                                     $listImg[] = asset('clients/assets/img/clothes/resize/85x85/' . ($img->url ?? 'no-image.webp'));
@@ -192,7 +193,7 @@
                             <div class="xanhworld_single_info_images_support_form_group">
                                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                                 <input type="text" 
-                                    placeholder="Nhập số điện thoại để được tư vấn (NOBI FASHION)."
+                                    placeholder="Nhập số điện thoại để được tư vấn (THẾ GIỚI CÂY XANH XWORLD)."
                                     name="phone" 
                                     id="phone-input"
                                     class="xanhworld_single_info_images_support_form_group_input"
@@ -215,6 +216,12 @@
 
                 <div class="xanhworld_single_info_specifications">
                     @if ($product->isInFlashSale())
+                        @php
+                            $flashSaleItem = $product->currentFlashSaleItem()->first() ?? $product;
+                            $stock = (int) ($flashSaleItem->stock ?? 0);
+                            $sold = (int) ($flashSaleItem->sold ?? 0);
+                            $percentage = $stock > 0 ? min(100, round(($sold / $stock) * 100)) : 0;
+                        @endphp
                         <script>
                             const endTime = new Date("{{ optional($product->currentFlashSale()->first())->end_time }}").getTime();
                         </script>
@@ -222,11 +229,6 @@
                             <div class="xanhworld_single_info_specifications_label">
                                 ⚡ SĂN DEAL
                             </div>
-                            @php
-                                $stock = (int) ($item->stock ?? 0);
-                                $sold = (int) ($item->sold ?? 0);
-                                $percentage = $stock > 0 ? min(100, round(($sold / $stock) * 100)) : 0;
-                            @endphp
 
                             <div class="xanhworld_single_info_specifications_progress">
                                 <div class="xanhworld_single_info_specifications_progress_bar"
@@ -255,9 +257,12 @@
                         </div>
                     @endif
 
-                    <h1 class="xanhworld_single_info_specifications_title">
-                        <span class="xanhworld_single_info_specifications_title_hot" aria-hidden="true">HOT</span>
-                        {{ $product->name ?? 'Sản phẩm thời trang chính hãng - NOBI FASHION' }}</h1>
+                    <div class="xanhworld_single_info_specifications_title">
+                        {{-- <span class="xanhworld_single_info_specifications_title_hot" aria-hidden="true">
+                            <img src="{{ asset('clients/assets/img/other/hot-product.png') }}" alt="HOT">
+                        </span> --}}
+                        <h1 class="xanhworld_single_info_specifications_title">{{ $product->name ?? 'Sản phẩm thời trang chính hãng - THẾ GIỚI CÂY XANH XWORLD' }}</h1>
+                    </div>
 
                     <div class="xanhworld_single_info_specifications_brand">
                         <!-- Thương hiệu + Mã sản phẩm -->
@@ -436,7 +441,7 @@
                         @if ($isOutOfStock)
                             <span style="color: #d33;">Hết hàng</span>
                         @else
-                            Còn lại <strong>{{ $quantityProductDetail }}</strong> sản phẩm
+                            Còn lại <strong>{{ $quantityProductDetail ?? 0 }}</strong> sản phẩm
                         @endif
                     </p>
 
@@ -444,7 +449,6 @@
                         <div class="xanhworld_single_accessories_strip">
                             <div class="xanhworld_single_accessories_strip_header">
                                 <span>🎯 Gợi ý phụ kiện đi kèm</span>
-                                <small>Kéo ngang để xem thêm</small>
                             </div>
                             @foreach ($includedSets as $set)
                                 @php
@@ -458,10 +462,31 @@
                                         </div>
                                         <div class="xanhworld_single_accessories_scroller" data-accessory-scroll>
                                             @foreach ($accessories as $accessory)
+                                                @php
+                                                    $accessoryVariants = $accessory->variants ?? collect();
+                                                    $hasAccessoryVariants = $accessoryVariants->isNotEmpty();
+                                                    
+                                                    // Chuẩn bị dữ liệu variants cho JavaScript
+                                                    $accessoryVariantsData = [];
+                                                    if ($hasAccessoryVariants) {
+                                                        foreach ($accessoryVariants as $variant) {
+                                                            $attrs = is_array($variant->attributes) ? $variant->attributes : (is_string($variant->attributes) ? json_decode($variant->attributes, true) : []);
+                                                            $accessoryVariantsData[] = [
+                                                                'id' => $variant->id,
+                                                                'name' => $variant->name,
+                                                                'price' => $variant->price,
+                                                                'sale_price' => $variant->sale_price,
+                                                                'display_price' => $variant->display_price,
+                                                                'stock_quantity' => $variant->stock_quantity,
+                                                                'attributes' => $attrs,
+                                                            ];
+                                                        }
+                                                    }
+                                                @endphp
                                                 <div class="xanhworld_single_accessories_item">
                                                     <a href="{{ url('/san-pham/' . ($accessory->slug ?? '')) }}" class="xanhworld_single_accessories_item_thumb">
-                                                        <img src="{{ asset('clients/assets/img/clothes/' . ($accessory->primaryImage->url ?? 'no-image.webp')) }}"
-                                                            alt="{{ $accessory->name }}">
+                                                        <img src="{{ asset('clients/assets/img/clothes/resize/175x175/' . ($accessory?->primaryImage?->url ?? 'no-image.webp')) }}"
+                                                            alt="{{ $accessory->name ?? '' }}">
                                                     </a>
                                                     <div class="xanhworld_single_accessories_item_name">{{ $accessory->name }}</div>
                                                     <div class="xanhworld_single_accessories_item_price">
@@ -469,7 +494,15 @@
                                                     </div>
                                                     <button type="button"
                                                         class="xanhworld_single_accessories_item_btn"
-                                                        data-accessory-add="{{ $accessory->id }}">
+                                                        data-accessory-add="{{ $accessory->id }}"
+                                                        data-accessory-name="{{ $accessory->name }}"
+                                                        data-accessory-image="{{ asset('clients/assets/img/clothes/' . ($accessory?->primaryImage?->url ?? 'no-image.webp')) }}"
+                                                        data-accessory-price="{{ $accessory->price ?? 0 }}"
+                                                        data-accessory-sale-price="{{ $accessory->sale_price ?? '' }}"
+                                                        data-accessory-has-variants="{{ $hasAccessoryVariants ? '1' : '0' }}"
+                                                        @if($hasAccessoryVariants)
+                                                            data-accessory-variants='@json($accessoryVariantsData)'
+                                                        @endif>
                                                         + Thêm nhanh
                                                     </button>
                                                 </div>
@@ -738,57 +771,6 @@
             </div>
         </section>
 
-        {{-- Sản phẩm đi kèm (section danh mục) --}}
-        @if($includedSets->isNotEmpty())
-            <section class="xanhworld_single_product_included">
-                <div style="display: flex; align-items: center; justify-content: center; margin: 1rem 0;">
-                    <hr style="flex: 1; height: 2px; background-color: #e6525e; border: none; margin: 0;">
-                    <span style="padding: 0 12px; color: #f74a4a; font-weight: bold;">Sản phẩm đi kèm đề xuất</span>
-                    <hr style="flex: 1; height: 2px; background-color: #e6525e; border: none; margin: 0;">
-                </div>
-                @foreach($includedSets as $set)
-                    @php
-                        $category = $set['category'] ?? null;
-                        $includedList = collect($set['products'] ?? []);
-                    @endphp
-                    @if($includedList->isNotEmpty())
-                        <div class="xanhworld_single_product_related">
-                            <h3 class="xanhworld_single_product_related_title">
-                                🔗 Sản phẩm đi kèm
-                                @if($category)
-                                    @if(!empty($category->slug))
-                                        <a href="{{ route('client.product.category.index', $category->slug) }}" style="color:#e6525e;">
-                                            {{ $category->name }}
-                                        </a>
-                                    @else
-                                        {{ $category->name }}
-                                    @endif
-                                @endif
-                            </h3>
-                            <div class="xanhworld_single_product_related_grid">
-                                @foreach ($includedList as $included)
-                                    <div class="xanhworld_single_product_related_item">
-                                        <a href="/san-pham/{{ $included->slug ?? 'san-pham-di-kem' }}" class="xanhworld_single_product_related_img">
-                                            <img src="{{ asset('clients/assets/img/clothes/'. ($included->primaryImage->url ?? 'no-image.webp')) }}" alt="{{ $included->name }}">
-                                            @if($included->is_featured)
-                                                <span class="xanhworld_single_product_related_badge">Hot</span>
-                                            @elseif(optional($included->created_at)->diffInDays(now()) <= 30)
-                                                <span class="xanhworld_single_product_related_badge">New</span>
-                                            @endif
-                                        </a>
-                                        <div class="xanhworld_single_product_related_info">
-                                            <a href="/san-pham/{{ $included->slug ?? 'san-pham-di-kem' }}" class="xanhworld_single_product_related_name">{{ $included->name }}</a>
-                                            <p class="xanhworld_single_product_related_price">{{ number_format($included?->sale_price ?? $included?->price ?? 0, 0, ',', '.') }}đ</p>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-                @endforeach
-            </section>
-        @endif
-
         {{-- Sản phẩm liên quan --}}
         @include('clients.templates.product_related')
 
@@ -832,13 +814,13 @@
     </main>
 
     <!-- Popup overlay -->
-    @if($vouchers->isNotEmpty())
+    @if(isset($vouchers) && $vouchers->isNotEmpty())
         <div id="voucherPopup" class="xanhworld_main_show_popup_voucher_overlay">
             <div class="xanhworld_main_show_popup_voucher_box">
                 <button class="xanhworld_main_show_popup_voucher_close">&times;</button>
                 <h2>🎉 Chúc mừng bạn!</h2>
                 <img width="100" src="{{ asset('clients/assets/img/other/party.gif') }}"
-                    alt="Voucher NOBI FASHION">
+                    alt="Voucher THẾ GIỚI CÂY XANH XWORLD">
                 <p>Bạn đã nhận được voucher đặc biệt từ shop:</p>
                 @foreach ($vouchers as $voucher)
                     <div class="xanhworld_main_show_popup_voucher_code">{{ $voucher->code }}</div>
@@ -867,5 +849,49 @@
         <hr style="flex: 1; height: 2px; background-color: #e6525e; border: none; margin: 0;">
         <span style="padding: 0 12px; color: #f74a4a; font-weight: bold; text-align: center;">Đăng ký Email nhận thông báo từ {{ $settings->subname ?? '' }}</span>
         <hr style="flex: 1; height: 2px; background-color: #e6525e; border: none; margin: 0;">
+    </div>
+
+    <!-- Modal chọn variant cho phụ kiện -->
+    <div id="accessory-variant-modal" class="xanhworld_variant_modal">
+        <div class="xanhworld_variant_modal_overlay"></div>
+        <div class="xanhworld_variant_modal_content">
+            <button class="xanhworld_variant_modal_close" aria-label="Đóng">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="20" height="20">
+                    <path fill="currentColor" d="M324.5 411.1c6.2 6.2 16.4 6.2 22.6 0s6.2-16.4 0-22.6L214.6 256 347.1 123.5c6.2-6.2 6.2-16.4 0-22.6s-16.4-6.2-22.6 0L192 233.4 59.5 100.9c-6.2-6.2-16.4-6.2-22.6 0s-6.2 16.4 0 22.6L169.4 256 36.9 388.5c-6.2 6.2-6.2 16.4 0 22.6s16.4 6.2 22.6 0L192 278.6 324.5 411.1z"/>
+                </svg>
+            </button>
+            <div class="xanhworld_variant_modal_body">
+                <div class="xanhworld_variant_modal_product">
+                    <div class="xanhworld_variant_modal_product_image">
+                        <img id="accessory-modal-product-image" src="" alt="">
+                    </div>
+                    <div class="xanhworld_variant_modal_product_info">
+                        <h3 id="accessory-modal-product-name" class="xanhworld_variant_modal_product_name"></h3>
+                        <div id="accessory-modal-product-price" class="xanhworld_variant_modal_product_price"></div>
+                    </div>
+                </div>
+                <div class="xanhworld_variant_modal_variants" id="accessory-modal-variants-section" style="display: none;">
+                    <label class="xanhworld_variant_modal_variants_label">Chọn biến thể:</label>
+                    <div id="accessory-modal-variants-list" class="xanhworld_variant_modal_variants_list"></div>
+                </div>
+                <div class="xanhworld_variant_modal_quantity">
+                    <label class="xanhworld_variant_modal_quantity_label">Số lượng:</label>
+                    <div class="xanhworld_variant_modal_quantity_controls">
+                        <button type="button" class="xanhworld_variant_modal_quantity_btn" data-action="decrease">-</button>
+                        <input type="number" id="accessory-modal-quantity" value="1" min="1" class="xanhworld_variant_modal_quantity_input">
+                        <button type="button" class="xanhworld_variant_modal_quantity_btn" data-action="increase">+</button>
+                    </div>
+                </div>
+                <div class="xanhworld_variant_modal_actions">
+                    <button type="button" class="xanhworld_variant_modal_btn xanhworld_variant_modal_btn_secondary" id="accessory-modal-cancel-btn">Hủy</button>
+                    <button type="button" class="xanhworld_variant_modal_btn xanhworld_variant_modal_btn_primary" id="accessory-modal-add-to-cart-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18" height="18" style="margin-right: 8px;">
+                            <path fill="currentColor" d="M0 24C0 10.7 10.7 0 24 0L69.5 0c22 0 41.5 12.8 50.6 32l411 0c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3l-288.5 0 5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5L488 336c13.3 0 24 10.7 24 24s-10.7 24-24 24l-288.3 0c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5L24 48C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/>
+                        </svg>
+                        Thêm vào giỏ hàng
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection

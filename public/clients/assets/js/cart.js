@@ -164,18 +164,12 @@ setTimeout(() => {
 const mainMenu = document.querySelector(".xanhworld_header_main_nav");
 
 if (mainMenu) {
-    let menuScrollTimer = null;
-
     window.addEventListener("scroll", () => {
-        clearTimeout(menuScrollTimer);
-
-        menuScrollTimer = setTimeout(() => {
-            if (window.scrollY > 240) {
-                mainMenu.classList.add("xanhworld_header_main_nav_fixed");
-            } else {
-                mainMenu.classList.remove("xanhworld_header_main_nav_fixed");
-            }
-        }, 200); // ⏱ chạy sau khi dừng cuộn 200ms
+        if (window.scrollY > 240) {
+            mainMenu.classList.add("xanhworld_header_main_nav_fixed");
+        } else {
+            mainMenu.classList.remove("xanhworld_header_main_nav_fixed");
+        }
     });
 }
 
@@ -379,29 +373,23 @@ const backToTopBtn = document.querySelector(".xanhworld_back_to_top");
 
 if (backToTopBtn) {
 
-    let scrollTimer = null;
-
     window.addEventListener("scroll", () => {
-        clearTimeout(scrollTimer);
+        if (window.scrollY > 300) {
+            backToTopBtn.style.display = "flex";
 
-        scrollTimer = setTimeout(() => {
-            if (window.scrollY > 300) {
-                backToTopBtn.style.display = "flex";
-
-                const orderSummary = document.querySelector(".xanhworld_order_summary");
-                if (orderSummary) {
-                    orderSummary.classList.add("shop_haiphonglife_order_summary_fixed");
-                }
-
-            } else {
-                backToTopBtn.style.display = "none";
-
-                const orderSummary = document.querySelector(".xanhworld_order_summary");
-                if (orderSummary) {
-                    orderSummary.classList.remove("shop_haiphonglife_order_summary_fixed");
-                }
+            const orderSummary = document.querySelector(".xanhworld_order_summary");
+            if (orderSummary) {
+                orderSummary.classList.add("shop_haiphonglife_order_summary_fixed");
             }
-        }, 200); // ⏱ delay 200ms sau khi người dùng dừng cuộn
+
+        } else {
+            backToTopBtn.style.display = "none";
+
+            const orderSummary = document.querySelector(".xanhworld_order_summary");
+            if (orderSummary) {
+                orderSummary.classList.remove("shop_haiphonglife_order_summary_fixed");
+            }
+        }
     });
 
     backToTopBtn.addEventListener("click", () => {
