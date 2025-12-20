@@ -1,6 +1,7 @@
 @php
     $siteUrl = rtrim($settings->site_url ?? 'https://xanhworld.vn', '/');
     $productUrl = $product->canonical_url ?? ($siteUrl.'/san-pham/'.($product->slug ?? 'san-pham'));
+    $productUrl = rtrim($productUrl, '/'); // Đảm bảo không có dấu / cuối
     $sameAs = array_values(array_unique(array_filter([
         $settings->facebook_link ?? 'https://www.facebook.com/nobifashion.vn',
         $settings->instagram_link ?? 'https://www.instagram.com/nobifashion.vn',
@@ -197,7 +198,7 @@
       "width": 600,
       "height": 600
     },
-    "description": "{{ $product->meta_desc ?? 'THẾ GIỚI CÂY XANH XWORLD: Cây xanh khỏe mạnh, chậu trang trí, phụ kiện setup góc sống xanh. Giao cây tận nơi, hướng dẫn chăm sóc & bảo hành cây.' }}",
+    "description": "{{ $product->meta_description ?? 'THẾ GIỚI CÂY XANH XWORLD: Cây xanh khỏe mạnh, chậu trang trí, phụ kiện setup góc sống xanh. Giao cây tận nơi, hướng dẫn chăm sóc & bảo hành cây.' }}",
     "sku": "{{ ($product->sku ?? 'SKU-DEFAULT') }}",
     "mpn": "{{ ($product->sku ?? 'SKU-DEFAULT') }}",
     "brand": {
@@ -264,7 +265,7 @@
           "returnFees": "https://schema.org/FreeReturn",
           "refundType": "https://schema.org/FullRefund",
           "applicableCountry": "VN",
-          "merchantReturnLink": "{{ ($settings->return_link ?? 'https://nobifashion.vn/chinh-sach-doi-tra') }}"
+          "merchantReturnLink": "https://xanhworld.vn/chinh-sach-doi-tra"
         }
       }@if(isset($latestReviews) && $latestReviews->count() > 0),
         "review": [

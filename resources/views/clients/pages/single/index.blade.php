@@ -22,7 +22,8 @@
 
 @section('head')
     @php
-        $productUrl = ($settings->site_url ?? 'https://xanhworld.vn').'/san-pham/'.($product->slug ?? '');
+        $siteUrl = rtrim($settings->site_url ?? 'https://xanhworld.vn', '/');
+        $productUrl = $siteUrl.'/san-pham/'.($product->slug ?? '');
     @endphp
 
     <meta name="robots" content="index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large"/>
