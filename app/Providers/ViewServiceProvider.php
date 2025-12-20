@@ -28,30 +28,61 @@ class ViewServiceProvider extends ServiceProvider
     {
 
         // --- SETTINGS ---
-        if (Schema::hasTable('settings')) {
-            $settings = Cache::rememberForever('settings', function () {
-                return Setting::active()
-                    ->get() // ❗ quan trọng
-                    ->mapWithKeys(fn ($s) => [$s->key => $s->getParsedValue()])
-                    ->toArray();
-            });
-            View::share('settings', (object) $settings);
+        try {
+            if (Schema::hasTable('settings')) {
+                $settings = Cache::rememberForever('settings', function () {
+                    return Setting::active()
+                        ->get() // ❗ quan trọng
+                        ->mapWithKeys(fn ($s) => [$s->key => $s->getParsedValue()])
+                        ->toArray();
+                });
+                View::share('settings', (object) $settings);
+            } else {
+                View::share('settings', (object) []);
+            }
+        } catch (Throwable $e) {
+            Log::warning('ViewServiceProvider: Failed to load settings', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            View::share('settings', (object) []);
         }
 
         // --- CATEGORIES ---
-        if (Schema::hasTable('categories')) {
-            $categories = Category::query()->active()
-                ->whereNull('parent_id')
-                ->with('children.children')   // tự sort theo quan hệ
-                ->get();
-            View::share('categories', $categories);
+        try {
+            if (Schema::hasTable('categories')) {
+                $categories = Category::query()->active()
+                    ->whereNull('parent_id')
+                    ->with('children.children')   // tự sort theo quan hệ
+                    ->get();
+                View::share('categories', $categories);
+            } else {
+                View::share('categories', collect([]));
+            }
+        } catch (Throwable $e) {
+            Log::warning('ViewServiceProvider: Failed to load categories', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            View::share('categories', collect([]));
         }
 
         // --- ACCOUNT + CART (Global composer) ---
         View::composer('*', function ($view) {
             // Không cache để đảm bảo luôn lấy dữ liệu mới nhất, đặc biệt sau khi đăng xuất
-            $accountId = auth('web')->id();
-            $sessionId = session()->getId();
+            try {
+                $accountId = auth('web')->id();
+                $sessionId = session()->getId() ?? null;
+            } catch (Throwable $e) {
+                // Nếu session chưa start (ví dụ Googlebot), dùng null
+                Log::debug('ViewServiceProvider: Session not available', [
+                    'error' => $e->getMessage(),
+                ]);
+                $accountId = null;
+                $sessionId = null;
+            }
 
                 try {
                     $account = auth('web')->user() ?? null;
@@ -69,7 +100,12 @@ class ViewServiceProvider extends ServiceProvider
                     } else {
                     // Chưa đăng nhập: chỉ lấy cart theo session và không có account_id
                     // QUAN TRỌNG: Phải đảm bảo account_id là NULL để không lấy cart của user khác
+                    if ($sessionId) {
                         $cartQuery->whereNull('account_id')->where('session_id', $sessionId);
+                    } else {
+                        // Nếu không có sessionId (ví dụ Googlebot), không lấy cart
+                        $cartQuery->whereRaw('1 = 0');
+                    }
                     }
 
                     $cart = $cartQuery->orderByDesc('id')->first();
@@ -84,7 +120,12 @@ class ViewServiceProvider extends ServiceProvider
                             $q->where('account_id', $accountId);
                             } else {
                             // QUAN TRỌNG: Phải đảm bảo account_id là NULL
+                            if ($sessionId) {
                                 $q->whereNull('account_id')->where('session_id', $sessionId);
+                            } else {
+                                // Nếu không có sessionId (ví dụ Googlebot), không lấy cart items
+                                $q->whereRaw('1 = 0');
+                            }
                             }
                         });
 

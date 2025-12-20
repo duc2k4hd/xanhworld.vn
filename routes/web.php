@@ -178,9 +178,15 @@ Route::get('/newsletter/unsubscribe/{token}', [NewsletterPublicController::class
 Route::get('/sitemap', [SitemapPublicController::class, 'landing'])->name('client.sitemap.landing');
 Route::get('/sitemap.xml', [SitemapPublicController::class, 'index']);
 Route::get('/sitemap-posts.xml', [SitemapPublicController::class, 'posts']);
-Route::get('/sitemap-posts-{page}.xml', [SitemapPublicController::class, 'posts'])->whereNumber('page');
+// Các page sitemap posts bắt đầu từ page 2 để tránh trùng với sitemap-posts.xml
+Route::get('/sitemap-posts-{page}.xml', [SitemapPublicController::class, 'posts'])
+    ->whereNumber('page')
+    ->where('page', '>=2');
 Route::get('/sitemap-products.xml', [SitemapPublicController::class, 'products']);
-Route::get('/sitemap-products-{page}.xml', [SitemapPublicController::class, 'products'])->whereNumber('page');
+// Các page sitemap products bắt đầu từ page 2 để tránh trùng với sitemap-products.xml
+Route::get('/sitemap-products-{page}.xml', [SitemapPublicController::class, 'products'])
+    ->whereNumber('page')
+    ->where('page', '>=2');
 Route::get('/sitemap-categories.xml', [SitemapPublicController::class, 'categories']);
 Route::get('/sitemap-tags.xml', [SitemapPublicController::class, 'tags']);
 Route::get('/sitemap-pages.xml', [SitemapPublicController::class, 'pages']);

@@ -12,7 +12,11 @@ class CheckAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Nếu chưa đăng nhập, redirect đến admin login
         if (! Auth::check()) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
             return redirect()->route('admin.login');
         }
 

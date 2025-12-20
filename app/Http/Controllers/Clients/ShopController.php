@@ -22,8 +22,8 @@ class ShopController extends Controller
         $categoryContext = $this->resolveCategoryContext($slug ?? $request->input('category'));
 
         if ($categoryContext['slug'] && ! $categoryContext['category']) {
-            return view('clients.pages.errors.404');
-        }
+                return view('clients.pages.errors.404');
+            }
 
         $baseQuery = $this->baseProductQuery();
 

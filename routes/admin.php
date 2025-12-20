@@ -19,7 +19,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 // Admin Routes (protected)
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+// Chỉ dùng 'admin' middleware vì CheckAdmin đã xử lý authentication và redirect
+Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Dashboard

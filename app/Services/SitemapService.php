@@ -42,14 +42,23 @@ class SitemapService
     {
         $this->clearCache();
 
+        // Generate index trước để tính toán số pages
         $this->generateIndex();
 
+        // Generate tất cả pages cho posts
         if ($this->isEnabled('posts')) {
-            $this->generatePosts(1);
+            $postCount = $this->postsQuery()->count();
+            foreach ($this->paginate($postCount) as $page) {
+                $this->generatePosts($page);
+            }
         }
 
+        // Generate tất cả pages cho products
         if ($this->isEnabled('products')) {
-            $this->generateProducts(1);
+            $productCount = $this->productsQuery()->count();
+            foreach ($this->paginate($productCount) as $page) {
+                $this->generateProducts($page);
+            }
         }
 
         if ($this->isEnabled('categories')) {
@@ -106,6 +115,7 @@ class SitemapService
 
         return $this->remember('index', function () {
             $entries = [];
+            $seenUrls = []; // Track URLs để tránh duplicate
             $baseUrl = URL::to('/');
             $lastmod = Carbon::now()->toAtomString();
 
@@ -113,10 +123,14 @@ class SitemapService
                 $count = $this->postsQuery()->count();
                 foreach ($this->paginate($count) as $page) {
                     foreach ($this->buildPageUrls('posts', $page) as $loc) {
-                        $entries[] = [
-                            'loc' => $loc,
-                            'lastmod' => $lastmod,
-                        ];
+                        // Chỉ thêm nếu chưa có trong danh sách
+                        if (!in_array($loc, $seenUrls, true)) {
+                            $entries[] = [
+                                'loc' => $loc,
+                                'lastmod' => $lastmod,
+                            ];
+                            $seenUrls[] = $loc;
+                        }
                     }
                 }
             }
@@ -125,10 +139,14 @@ class SitemapService
                 $count = $this->productsQuery()->count();
                 foreach ($this->paginate($count) as $page) {
                     foreach ($this->buildPageUrls('products', $page) as $loc) {
-                        $entries[] = [
-                            'loc' => $loc,
-                            'lastmod' => $lastmod,
-                        ];
+                        // Chỉ thêm nếu chưa có trong danh sách
+                        if (!in_array($loc, $seenUrls, true)) {
+                            $entries[] = [
+                                'loc' => $loc,
+                                'lastmod' => $lastmod,
+                            ];
+                            $seenUrls[] = $loc;
+                        }
                     }
                 }
             }
@@ -448,8 +466,12 @@ class SitemapService
      */
     protected function paginate(int $total): array
     {
+        if ($total <= 0) {
+            return [];
+        }
+        
         $perFile = $this->getUrlsPerFile();
-        $pages = (int) ceil(max($total, 1) / $perFile);
+        $pages = (int) ceil($total / $perFile);
 
         return range(1, max($pages, 1));
     }
@@ -634,16 +656,15 @@ class SitemapService
 
     /**
      * Build sitemap URLs for paginated types.
+     * Page 1: /sitemap-{type}.xml
+     * Page 2+: /sitemap-{type}-{page}.xml
      */
     protected function buildPageUrls(string $type, int $page): array
     {
-        $urls = [];
         if ($page === 1) {
-            $urls[] = url("/sitemap-{$type}.xml");
+            return [url("/sitemap-{$type}.xml")];
         }
 
-        $urls[] = url("/sitemap-{$type}-{$page}.xml");
-
-        return $urls;
+        return [url("/sitemap-{$type}-{$page}.xml")];
     }
 }

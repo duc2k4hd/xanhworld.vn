@@ -22,8 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\CheckAdmin::class,
         ]);
 
-        // Redirect unauthenticated users to admin login
-        $middleware->redirectGuestsTo('/admin/login');
+        // Không dùng redirectGuestsTo để tránh ảnh hưởng SEO
+        // Admin routes dùng middleware 'admin' (CheckAdmin) tự xử lý authentication và redirect
 
         // Rate limiting for API routes
         $middleware->api(prepend: [

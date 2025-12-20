@@ -652,8 +652,8 @@
                         <input type="checkbox" name="ping_bing_enabled" id="ping_bing_enabled" value="1"
                                {{ ($configs['ping_bing_enabled'] ?? true) ? 'checked' : '' }}>
                         <label for="ping_bing_enabled">Ping Bing</label>
-                    </div>
                 </div>
+            </div>
 
                 <button type="submit" class="btn btn-primary">Lưu cấu hình</button>
             </form>
@@ -684,11 +684,11 @@
                 <a href="{{ route('admin.sitemap.preview', ['type' => 'index']) }}" target="_blank" class="btn btn-secondary">
                     👁️ Xem trước Sitemap Index
                 </a>
-            </div>
         </div>
+    </div>
 
         <!-- Exclude Rules -->
-        <div class="sitemap-card">
+                    <div class="sitemap-card">
             <h3>🚫 Quy tắc loại trừ</h3>
             
             <form action="{{ route('admin.sitemap.excludes.store') }}" method="POST" class="mb-4">
@@ -723,8 +723,8 @@
                             <label>&nbsp;</label>
                             <button type="submit" class="btn btn-primary w-100">Thêm</button>
                         </div>
+                        </div>
                     </div>
-                </div>
             </form>
 
             @if($excludes->count() > 0)
@@ -770,13 +770,13 @@
                                     </form>
                                 </td>
                             </tr>
-                        @endforeach
+                @endforeach
                     </tbody>
                 </table>
             @else
                 <p class="text-muted">Chưa có quy tắc loại trừ nào.</p>
             @endif
-        </div>
+            </div>
 
         <!-- Preview Links -->
         <div class="sitemap-card">
