@@ -76,10 +76,24 @@ class Product extends Model
         return $this->belongsTo(Category::class, 'primary_category_id');
     }
 
-    public function tags()
+    /**
+     * Get tags from tag_ids array (not using entity_id)
+     */
+    public function getTagsAttribute()
     {
-        return $this->hasMany(Tag::class, 'entity_id')
-            ->where('entity_type', self::class);
+        $tagIds = $this->attributes['tag_ids'] ?? null;
+        if (empty($tagIds)) {
+            return new EloquentCollection();
+        }
+        
+        $ids = is_array($tagIds) ? $tagIds : json_decode($tagIds, true) ?? [];
+        if (empty($ids)) {
+            return new EloquentCollection();
+        }
+        
+        return Tag::whereIn('id', $ids)
+            ->where('is_active', true)
+            ->get();
     }
 
     /**
