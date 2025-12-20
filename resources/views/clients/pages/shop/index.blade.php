@@ -872,11 +872,11 @@
                     <div id="modal-variants-list" class="xanhworld_variant_modal_variants_list"></div>
                 </div>
                 <div class="xanhworld_variant_modal_quantity">
-                    <label class="xanhworld_variant_modal_quantity_label">Số lượng:</label>
+                    <label class="xanhworld_variant_modal_quantity_label" for="modal-quantity">Số lượng:</label>
                     <div class="xanhworld_variant_modal_quantity_controls">
-                        <button type="button" class="xanhworld_variant_modal_quantity_btn" data-action="decrease">-</button>
-                        <input type="number" id="modal-quantity" value="1" min="1" class="xanhworld_variant_modal_quantity_input">
-                        <button type="button" class="xanhworld_variant_modal_quantity_btn" data-action="increase">+</button>
+                        <button type="button" class="xanhworld_variant_modal_quantity_btn" data-action="decrease" aria-label="Giảm số lượng">-</button>
+                        <input type="number" id="modal-quantity" value="1" min="1" class="xanhworld_variant_modal_quantity_input" aria-label="Số lượng sản phẩm">
+                        <button type="button" class="xanhworld_variant_modal_quantity_btn" data-action="increase" aria-label="Tăng số lượng">+</button>
                     </div>
                 </div>
                 <div class="xanhworld_variant_modal_actions">

@@ -66,10 +66,10 @@
                 if (document.readyState === 'loading') {
                     document.addEventListener('DOMContentLoaded', function() {
                         // Đợi LCP (thường < 100ms sau DOMContentLoaded)
-                        setTimeout(loadGTM, 150);
+                        setTimeout(loadGTM, 500);
                     });
                 } else {
-                    setTimeout(loadGTM, 150);
+                    setTimeout(loadGTM, 500);
                 }
                 
                 // Load khi user tương tác (sớm hơn)
@@ -80,7 +80,7 @@
                 });
                 
                 // Fallback: load sau 2.5 giây
-                setTimeout(loadGTM, 2500);
+                setTimeout(loadGTM, 500);
             })();
         </script>
     @else
@@ -89,7 +89,7 @@
             document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(function() {
                     {!! $settings->google_tag_header !!}
-                }, 150);
+                }, 500);
             });
         </script>
     @endif

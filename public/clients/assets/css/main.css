@@ -89,18 +89,6 @@ strong {
     font-weight: 700;
 }
 
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0,0,0,0);
-    white-space: nowrap;
-    border: 0;
-}
-
 .disabled {
     opacity: 0.3;
     cursor: not-allowed;
@@ -1871,18 +1859,6 @@ input:disabled {
     }
 }
 
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
 .xanhworld_context_menu {
     position: fixed;
     display: none;
@@ -3129,4 +3105,46 @@ input:disabled {
         align-items: center;
         gap: 10px;
     }
+}
+
+/* Accessibility improvements */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Improve color contrast */
+.xanhworld_single_info_specifications_old_price {
+    color: #666 !important;
+}
+
+.xanhworld_single_info_specifications_sale {
+    color: #fff;
+    background-color: #d32f2f;
+}
+
+.xanhworld_single_info_specifications_desc_title,
+.xanhworld_single_info_images_tags_title,
+.xanhworld_footer_content_business_title {
+    color: #333;
+}
+
+.xanhworld_single_info_policy_hotline {
+    color: #333;
+}
+
+.xanhworld_main_size_guide {
+    color: #0073e6;
+    text-decoration: underline;
+}
+
+.xanhworld_main_size_guide:hover {
+    color: #0056b3;
 }

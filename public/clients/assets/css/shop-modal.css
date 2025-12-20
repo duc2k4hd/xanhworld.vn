@@ -256,6 +256,7 @@
     font-weight: 600;
     color: #333;
     transition: background 0.2s ease;
+    padding: 0;
 }
 
 .xanhworld_variant_modal_quantity_btn:hover:not(:disabled) {

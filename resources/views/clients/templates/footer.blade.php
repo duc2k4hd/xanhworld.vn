@@ -83,7 +83,7 @@
                 src="{{ asset('clients/assets/img/business/' . $settings->site_logo ?? '' ) }}"
                 alt="Shop {{ $settings->subname ?? '' }}"
                 title="Shop {{ $settings->site_name ?? '' }}">
-            <h6 class="xanhworld_footer_content_business_title">{{ $settings->site_name ?? '' }}</h6>
+            <h2 class="xanhworld_footer_content_business_title">{{ $settings->site_name ?? '' }}</h2>
             <p class="xanhworld_footer_content_business_desc">Chúng tôi cung cấp các sản phẩm chất lượng với giá cả
                 hợp lý.</p>
             <p class="xanhworld_footer_content_business_address"><strong>Địa chỉ</strong>: {{
