@@ -23,13 +23,16 @@
             'name'  => $product->name,
             'image' => asset('clients/assets/img/clothes/'.($product->primaryImage->url ?? 'no-image.webp')),
             'sku'   => $product->sku,
+            'inLanguage' => 'vi',
             'offers' => [
                 '@type' => 'Offer',
                 'priceCurrency' => 'VND',
-                'price' => (float) $product->resolveCartPrice(),
+                'price' => (string) $product->resolveCartPrice(),
+                'priceValidUntil' => date('Y-12-31', strtotime('+1 year')),
                 'availability' => ($product->stock_quantity ?? 0) > 0
                     ? 'https://schema.org/InStock'
                     : 'https://schema.org/OutOfStock',
+                'seller' => ['@id' => $siteUrl.'#localbusiness'],
             ],
         ];
 
@@ -41,6 +44,7 @@
             $productItem['aggregateRating'] = [
                 '@type' => 'AggregateRating',
                 'ratingValue' => round((float) $product->approved_rating_avg, 1),
+                'ratingCount' => (int) $product->approved_comments_count,
                 'reviewCount' => (int) $product->approved_comments_count,
             ];
         }
@@ -63,6 +67,8 @@
             '@type' => 'Organization',
             '@id' => $siteUrl.'#organization',
             'name' => $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD',
+            'legalName' => 'CÔNG TY THẾ GIỚI CÂY XANH XWORLD',
+            'foundingDate' => '2025',
             'url'  => $siteUrl,
             'logo' => $logoUrl,
             'email' => $settings->contact_email ?? 'xanhworldvietnam@gmail.com',
@@ -80,7 +86,7 @@
             ],
             'contactPoint' => [[
                 '@type' => 'ContactPoint',
-                'telephone' => $settings->contact_phone ?? '0827786198',
+                'telephone' => '+84-'.ltrim($settings->contact_phone ?? '0827786198', '0'),
                 'contactType' => 'customer service',
             ]],
             'sameAs' => $socialLinks,
@@ -102,7 +108,7 @@
 
         // LOCAL BUSINESS
         [
-            '@type' => 'LocalBusiness',
+            '@type' => ['LocalBusiness', 'GardenStore'],
             '@id' => $siteUrl.'#localbusiness',
             'name' => $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD',
             'logo' => [
@@ -111,8 +117,9 @@
             ],
             'image' => $bannerUrl,
             'url' => $siteUrl,
-            'telephone' => $settings->contact_phone ?? '0827786198',
+            'telephone' => '+84-'.ltrim($settings->contact_phone ?? '0827786198', '0'),
             'priceRange' => '₫₫',
+            'paymentAccepted' => 'Cash, Bank Transfer',
             'parentOrganization' => ['@id' => $siteUrl.'#organization'],
             'areaServed' => [
                 '@type' => 'AdministrativeArea',
@@ -138,6 +145,10 @@
                 'closes' => '21:00',
             ]],
             'sameAs' => $socialLinks,
+            'hasOfferCatalog' => [
+                '@type' => 'OfferCatalog',
+                'name' => 'Danh mục cây cảnh XWORLD',
+            ],
         ],
 
         // WEBPAGE
@@ -150,6 +161,7 @@
                 ?? 'Xanh World – Thế giới cây xanh, cây phong thủy, chậu cảnh và phụ kiện decor. Giao cây tận nơi.',
             'inLanguage' => $settings->site_language ?? 'vi-VN',
             'isPartOf' => ['@id' => $siteUrl.'#website'],
+            'publisher' => ['@id' => $siteUrl.'#organization'],
             'mainEntityOfPage' => ['@id' => $siteUrl],
         ],
 
@@ -158,7 +170,7 @@
             '@type' => 'ItemList',
             '@id' => $siteUrl.'#featured-products',
             'name' => 'Sản phẩm nổi bật',
-            'itemListOrder' => 'http://schema.org/ItemListOrderAscending',
+            'itemListOrder' => 'https://schema.org/ItemListOrderAscending',
             'numberOfItems' => count($featuredItems),
             'itemListElement' => $featuredItems,
             'mainEntityOfPage' => ['@id' => $siteUrl],
