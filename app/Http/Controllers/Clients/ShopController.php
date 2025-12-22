@@ -16,14 +16,20 @@ class ShopController extends Controller
 {
     public function index(Request $request, ?string $slug = null)
     {
+        $keyword = $request->input('keyword', '');
+        if($keyword) {
+            if (preg_match('/<\s*script|<\/\s*script\s*>|<[^>]+>/i', $keyword)) {
+                return redirect()->route('client.shop.index')->with('error', 'Từ khóa không hợp lệ! Vui lòng thử lại!');
+            }
+        }
         $settings = View::shared('settings') ?? Setting::first();
-        $keyword = $this->sanitizeKeyword($request->input('keyword', ''));
+        $keyword = $this->sanitizeKeyword($keyword);
         $filters = $this->resolveFilters($request);
         $categoryContext = $this->resolveCategoryContext($slug ?? $request->input('category'));
 
         if ($categoryContext['slug'] && ! $categoryContext['category']) {
-                return view('clients.pages.errors.404');
-            }
+            return view('clients.pages.errors.404');
+        }
 
         $baseQuery = $this->baseProductQuery();
 
@@ -33,12 +39,13 @@ class ShopController extends Controller
 
         if ($keyword !== '') {
             $this->applyKeywordFilter($baseQuery, $keyword);
+            $this->applyRelevanceOrdering($baseQuery, $keyword);
         }
 
         $filteredQuery = $this->applyFilters(clone $baseQuery, $filters);
 
         $productsForView = clone $filteredQuery;
-        $productsMain = $this->buildProductListing(clone $filteredQuery, $filters);
+        $productsMain = $this->buildProductListing(clone $filteredQuery, $filters, $keyword);
         $newProducts = $this->resolveNewProducts(clone $filteredQuery);
 
         $seoMeta = $this->prepareSeoMeta($settings, $categoryContext['category'], $keyword);
@@ -106,16 +113,13 @@ class ShopController extends Controller
 
         if ($keyword !== '') {
             $this->applyKeywordFilter($baseQuery, $keyword);
-            $baseQuery->orderByRaw(
-                'CASE WHEN name LIKE ? THEN 1 WHEN name LIKE ? THEN 2 ELSE 3 END',
-                ["%{$keyword}%", "{$keyword}%"]
-            )->orderBy('name');
+            $this->applyRelevanceOrdering($baseQuery, $keyword);
         }
 
         $filteredQuery = $this->applyFilters(clone $baseQuery, $filters);
 
         $productsForView = clone $filteredQuery;
-        $productsMain = $this->buildProductListing(clone $filteredQuery, $filters);
+        $productsMain = $this->buildProductListing(clone $filteredQuery, $filters, $keyword);
         $newProducts = $this->resolveNewProducts(clone $filteredQuery);
 
         $defaultSiteName = $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD';
@@ -298,9 +302,13 @@ class ShopController extends Controller
         });
     }
 
-    protected function buildProductListing(Builder $query, array $filters)
+    protected function buildProductListing(Builder $query, array $filters, ?string $keyword = null)
     {
-        $this->applySorting($query, $filters['sort']);
+        // Khi có từ khóa và sort = default thì ưu tiên sort theo độ liên quan,
+        // không override bằng sort mặc định theo ngày tạo.
+        if ($keyword === null || $keyword === '' || $filters['sort'] !== 'default') {
+            $this->applySorting($query, $filters['sort']);
+        }
 
         $paginator = $query
             ->paginate($filters['perPage'])
@@ -310,6 +318,34 @@ class ShopController extends Controller
         Product::preloadImages($paginator->items());
 
         return $paginator;
+    }
+
+    /**
+     * Sắp xếp theo độ liên quan khi có từ khóa:
+     *  - Ưu tiên khớp chính xác (name/slug/sku = keyword) lên đầu
+     *  - Sau đó khớp theo cụm từ (LIKE %keyword%)
+     *  - Cuối cùng là các kết quả khớp theo từng từ (đã được applyKeywordFilter() đưa vào WHERE)
+     */
+    protected function applyRelevanceOrdering(Builder $query, string $keyword): void
+    {
+        $normalized = mb_strtolower($keyword);
+        $likePhrase = '%'.$normalized.'%';
+
+        $query->orderByRaw(
+            'CASE
+                WHEN LOWER(name) = ? OR LOWER(slug) = ? OR LOWER(sku) = ? THEN 0
+                WHEN LOWER(name) LIKE ? OR LOWER(slug) LIKE ? OR LOWER(sku) LIKE ? THEN 1
+                ELSE 2
+            END',
+            [
+                $normalized,
+                $normalized,
+                $normalized,
+                $likePhrase,
+                $likePhrase,
+                $likePhrase,
+            ]
+        )->orderBy('created_at', 'desc');
     }
 
     protected function applySorting(Builder $query, string $sort): void
@@ -373,7 +409,7 @@ class ShopController extends Controller
 
         if ($keyword !== '') {
             return [
-                'title' => 'Kết quả cho '.$keyword.' - '.$defaultSiteName,
+                'title' => 'Kết quả cho "'.$keyword.'" - '.$defaultSiteName,
                 'description' => 'Tìm kiếm sản phẩm liên quan tới '.$keyword.' tại '.$defaultSiteName.'.',
                 'keywords' => $keyword.', shop '.$defaultSiteName.', cây cảnh',
                 'canonical' => url()->current(),
