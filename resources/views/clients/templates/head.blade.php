@@ -1,17 +1,14 @@
 <meta name="author" content="{{ $settings->seo_author ?? 'THẾ GIỚI CÂY XANH XWORLD' }}">
 
-<link rel="apple-touch-icon" sizes="180x180"
-    href="{{ asset('/clients/assets/img/business/' . ($settings->site_favicon ?? 'favicon.png')) }}">
-<link rel="icon" type="image/png" sizes="32x32"
-    href="{{ asset('/clients/assets/img/business/' . ($settings->site_favicon ?? 'favicon.png')) }}">
-<link rel="icon" type="image/png" sizes="16x16"
-    href="{{ asset('/clients/assets/img/business/' . ($settings->site_favicon ?? 'favicon.png')) }}">
-<link rel="mask-icon"
-    href="{{ asset('clients/assets/img/business/' . ($settings->site_favicon ?? 'favicon.png')) }}"
-    color="#5bbad5">
-<link rel="icon"
-    href="{{ asset('clients/assets/img/business/' . ($settings->site_favicon ?? 'favicon.png')) }}"
-    type="image/x-icon">
+<!-- Favicon cơ bản (Google Search ưu tiên) -->
+<link rel="icon" href="{{ $settings->site_url ?? 'https://xanhworld.vn' }}/clients/assets/img/business/{{ $settings->site_favicon }}" type="image/x-icon">
+
+<link rel="apple-touch-icon" href="{{ $settings->site_url ?? 'https://xanhworld.vn' }}/clients/assets/img/business/apple-touch-icon.png">
+
+<!-- Web App Manifest -->
+<link rel="manifest"
+      href="{{ $settings->site_url ?? 'https://xanhworld.vn' }}/clients/assets/img/business/site.webmanifest">
+
 <meta name="theme-color" content="#ffffff">
 
 <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">

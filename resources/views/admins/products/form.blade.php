@@ -7,7 +7,7 @@
     // Lấy selected tag IDs từ relationship hoặc tag_ids JSON
     $selectedTagIds = old('tag_ids', []);
     if (empty($selectedTagIds) && $product->exists) {
-        $selectedTagIds = $product->tags()->pluck('id')->toArray();
+        $selectedTagIds = $product->tags->pluck('id')->toArray();
     }
     if (empty($selectedTagIds) && $product->exists && !empty($product->tag_ids)) {
         $selectedTagIds = is_array($product->tag_ids) ? $product->tag_ids : [];
