@@ -6,6 +6,7 @@ use App\Models\Concerns\HasImageIds;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Product extends Model
 {
@@ -61,6 +62,11 @@ class Product extends Model
 
     protected array $reviewDisplayCache = [];
 
+    public function slugHistories()
+    {
+        return $this->hasMany(ProductSlugHistory::class);
+    }
+
     public function creator()
     {
         return $this->belongsTo(Account::class, 'created_by');
@@ -83,14 +89,14 @@ class Product extends Model
     {
         $tagIds = $this->attributes['tag_ids'] ?? null;
         if (empty($tagIds)) {
-            return new EloquentCollection();
+            return new EloquentCollection;
         }
-        
+
         $ids = is_array($tagIds) ? $tagIds : json_decode($tagIds, true) ?? [];
         if (empty($ids)) {
-            return new EloquentCollection();
+            return new EloquentCollection;
         }
-        
+
         return Tag::whereIn('id', $ids)
             ->where('is_active', true)
             ->get();
@@ -542,5 +548,33 @@ class Product extends Model
         static::deleted(function () {
             app(\App\Services\SitemapService::class)->clearCache();
         });
+
+        static::updating(function (self $product) {
+            if ($product->isDirty('slug')) {
+                $oldSlug = $product->getOriginal('slug');
+                if ($oldSlug) {
+                    ProductSlugHistory::firstOrCreate(
+                        ['slug' => $oldSlug],
+                        ['product_id' => $product->id]
+                    );
+                    Cache::forget('product_detail_'.$oldSlug);
+                }
+            }
+        });
+    }
+}
+
+class ProductSlugHistory extends Model
+{
+    protected $table = 'product_slug_histories';
+
+    protected $fillable = [
+        'product_id',
+        'slug',
+    ];
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
     }
 }
