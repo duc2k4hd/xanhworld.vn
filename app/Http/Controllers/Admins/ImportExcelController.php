@@ -404,6 +404,11 @@ class ImportExcelController extends Controller
                 $metaKeywords = array_filter(array_map('trim', explode(',', $metaKeywordsRaw)));
             }
 
+            // Tính lại meta_canonical luôn theo slug và site_url (bỏ qua giá trị trong file Excel)
+            $domainName = \App\Models\Setting::where('key', 'site_url')->value('value') ?? config('app.url');
+            $domainName = rtrim($domainName, '/');
+            $computedCanonical = $domainName.'/san-pham/'.$slug;
+
             // Xử lý primary_category_id
             $primaryCategoryId = null;
             if (! empty($primaryCategorySlug)) {
@@ -513,7 +518,8 @@ class ImportExcelController extends Controller
                 'meta_title' => $metaTitle ?: null,
                 'meta_description' => $metaDescription ?: null,
                 'meta_keywords' => ! empty($metaKeywords) ? $metaKeywords : null,
-                'meta_canonical' => $metaCanonical ?: null,
+                // Luôn cập nhật meta_canonical mới theo slug
+                'meta_canonical' => $computedCanonical,
                 'primary_category_id' => $primaryCategoryId,
                 'category_ids' => ! empty($categoryIds) ? $categoryIds : null,
                 'tag_ids' => ! empty($tagIds) ? $tagIds : null,

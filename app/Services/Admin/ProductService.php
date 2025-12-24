@@ -206,6 +206,8 @@ class ProductService
         }
 
         $domainName = Setting::where('key', 'site_url')->value('value') ?? config('app.url');
+        $domainName = rtrim($domainName, '/');
+        $canonicalUrl = $domainName.'/san-pham/'.$slug;
 
         // Normalize image URLs in description and short_description
         $description = $this->normalizeImageUrls(Arr::get($data, 'description'));
@@ -226,7 +228,8 @@ class ProductService
             'meta_title' => Arr::get($data, 'meta_title'),
             'meta_description' => Arr::get($data, 'meta_description'),
             'meta_keywords' => $this->normalizeMetaKeywords(Arr::get($data, 'meta_keywords')),
-            'meta_canonical' => Arr::get($data, 'meta_canonical') ?: $domainName.'/san-pham/'.$slug,
+            // Luôn cập nhật meta_canonical theo slug và site_url để dữ liệu chính xác
+            'meta_canonical' => $canonicalUrl,
             'primary_category_id' => Arr::get($data, 'primary_category_id'),
             'category_included_ids' => $includedCategoryIds,
             'is_featured' => Arr::get($data, 'is_featured', false),
