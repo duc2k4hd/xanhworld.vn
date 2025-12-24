@@ -118,6 +118,9 @@ class ImportExcelController extends Controller
 
             DB::commit();
 
+            // Sau khi import thành công, xóa cache tất cả sản phẩm để dữ liệu luôn mới
+            $this->clearAllProductCaches();
+
             $logFile = $this->writeErrorLog($errors, $file->getClientOriginalName());
 
             $message = 'Import thành công!';
@@ -1132,5 +1135,22 @@ class ImportExcelController extends Controller
         file_put_contents($logPath, $content);
 
         return $logFileName;
+    }
+
+    /**
+     * Xóa cache cho tất cả sản phẩm (product_detail_*, related_products_*, vouchers_for_product_*)
+     * để đảm bảo dữ liệu luôn mới sau mỗi lần import Excel.
+     */
+    private function clearAllProductCaches(): void
+    {
+        Product::query()
+            ->select('id', 'slug')
+            ->chunkById(200, function ($products): void {
+                foreach ($products as $product) {
+                    Cache::forget('product_detail_'.$product->slug);
+                    Cache::forget('related_products_'.$product->id);
+                    Cache::forget('vouchers_for_product_'.$product->id);
+                }
+            });
     }
 }
