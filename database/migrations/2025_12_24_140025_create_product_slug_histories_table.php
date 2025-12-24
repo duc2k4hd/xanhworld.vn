@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create('product_slug_histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')
-                ->constrained('products')
-                ->cascadeOnDelete();
+            // Không dùng foreign key để tránh lỗi ràng buộc FK trên host
+            // Chỉ lưu product_id dạng big integer + index để truy vấn nhanh
+            $table->unsignedBigInteger('product_id');
             $table->string('slug')
                 ->unique()
                 ->comment('Old slug dẫn về product_id');
             $table->timestamps();
+
+            $table->index('product_id', 'product_slug_histories_product_id_index');
         });
     }
 
