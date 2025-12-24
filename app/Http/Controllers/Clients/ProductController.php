@@ -71,9 +71,8 @@ class ProductController extends Controller
                 if ($history) {
                     $newProduct = Product::active()->find($history->product_id);
                     if ($newProduct) {
-                        return redirect()
-                            ->route('client.product.detail', $newProduct->slug)
-                            ->permanent(); // 301 Permanent Redirect
+                        // Redirect 301 to new slug
+                        return redirect()->route('client.product.detail', $newProduct->slug, 301);
                     }
                 }
 

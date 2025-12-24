@@ -1,9 +1,9 @@
 @extends('clients.layouts.master')
 
-@section('title', 'Giới thiệu ' .($settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD'). ' - Giải pháp cây xanh cho doanh nghiệp & gia đình')
+@section('title', 'Giới thiệu ' .($settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD'). ' | Cây cảnh & giải pháp cây xanh')
 
 @section('head')
-    <meta name="robots" content="index,follow" />
+    <meta name="robots" content="index, follow" />
     <meta name="description"
         content="{{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} dẫn đầu giải pháp cây phong thủy, cây để bàn, cây trang trí nội thất và cảnh quan cho doanh nghiệp Việt." />
     <meta property="og:title" content="Giới thiệu {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} - Giải pháp cây xanh trọn gói" />
@@ -216,6 +216,8 @@
             <a class="btn secondary" href="{{ route('client.contact.index') }}">Đăng ký ngay</a>
         </div>
     </section>
+
+    
 
     <div class="xworld-products">
         @include('clients.templates.product_new')
