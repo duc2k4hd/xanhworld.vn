@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Newsletter;
 use App\Helpers\EmailHelper;
+use App\Models\Newsletter;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -15,10 +16,40 @@ class NewsletterService
             return;
         }
 
+        // Rate limiting: chỉ cho phép gửi 1 lần trong 5 phút cho mỗi email
+        $rateLimitKey = 'newsletter_verify_email_'.md5($subscription->email);
+        if (Cache::has($rateLimitKey)) {
+            Log::info('NewsletterService: Rate limit hit for verify email', [
+                'email' => $subscription->email,
+                'key' => $rateLimitKey,
+            ]);
+
+            return;
+        }
+
         try {
             // Lấy from từ cấu hình email (ưu tiên EmailAccount, fallback .env)
             $fromAddress = EmailHelper::getFromEmail();
             $fromName = EmailHelper::getFromName() ?: config('app.name');
+
+            // Validate và fallback email address
+            if (empty($fromAddress) || ! filter_var($fromAddress, FILTER_VALIDATE_EMAIL)) {
+                $fromAddress = config('mail.from.address')
+                    ?: config('mail.mailers.smtp.username')
+                    ?: env('MAIL_USERNAME')
+                    ?: env('MAIL_FROM_ADDRESS');
+            }
+
+            if (empty($fromAddress) || ! filter_var($fromAddress, FILTER_VALIDATE_EMAIL)) {
+                Log::error('NewsletterService: Invalid or missing from email address', [
+                    'email' => $subscription->email,
+                    'fromAddress' => $fromAddress,
+                    'mail_from_address' => config('mail.from.address'),
+                    'mail_username' => config('mail.mailers.smtp.username'),
+                ]);
+
+                return;
+            }
 
             $verifyUrl = route('newsletter.verify', ['token' => $subscription->verify_token]);
 
@@ -28,8 +59,11 @@ class NewsletterService
             ], function ($message) use ($subscription, $fromAddress, $fromName): void {
                 $message->from($fromAddress, $fromName)
                     ->to($subscription->email)
-                    ->subject('Xác nhận đăng ký nhận bản tin - ' . config('app.name'));
+                    ->subject('Xác nhận đăng ký nhận bản tin - '.config('app.name'));
             });
+
+            // Set rate limit: 5 phút
+            Cache::put($rateLimitKey, true, now()->addMinutes(5));
         } catch (\Throwable $e) {
             Log::error('Failed to send newsletter verify email', [
                 'email' => $subscription->email,
@@ -70,8 +104,23 @@ class NewsletterService
                         ?: EmailHelper::getFromEmail($emailAccountId)
                     ));
 
-                    if ($fromAddress === '') {
-                        $fromAddress = 'xanhworldvietnam@gmail.com';
+                    if ($fromAddress === '' || ! filter_var($fromAddress, FILTER_VALIDATE_EMAIL)) {
+                        $fromAddress = config('mail.from.address')
+                            ?: config('mail.mailers.smtp.username')
+                            ?: env('MAIL_USERNAME')
+                            ?: env('MAIL_FROM_ADDRESS')
+                            ?: 'xanhworldvietnam@gmail.com';
+                    }
+
+                    // Final validation
+                    if (empty($fromAddress) || ! filter_var($fromAddress, FILTER_VALIDATE_EMAIL)) {
+                        Log::error('NewsletterService: Invalid from email address in marketing email', [
+                            'email' => $subscription->email,
+                            'fromAddress' => $fromAddress,
+                        ]);
+                        $failed[] = $subscription->id;
+
+                        continue;
                     }
 
                     $fromName = env('MAIL_FROM_NAME')
@@ -106,5 +155,3 @@ class NewsletterService
         ];
     }
 }
-
-

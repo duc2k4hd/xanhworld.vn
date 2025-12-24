@@ -27,12 +27,18 @@ class ProductViewService
             return;
         }
 
+        // Truncate user_agent to max 500 characters to prevent database errors
+        $userAgent = request()->userAgent();
+        if ($userAgent && strlen($userAgent) > 500) {
+            $userAgent = substr($userAgent, 0, 500);
+        }
+
         ProductView::create([
             'product_id' => $product->id,
             'account_id' => $accountId,
             'session_id' => $accountId ? null : $sessionId,
             'ip' => request()->ip(),
-            'user_agent' => request()->userAgent(),
+            'user_agent' => $userAgent,
             'viewed_at' => now(),
         ]);
 
@@ -70,4 +76,3 @@ class ProductViewService
         }
     }
 }
-

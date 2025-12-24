@@ -13,7 +13,6 @@ use App\Services\AccountLogService;
 use App\Services\NewsletterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 
@@ -22,8 +21,7 @@ class AdminNewsletterController extends Controller
     public function __construct(
         protected NewsletterService $newsletterService,
         protected AccountLogService $accountLogService
-    ) {
-    }
+    ) {}
 
     /**
      * Danh sách newsletter subscriptions
@@ -82,7 +80,7 @@ class AdminNewsletterController extends Controller
      */
     public function destroy($id): JsonResponse|RedirectResponse
     {
-        $subscription = NewsletterSubscription::findOrFail($id);
+        $subscription = Newsletter::findOrFail($id);
         $email = $subscription->email;
 
         $subscription->delete();
@@ -125,7 +123,7 @@ class AdminNewsletterController extends Controller
         ]);
 
         // Nếu chuyển sang subscribed và chưa verify, đánh dấu đã verify
-        if ($newStatus === 'subscribed' && !$subscription->verified_at) {
+        if ($newStatus === 'subscribed' && ! $subscription->verified_at) {
             $subscription->update(['verified_at' => now()]);
         }
 
@@ -146,11 +144,12 @@ class AdminNewsletterController extends Controller
      */
     public function resendVerifyEmail($id): JsonResponse|RedirectResponse
     {
-        // Rate limiting
-        $key = 'newsletter_resend_' . $id;
-        if (RateLimiter::tooManyAttempts($key, 3)) {
+        // Rate limiting: 5 phút
+        $key = 'newsletter_resend_'.$id;
+        if (RateLimiter::tooManyAttempts($key, 1)) {
             $seconds = RateLimiter::availableIn($key);
-            $message = "Vui lòng đợi {$seconds} giây trước khi gửi lại email.";
+            $minutes = ceil($seconds / 60);
+            $message = "Vui lòng đợi {$minutes} phút trước khi gửi lại email.";
 
             if (request()->expectsJson() || request()->ajax()) {
                 return response()->json([
@@ -162,7 +161,7 @@ class AdminNewsletterController extends Controller
             return redirect()->back()->with('error', $message);
         }
 
-        RateLimiter::hit($key, 60); // 1 phút
+        RateLimiter::hit($key, 300); // 5 phút (300 giây)
 
         $subscription = Newsletter::findOrFail($id);
 
@@ -180,7 +179,7 @@ class AdminNewsletterController extends Controller
         }
 
         // Tạo token mới nếu chưa có
-        if (!$subscription->verify_token) {
+        if (! $subscription->verify_token) {
             $subscription->generateVerifyToken();
         }
 
@@ -199,7 +198,7 @@ class AdminNewsletterController extends Controller
 
             return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
-            $message = 'Có lỗi xảy ra khi gửi email: ' . $e->getMessage();
+            $message = 'Có lỗi xảy ra khi gửi email: '.$e->getMessage();
 
             if (request()->expectsJson() || request()->ajax()) {
                 return response()->json([
@@ -218,7 +217,7 @@ class AdminNewsletterController extends Controller
     public function sendBulkEmail(NewsletterSendBulkRequest $request): JsonResponse|RedirectResponse
     {
         // Rate limiting cho chiến dịch
-        $key = 'newsletter_campaign_' . auth()->id();
+        $key = 'newsletter_campaign_'.auth('admin')->id();
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
             $message = "Bạn đã gửi quá nhiều chiến dịch. Vui lòng đợi {$seconds} giây.";
@@ -292,7 +291,7 @@ class AdminNewsletterController extends Controller
             'sent_success' => 0,
             'sent_failed' => 0,
             'status' => 'sending',
-            'created_by' => auth()->id(),
+            'created_by' => auth('admin')->id(),
         ]);
 
         // Gửi email
@@ -311,7 +310,7 @@ class AdminNewsletterController extends Controller
             if ($request->filled('footer')) {
                 $emailData['footer'] = $request->input('footer');
             }
-            
+
             // Set email mặc định nếu không chọn từ form
             // Lưu ý: giá trị "0" vẫn là hợp lệ (sử dụng cấu hình .env), nên không dùng toán tử ?: ở đây
             if ($request->has('email_account_id') && $request->input('email_account_id') !== '') {
@@ -319,7 +318,7 @@ class AdminNewsletterController extends Controller
             } else {
                 $emailAccountId = (int) (config('email_defaults.newsletter_marketing') ?? 0);
             }
-            
+
             $results = $this->newsletterService->sendMarketingEmail(
                 $subscriptionIds,
                 $request->input('subject'),
@@ -356,7 +355,7 @@ class AdminNewsletterController extends Controller
         } catch (\Exception $e) {
             $campaign->update(['status' => 'failed']);
 
-            $message = 'Có lỗi xảy ra khi gửi email: ' . $e->getMessage();
+            $message = 'Có lỗi xảy ra khi gửi email: '.$e->getMessage();
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -409,4 +408,3 @@ class AdminNewsletterController extends Controller
         return view('admins.newsletters.campaigns.show', compact('campaign'));
     }
 }
-
