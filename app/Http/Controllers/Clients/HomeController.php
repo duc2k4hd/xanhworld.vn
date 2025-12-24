@@ -6,13 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Category;
 use App\Models\FlashSale;
-use App\Models\Newsletter;
 use App\Models\Product;
 use App\Models\Voucher;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Validator;
 
 class HomeController extends Controller
 {
@@ -137,82 +133,5 @@ class HomeController extends Controller
         }
 
         return view('clients.pages.home.index', compact('banners_home_parent', 'banners_home_children', 'vouchers', 'productsFeatured', 'productRandom', 'flashSale'));
-    }
-
-    public function newsletter(Request $request)
-    {
-        $email = $request->input('xanhworld_main_newsletter_email');
-
-        $validator = Validator::make(
-            ['email' => $email],
-            [
-                'email' => ['required', 'email', 'max:80'],
-            ],
-            [
-                'email.required' => 'Vui lòng nhập địa chỉ email.',
-                'email.email' => 'Địa chỉ email không hợp lệ.',
-                'email.max' => 'Địa chỉ email không được vượt quá 80 ký tự.',
-            ]
-        );
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        $validated = $validator->validated();
-        $email = $validated['email'];
-
-        // Rate limit nhẹ theo email để tránh spam
-        $rateKey = 'newsletter_email_'.sha1($email);
-        if (RateLimiter::tooManyAttempts($rateKey, 5)) {
-            $seconds = RateLimiter::availableIn($rateKey);
-
-            return redirect()->back()
-                ->with('error', "Bạn thao tác quá nhanh, vui lòng thử lại sau {$seconds} giây.")
-                ->withInput();
-        }
-        RateLimiter::hit($rateKey, 3600);
-
-        try {
-            $newsletter = Newsletter::where('email', $email)->first();
-
-            if (! $newsletter) {
-                $newsletter = Newsletter::create([
-                    'email' => $email,
-                    'ip' => $request->ip(),
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent(),
-                    'status' => Newsletter::STATUS_PENDING,
-                    'source' => 'homepage_form',
-                    'verify_token' => bin2hex(random_bytes(32)),
-                    'is_verified' => false,
-                ]);
-            } else {
-                // Nếu đã hủy hoặc pending, cho phép đăng ký lại
-                if ($newsletter->status === Newsletter::STATUS_SUBSCRIBED) {
-                    return redirect()->back()
-                        ->with('success', 'Email này đã đăng ký nhận bản tin rồi. Cảm ơn bạn!')
-                        ->withInput();
-                }
-
-                $newsletter->fill([
-                    'status' => Newsletter::STATUS_PENDING,
-                    'verify_token' => bin2hex(random_bytes(32)),
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent(),
-                ])->save();
-            }
-
-            // TODO: gọi NewsletterService::sendVerifyEmail($newsletter) khi service sẵn sàng
-
-            return redirect()->back()
-                ->with('success', 'Cảm ơn bạn đã đăng ký. Vui lòng kiểm tra email để xác nhận đăng ký nhận bản tin!');
-        } catch (\Throwable $e) {
-            return redirect()->back()
-                ->with('error', 'Đã có lỗi xảy ra. Vui lòng thử lại sau.')
-                ->withInput();
-        }
     }
 }

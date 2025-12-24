@@ -10,12 +10,12 @@ use App\Http\Controllers\Clients\CheckoutController;
 use App\Http\Controllers\Clients\ContactController as ClientContactController;
 use App\Http\Controllers\Clients\FlashSaleController as ClientFlashSaleController;
 use App\Http\Controllers\Clients\HomeController as ClientHomeController;
+use App\Http\Controllers\Clients\ImageController as ClientImageController;
 use App\Http\Controllers\Clients\OrderController as ClientOrderController;
 use App\Http\Controllers\Clients\PaymentController as ClientPaymentController;
 use App\Http\Controllers\Clients\ProductController as ClientProductController;
 use App\Http\Controllers\Clients\ProfileController as ClientProfileController;
 use App\Http\Controllers\Clients\ShopController as ClientShopController;
-use App\Http\Controllers\Clients\ImageController as ClientImageController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\NewsletterPublicController;
 use App\Http\Controllers\SitemapPublicController;
@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
 
 // Trang chủ
 Route::get('/', [ClientHomeController::class, 'index'])->name('client.home.index');
-Route::post('/newsletter/subscription', [ClientHomeController::class, 'newsletter'])->name('client.newsletter.subscription');
+Route::post('/newsletter/subscription', [\App\Http\Controllers\Clients\NewsletterController::class, 'subscription'])->name('client.newsletter.subscription');
 Route::prefix('tin-tuc')->name('client.blog.')->group(function () {
     Route::get('/', [ClientBlogController::class, 'index'])->name('index');
     Route::get('/{post:slug}', [ClientBlogController::class, 'show'])->name('show');
@@ -43,17 +43,17 @@ Route::delete('/gio-hang/xoa-het', [ClientCartController::class, 'removeAll'])->
 Route::delete('/gio-hang/{cartItem}', [ClientCartController::class, 'removeItem'])->name('client.cart.remove.item');
 
 // Yêu thích sản phẩm
-    Route::post('/san-pham/yeu-thich', [ClientProductController::class, 'wishlist'])->name('client.product.wishlist.add');
-    Route::delete('/san-pham/yeu-thich', [ClientProductController::class, 'wishlistRemove'])->name('client.product.wishlist.remove');
+Route::post('/san-pham/yeu-thich', [ClientProductController::class, 'wishlist'])->name('client.product.wishlist.add');
+Route::delete('/san-pham/yeu-thich', [ClientProductController::class, 'wishlistRemove'])->name('client.product.wishlist.remove');
 
-    // Product Comparison
-    Route::prefix('so-sanh')->name('client.comparison.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Clients\ProductComparisonController::class, 'index'])->name('index');
-        Route::post('/{productId}/add', [\App\Http\Controllers\Clients\ProductComparisonController::class, 'add'])->name('add');
-        Route::delete('/{productId}/remove', [\App\Http\Controllers\Clients\ProductComparisonController::class, 'remove'])->name('remove');
-        Route::delete('/clear', [\App\Http\Controllers\Clients\ProductComparisonController::class, 'clear'])->name('clear');
-        Route::get('/count', [\App\Http\Controllers\Clients\ProductComparisonController::class, 'count'])->name('count');
-    });
+// Product Comparison
+Route::prefix('so-sanh')->name('client.comparison.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Clients\ProductComparisonController::class, 'index'])->name('index');
+    Route::post('/{productId}/add', [\App\Http\Controllers\Clients\ProductComparisonController::class, 'add'])->name('add');
+    Route::delete('/{productId}/remove', [\App\Http\Controllers\Clients\ProductComparisonController::class, 'remove'])->name('remove');
+    Route::delete('/clear', [\App\Http\Controllers\Clients\ProductComparisonController::class, 'clear'])->name('clear');
+    Route::get('/count', [\App\Http\Controllers\Clients\ProductComparisonController::class, 'count'])->name('count');
+});
 
 Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('client.checkout.index');
 Route::post('/thanh-toan', [CheckoutController::class, 'store'])->name('client.checkout.store');
@@ -117,7 +117,7 @@ Route::middleware(['auth:web'])->group(function () {
     });
 
     Route::get('/tai-khoan/don-hang/{code}', [ClientOrderController::class, 'show'])->name('client.orders.show');
-    
+
     Route::get('/tra-cuu-van-don', [ClientOrderController::class, 'track'])->name('client.order.track');
 
     // Notifications

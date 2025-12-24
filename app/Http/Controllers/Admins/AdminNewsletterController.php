@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\NewsletterFilterRequest;
 use App\Http\Requests\Admin\NewsletterSendBulkRequest;
 use App\Http\Requests\Admin\NewsletterStatusUpdateRequest;
+use App\Models\Account;
 use App\Models\AccountLog;
 use App\Models\Newsletter;
 use App\Models\NewsletterCampaign;
@@ -85,15 +86,18 @@ class AdminNewsletterController extends Controller
 
         $subscription->delete();
 
-        // Log
-        $this->accountLogService->record(
-            'newsletter.deleted',
-            0,
-            null,
-            [],
-            ['email' => $email],
-            false
-        );
+        // Log - chỉ log nếu có account tương ứng với email
+        $account = Account::where('email', $email)->first();
+        if ($account) {
+            $this->accountLogService->record(
+                'newsletter.deleted',
+                $account->id,
+                null,
+                [],
+                ['email' => $email],
+                false
+            );
+        }
 
         if (request()->expectsJson() || request()->ajax()) {
             return response()->json([
