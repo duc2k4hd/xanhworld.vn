@@ -28,6 +28,36 @@
                 Từ cây phong thủy văn phòng, tiểu cảnh sân vườn đến dịch vụ chăm sóc định kỳ, {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} đồng hành cùng
                 doanh nghiệp và gia đình kiến tạo môi trường sống giàu năng lượng.
             </p>
+            <p style="font-size:16px; line-height:1.8; color: white; margin-bottom:16px; margin-top:16px;">
+                Trong quá trình tìm hiểu thông tin, nhiều khách hàng của 
+                <strong style="color:#1b7f5a;">THẾ GIỚI CÂY XANH XWORLD</strong> thường đặt câu hỏi:
+                <em>“Vì sao khi tìm kiếm XWORLD trên Google lại xuất hiện một trò chơi, nhưng không thấy website của công ty?”</em>
+            </p>
+            
+            <p style="font-size:16px; line-height:1.8; color: white; margin-bottom:16px;">
+                Chúng tôi xin làm rõ: <strong>XWORLD</strong> là thương hiệu hoạt động trong lĩnh vực 
+                <strong>cây xanh và cảnh quan</strong>, chuyên cung cấp các sản phẩm và dịch vụ như 
+                cây xanh nội – ngoại thất, chăm sóc và bảo dưỡng cây, thiết kế – thi công cảnh quan,
+                cùng nhiều giải pháp xanh dành cho doanh nghiệp và hộ gia đình.
+            </p>
+            
+            <p style="font-size:16px; line-height:1.8; color: white; margin-bottom:16px;">
+                Website chính thức của <strong>THẾ GIỚI CÂY XANH XWORLD</strong> hiện đang hoạt động tại:
+                <a href="{{ $settings->site_url ?? '#' }}" 
+                   target="_blank" 
+                   rel="noopener"
+                   style="color:#1b7f5a; font-weight:600; text-decoration:none;">
+                    {{ $settings->site_name ?? 'xanhworld.vn' }}
+                </a>
+            </p>
+            
+            <p style="font-size:16px; line-height:1.8; color: white;">
+                Tên gọi <strong>XWORLD</strong> được viết tắt từ 
+                <strong>“Thế Giới Cây Xanh”</strong>, gắn liền với tên miền 
+                <strong>xanhworld.vn</strong>. 
+                Việc trùng tên với một tựa game trên thị trường chỉ là sự trùng hợp ngẫu nhiên, 
+                không liên quan đến lĩnh vực hoạt động hay định hướng thương hiệu của XWORLD.
+            </p>            
             <div class="hero-actions">
                 <a class="btn primary" href="{{ route('client.shop.index') }}">Khám phá sản phẩm</a>
                 <a class="btn ghost" href="{{ route('client.contact.index') }}">Đặt lịch tư vấn</a>
