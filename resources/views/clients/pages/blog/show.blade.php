@@ -25,10 +25,6 @@
     <meta name="twitter:description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt_text) }}">
     <meta name="twitter:image" content="{{ $coverAsset ?? asset('clients/assets/img/posts/no-image.webp') }}">
     <link rel="preload" as="image" href="{{ $coverAsset ?? asset('clients/assets/img/posts/no-image.webp') }}">
-    {{-- Load Fonts: Playfair Display (Sang trọng) & Inter (Dễ đọc) --}}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
 @endsection
 
 @push('js_page')
