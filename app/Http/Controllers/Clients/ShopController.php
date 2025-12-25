@@ -511,8 +511,8 @@ class ShopController extends Controller
         }
 
         // Trang shop chính: Title và Description tối ưu cho SEO
-        $title = 'Cửa hàng Cây Xanh - '.$defaultSiteName;
-        $description = 'Cửa hàng cây xanh, chậu cảnh, phụ kiện trang trí uy tín tại '.$defaultSiteName.'. Đa dạng sản phẩm, chất lượng cao, giá tốt, giao hàng nhanh toàn quốc.';
+        $title = 'Cửa Hàng Cây Cảnh XWORLD – Cây Xanh, Hoa & Phụ Kiện Trang Trí';
+        $description = 'Cửa hàng THẾ GIỚI CÂY XANH XWORLD chuyên cung cấp cây cảnh, cây phong thủy, hoa trang trí và phụ kiện trồng cây. Phù hợp nhà ở, văn phòng, sân vườn và không gian sống.';
 
         return [
             'title' => $title,
