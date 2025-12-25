@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Helpers\CategoryHelper;
 use App\Models\Category;
+use App\Models\Setting;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -56,6 +57,12 @@ class CategoryService
             $filtered = array_filter($data['metadata'], function ($val) {
                 return $val !== null && $val !== '';
             });
+
+            // Always update meta_canonical based on current slug and site_url
+            $siteUrl = rtrim(Setting::where('key', 'site_url')->value('value') ?? config('app.url'), '/');
+            $finalSlug = $data['slug'] ?? CategoryHelper::generateUniqueSlug($data['name']);
+            $filtered['meta_canonical'] = $siteUrl.'/'.$finalSlug;
+
             if (! empty($filtered)) {
                 $metadataJson = json_encode($filtered, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             }
@@ -140,6 +147,12 @@ class CategoryService
                 $filtered = array_filter($data['metadata'], function ($val) {
                     return $val !== null && $val !== '';
                 });
+
+                // Always update meta_canonical based on current slug and site_url
+                $siteUrl = rtrim(Setting::where('key', 'site_url')->value('value') ?? config('app.url'), '/');
+                $finalSlug = $data['slug'] ?? $category->slug;
+                $filtered['meta_canonical'] = $siteUrl.'/'.$finalSlug;
+
                 if (! empty($filtered)) {
                     $metadataJson = json_encode($filtered, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 } else {
@@ -149,6 +162,19 @@ class CategoryService
                 $metadataJson = null;
             }
             unset($data['metadata']);
+        } else {
+            // Even if metadata is not being updated, we should update meta_canonical if slug changed
+            if (isset($data['slug']) && $data['slug'] !== $category->slug) {
+                $currentMetadata = $category->metadata ?? [];
+                if (is_string($currentMetadata)) {
+                    $currentMetadata = json_decode($currentMetadata, true) ?? [];
+                }
+
+                $siteUrl = rtrim(Setting::where('key', 'site_url')->value('value') ?? config('app.url'), '/');
+                $currentMetadata['meta_canonical'] = $siteUrl.'/'.$data['slug'];
+
+                $metadataJson = json_encode($currentMetadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
         }
 
         $category->update($data);
