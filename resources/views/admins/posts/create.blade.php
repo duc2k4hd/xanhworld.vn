@@ -16,7 +16,7 @@
         <a href="{{ route('admin.posts.index') }}" class="btn btn-outline-secondary">← Quay lại danh sách</a>
     </div>
 
-    <form action="{{ route('admin.posts.store') }}" method="POST">
+    <form action="{{ route('admin.posts.store') }}" method="POST" novalidate>
         @csrf
         @include('admins.posts.partials.form', [
             'post' => $post,

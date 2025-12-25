@@ -38,7 +38,7 @@
         </div>
     </div>
 
-    <form action="{{ route('admin.posts.update', $post) }}" method="POST">
+    <form action="{{ route('admin.posts.update', $post) }}" method="POST" novalidate>
         @csrf
         @method('PUT')
         @include('admins.posts.partials.form', [

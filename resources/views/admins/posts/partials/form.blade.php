@@ -133,7 +133,8 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Canonical URL</label>
-                    <input type="url" name="meta_canonical" class="form-control" value="{{ old('meta_canonical', $post->meta_canonical ?? '') }}">
+                    <input type="text" name="meta_canonical" class="form-control" value="{{ old('meta_canonical', $post->meta_canonical ?? '') }}" placeholder="/tin-tuc/slug hoặc https://example.com/tin-tuc/slug">
+                    <small class="text-muted">Có thể nhập relative URL (ví dụ: /tin-tuc/slug) hoặc absolute URL (ví dụ: https://example.com/tin-tuc/slug)</small>
                 </div>
                 <button type="button" class="btn btn-outline-primary w-100" id="seo-analyze-btn">Phân tích SEO</button>
                 <ul class="list-unstyled mt-3 text-muted small" id="seo-warning-list">
