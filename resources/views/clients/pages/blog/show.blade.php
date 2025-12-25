@@ -11,9 +11,46 @@
 
 @push('css_page')
     <link rel="stylesheet" href="{{ asset('clients/assets/css/blog.css') }}">
+    <link
+        rel="preload"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        as="style"
+        onload="this.onload=null;this.rel='stylesheet'">
+
+    <noscript>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    </noscript>
 @endpush
 
 @section('head')
+    @php
+        // Lấy ảnh LCP (ảnh đầu tiên trong gallery hoặc cover image)
+        $lcpImage = null;
+        $galleryImages = $post->images;
+        if ($galleryImages->isNotEmpty()) {
+            $firstImage = $galleryImages->first();
+            $lcpImage = asset('clients/assets/img/posts/'.$firstImage->url);
+        } else {
+            $lcpImage = $coverAsset ?? asset('clients/assets/img/posts/no-image.webp');
+        }
+    @endphp
+    
+    {{-- Preload LCP Image - Tối ưu LCP --}}
+    <link rel="preload" as="image" href="{{ $lcpImage }}" fetchpriority="high">
+    
+    {{-- Preconnect to image domain for faster loading --}}
+    @php
+        $parsedUrl = parse_url($lcpImage);
+        if ($parsedUrl && isset($parsedUrl['scheme']) && isset($parsedUrl['host'])) {
+            $imageDomain = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
+        } else {
+            $imageDomain = url('/');
+        }
+    @endphp
+    <link rel="preconnect" href="{{ $imageDomain }}" crossorigin>
+    
     {{-- SEO Meta Tags --}}
     <meta name="description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt_text) }}">
     <meta name="keywords" content="{{ $pageKeywords ?? $post->meta_keywords }}">
@@ -27,7 +64,6 @@
     <meta name="twitter:title" content="{{ $pageTitle ?? ($post->meta_title ?? $post->title) }}">
     <meta name="twitter:description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt_text) }}">
     <meta name="twitter:image" content="{{ $coverAsset ?? asset('clients/assets/img/posts/no-image.webp') }}">
-    <link rel="preload" as="image" href="{{ $coverAsset ?? asset('clients/assets/img/posts/no-image.webp') }}">
 @endsection
 
 @push('js_page')
@@ -82,6 +118,7 @@
                 <div class="xanhworld-article-hero">
                     <div class="xanhworld-article-hero-image">
                         @php
+                            // Images đã được preload trong controller, không cần query lại
                             $galleryImages = $post->images;
                         @endphp
                         <div class="xanhworld-article-carousel" id="postImageCarousel">
@@ -90,19 +127,29 @@
                                     @foreach($galleryImages as $index => $image)
                                         @php
                                             $imgPath = 'clients/assets/img/posts/'.$image->url;
+                                            $imgUrl = asset($imgPath);
+                                            $isLcp = $index === 0;
                                         @endphp
-                                        <div class="xanhworld-article-carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                        <div class="xanhworld-article-carousel-item {{ $isLcp ? 'active' : '' }}">
                                             <img width="100%" height="100%"
-                                                 src="{{ asset($imgPath) }}"
+                                                 src="{{ $imgUrl }}"
                                                  alt="{{ $image->alt ?? $post->title }}"
-                                                 loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
-                                                 fetchpriority="{{ $index === 0 ? 'high' : 'auto' }}">
+                                                 @if($isLcp)
+                                                 loading="eager"
+                                                 fetchpriority="high"
+                                                 @else
+                                                 loading="lazy"
+                                                 fetchpriority="auto"
+                                                 @endif>
                                         </div>
                                     @endforeach
                                 @else
+                                    @php
+                                        $fallbackImage = $coverAsset ?? asset('clients/assets/img/posts/no-image.webp');
+                                    @endphp
                                     <div class="xanhworld-article-carousel-item active">
                                         <img width="100%" height="100%"
-                                             src="{{ $coverAsset }}"
+                                             src="{{ $fallbackImage }}"
                                              alt="{{ $post->title }}"
                                              loading="eager"
                                              fetchpriority="high">
@@ -173,9 +220,9 @@
             </div>
 
                         @mobile
-                            <!-- TOC -->
+                            <!-- TOC Mobile -->
                 @if($toc->isNotEmpty())
-                                <div class="xanhworld-article-toc" id="toc-desktop">
+                                <div class="xanhworld-article-toc" id="toc-mobile">
                                     <div class="xanhworld-article-toc-title">
                                         <p>📑 Mục lục</p>
                                     </div>
@@ -252,11 +299,12 @@
                         </div>
                                 <div class="xanhworld-article-sidebar-posts">
                             @foreach($relatedPosts as $related)
+                                @php
+                                    // Images đã được preload trong controller, không cần query lại
+                                    $relatedPath = $related->coverImagePath();
+                                    $relatedUrl = asset($relatedPath ?? 'clients/assets/img/posts/no-image.webp');
+                                @endphp
                                 <a href="{{ route('client.blog.show', $related) }}" class="xanhworld-article-sidebar-post">
-                                    @php
-                                        $relatedPath = $related->coverImagePath();
-                                        $relatedUrl = asset($relatedPath ?? 'clients/assets/img/posts/no-image.webp');
-                                    @endphp
                                     <img src="{{ $relatedUrl }}" alt="{{ $related->title }}" loading="lazy">
                                     <div class="xanhworld-article-sidebar-post-info">
                                         <h4>{{ str()->limit($related->title, 60) }}</h4>
@@ -325,7 +373,8 @@
 
         // Auto Highlight TOC on scroll
         document.addEventListener('DOMContentLoaded', () => {
-            const tocContainer = document.getElementById('toc-desktop');
+            // Support both desktop and mobile TOC
+            const tocContainer = document.getElementById('toc-desktop') || document.getElementById('toc-mobile');
             if (!tocContainer) return;
 
             const observer = new IntersectionObserver((entries) => {
@@ -379,6 +428,4 @@
             });
         });
     </script>
-    {{-- FontAwesome icon support if not already in master layout --}}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 @endsection

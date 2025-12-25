@@ -177,7 +177,7 @@ class BlogController extends Controller
             abort(404);
         }
 
-        $post->loadMissing(['category', 'author']);
+        $post->loadMissing(['category', 'author', 'creator']);
         Post::preloadImages([$post]);
         $post->increment('views');
 
