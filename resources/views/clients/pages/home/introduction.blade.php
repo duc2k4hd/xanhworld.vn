@@ -217,22 +217,26 @@
     <section class="xworld-map">
         <div class="map-info">
             <p class="eyebrow">Flagship Green Studio</p>
-            <h2>595/1 Thiên Lôi, Hải Phòng</h2>
+            <h2>{{ $settings->contact_address ?? '595/1 Thiên Lôi, Hải Phòng' }}</h2>
             <p>
                 Đặt lịch trước để được chuẩn bị phòng tư vấn riêng tư, dịch vụ đo ánh sáng và phối chậu theo phong cách nội thất.
             </p>
             <div class="contact">
                 <span>Hotline</span>
-                <a href="tel:{{ $settings->contact_phone ?? '' }}">{{ $settings->contact_phone ?? '1900 988 889' }}</a>
+                <a href="tel:{{ $settings->contact_phone ?? '' }}">{{ $settings->contact_phone ?? '0909 988 889' }}</a>
+            </div>
+            <div class="author">
+                <span>Author</span>
+                <a href="{{ $settings->facebook_link ?? '#' }}" target="_blank">Nguyễn Minh Đức</a>
             </div>
             <div class="contact">
                 <span>Email</span>
-                <a href="mailto:{{ $settings->contact_email ?? '' }}">{{ $settings->contact_email ?? 'hello@xworld.vn' }}</a>
+                <a href="mailto:{{ $settings->contact_email ?? '' }}">{{ $settings->contact_email ?? 'xanhworldvietnam@gmail.com' }}</a>
             </div>
         </div>
         <div class="map-frame">
             <iframe width="100%" height="100%"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4010.734289061049!2d106.68005187555318!3d20.82730938077215!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314a707bf0c0c6b3%3A0x270e1b278f753cae!2zNTk1LzEgUC4gVGhpw6puIEzDtGksIFThu5UgRHAgU-G7kSAzMCwgTMOqIENow6JuLCBI4bqjaSBQaMOybmcsIFZp4buHdCBOYW0!5e1!3m2!1svi!2s!4v1762164701486!5m2!1svi!2s"
+                src="{{ $settings->source_map ?? 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3974.074551510752!2d106.45132018840634!3d20.838643175148697!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x313589331558271b%3A0x3a5a70f9ba3d5718!2zTmjDoCBWxrDhu51uIFRo4bqvbmcgVGjhuq9t!5e1!3m2!1svi!2s!4v1766629712920!5m2!1svi!2s' }}"
                 loading="lazy" allowfullscreen></iframe>
         </div>
     </section>
