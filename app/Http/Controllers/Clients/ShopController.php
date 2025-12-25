@@ -16,6 +16,29 @@ class ShopController extends Controller
 {
     public function index(Request $request, ?string $slug = null)
     {
+        // Reject old format tags[]=id or tags=id - redirect to 404
+        if ($request->has('tags')) {
+            $tagsInput = $request->input('tags');
+
+            // If tags is array (tags[]=id format)
+            if (is_array($tagsInput)) {
+                foreach ($tagsInput as $tag) {
+                    if (is_numeric($tag)) {
+                        return view('clients.pages.errors.404');
+                    }
+                }
+            } else {
+                // If tags is string (tags=id or tags=id1,id2 format)
+                $tagsArray = explode(',', (string) $tagsInput);
+                foreach ($tagsArray as $tag) {
+                    $tag = trim($tag);
+                    if (! empty($tag) && is_numeric($tag)) {
+                        return view('clients.pages.errors.404');
+                    }
+                }
+            }
+        }
+
         $keyword = $request->input('keyword', '');
         if ($keyword) {
             if (preg_match('/<\s*script|<\/\s*script\s*>|<[^>]+>/i', $keyword)) {
@@ -195,7 +218,7 @@ class ShopController extends Controller
             $tags = explode(',', (string) $tags);
         }
 
-        // Convert slug to ID if needed
+        // Only accept slugs, convert to IDs for query
         $tagIds = [];
         foreach ($tags as $tag) {
             $tag = trim($tag);
@@ -203,11 +226,8 @@ class ShopController extends Controller
                 continue;
             }
 
-            // If it's numeric, treat as ID
-            if (is_numeric($tag)) {
-                $tagIds[] = (int) $tag;
-            } else {
-                // Otherwise, treat as slug and find ID
+            // Only accept slug format (non-numeric), ignore numeric IDs
+            if (! is_numeric($tag)) {
                 $tagModel = \App\Models\Tag::where('slug', $tag)->where('is_active', true)->first();
                 if ($tagModel) {
                     $tagIds[] = $tagModel->id;
