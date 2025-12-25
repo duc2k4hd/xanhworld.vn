@@ -27,7 +27,7 @@ class ProductController extends Controller
             $quantityProductDetail = Product::where('slug', $slug)
                 ->active()
                 ->value('stock_quantity') ?? 0;
-
+            
             // Sử dụng try-catch cho cache để tránh lỗi nếu cache driver fail
             try {
                 $product = Cache::rememberForever('product_detail_'.$slug, function () use ($slug) {
@@ -52,7 +52,7 @@ class ProductController extends Controller
                     ->active()
                     ->with('variants')
                     ->first();
-
+                
                 if ($product) {
                     Product::preloadImages([$product]);
                 }
@@ -223,7 +223,7 @@ class ProductController extends Controller
             $totalComments = 0;
             $ratingStats = ['average' => 0, 'count' => 0, 'distribution' => []];
             $latestReviews = collect();
-
+            
             try {
                 $comments = Comment::where('commentable_type', 'product')
                     ->where('commentable_id', $product->id)

@@ -355,9 +355,14 @@
                     @foreach ($categories as $category)
                         @foreach ($category->children as $child)
                             @php
-                                $productCount = App\Models\Product::active()->where('primary_category_id', $child->id)->count();
+                                $productCount = App\Models\Product::active()
+                                    ->where(function ($q) use ($child) {
+                                        $q->where('primary_category_id', $child->id)
+                                            ->orWhereJsonContains('category_ids', $child->id);
+                                    })
+                                    ->count();
                             @endphp
-                            <div @class(['xanhworld_main_categories_item'])>
+                            <div @class(['xanhworld_main_categories_item'])> 
                                 <a href="/{{ $child->slug }}">
                                     <img loading="lazy" draggable="false" @class(['xanhworld_main_categories_item_img'])
                                         src="{{ asset('clients/assets/img/categories/' . ($child->image ?? 'no-image.webp')) }}"
