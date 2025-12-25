@@ -296,10 +296,41 @@ class CategoryService
             };
 
             if ($image) {
-                imagewebp($image, $targetPath, 90);
+                // Check if image is palette-based (indexed color)
+                // Palette images need to be converted to truecolor before WebP conversion
+                if (imageistruecolor($image) === false) {
+                    // Convert palette image to truecolor
+                    $truecolorImage = imagecreatetruecolor(imagesx($image), imagesy($image));
+
+                    // Preserve transparency for PNG
+                    if ($extension === 'png') {
+                        imagealphablending($truecolorImage, false);
+                        imagesavealpha($truecolorImage, true);
+                        $transparent = imagecolorallocatealpha($truecolorImage, 0, 0, 0, 127);
+                        imagefill($truecolorImage, 0, 0, $transparent);
+                    }
+
+                    imagecopy($truecolorImage, $image, 0, 0, 0, 0, imagesx($image), imagesy($image));
+                    imagedestroy($image);
+                    $image = $truecolorImage;
+                }
+
+                // Try to convert to WebP
+                $webpSuccess = @imagewebp($image, $targetPath, 90);
                 imagedestroy($image);
+
+                if (! $webpSuccess || ! file_exists($targetPath)) {
+                    // Fallback: save as original format
+                    $finalExtension = $extension;
+                    $filename = $slug.'-'.Str::random(8).'.'.$finalExtension;
+                    $targetPath = $destination.DIRECTORY_SEPARATOR.$filename;
+                    $file->move($destination, $filename);
+                }
             } else {
                 // Fallback: move original
+                $finalExtension = $extension;
+                $filename = $slug.'-'.Str::random(8).'.'.$finalExtension;
+                $targetPath = $destination.DIRECTORY_SEPARATOR.$filename;
                 $file->move($destination, $filename);
             }
         } else {
