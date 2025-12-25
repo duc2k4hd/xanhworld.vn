@@ -58,8 +58,8 @@
     "@type": "WebPage",
     "@id": "{{ $currentUrl }}#webpage",
     "url": "{{ $currentUrl }}",
-    "name": "{{ $category->name ?? ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}",
-    "description": "{{ 'Danh mục cây cảnh phong thủy, cây nội thất, cây để bàn, cây xanh trang trí không gian sống và làm việc tại Thế Giới Cây Xanh XWORLD.' }}",
+    "name": "{{ !empty($category) && !empty($category->metadata['meta_title']) ? $category->metadata['meta_title'] : ($category->name ?? ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD')) }}",
+    "description": "{{ !empty($category) && !empty($category->metadata['meta_description']) ? $category->metadata['meta_description'] : (!empty($category) ? strip_tags($category->description ?? 'Danh mục cây cảnh phong thủy, cây nội thất, cây để bàn, cây xanh trang trí không gian sống và làm việc tại Thế Giới Cây Xanh XWORLD.') : 'Danh mục cây cảnh phong thủy, cây nội thất, cây để bàn, cây xanh trang trí không gian sống và làm việc tại Thế Giới Cây Xanh XWORLD.') }}",
     "inLanguage": "vi",
     "isPartOf": { "@id": "{{ $siteUrl }}#website" },
     "about": { "@id": "{{ $siteUrl }}#organization" },
@@ -145,7 +145,7 @@
     "@type": "ItemList",
     "@id": "{{ $currentUrl }}#itemlist",
     "url": "{{ $currentUrl }}",
-    "name": "Danh sách sản phẩm {{ $category->name ?? 'cây xanh, chậu cảnh và phụ kiện' }}",
+    "name": "Danh sách sản phẩm {{ !empty($category) && !empty($category->metadata['meta_title']) ? $category->metadata['meta_title'] : ($category->name ?? 'cây xanh, chậu cảnh và phụ kiện') }}",
     "itemListOrder": "https://schema.org/ItemListOrderAscending",
     "mainEntityOfPage": {
       "@id": "{{ ($siteUrl. '/'. ($category?->slug ?? 'cua-hang')) ?? url()->current() }}"

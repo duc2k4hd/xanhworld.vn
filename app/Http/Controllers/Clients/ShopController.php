@@ -17,7 +17,7 @@ class ShopController extends Controller
     public function index(Request $request, ?string $slug = null)
     {
         $keyword = $request->input('keyword', '');
-        if($keyword) {
+        if ($keyword) {
             if (preg_match('/<\s*script|<\/\s*script\s*>|<[^>]+>/i', $keyword)) {
                 return redirect()->route('client.shop.index')->with('error', 'Từ khóa không hợp lệ! Vui lòng thử lại!');
             }
@@ -391,18 +391,25 @@ class ShopController extends Controller
         $defaultSiteName = $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD';
 
         if ($category) {
+            // Lấy metadata từ JSON array
+            $metadata = $category->metadata ?? [];
+            $metaTitle = $metadata['meta_title'] ?? null;
+            $metaDescription = $metadata['meta_description'] ?? null;
+            $metaKeywords = $metadata['meta_keywords'] ?? null;
+            $metaCanonical = $metadata['meta_canonical'] ?? null;
+
             return [
-                'title' => $category->meta_title
-                    ? $category->meta_title.' – '.$defaultSiteName
+                'title' => $metaTitle
+                    ? $metaTitle.' – '.$defaultSiteName
                     : $category->name.' - '.$defaultSiteName,
-                'description' => $category->meta_description
+                'description' => $metaDescription
                     ?? strip_tags($category->description ?: 'Khám phá các sản phẩm '.$category->name.' chất lượng tại '.$defaultSiteName.'.'),
-                'keywords' => $category->meta_keywords
+                'keywords' => $metaKeywords
                     ?? $category->name.', cây xanh, chậu cảnh, '.$defaultSiteName,
-                'canonical' => $category->meta_canonical
+                'canonical' => $metaCanonical
                     ?? ($settings->site_url ? $settings->site_url.'/'.$category->slug : url()->current()),
                 'image' => $category->image
-                    ? asset('storage/categories/'.$category->image)
+                    ? asset('clients/assets/img/categories/'.$category->image)
                     : asset('clients/assets/img/business/'.($settings->site_banner ?? $settings->site_logo)),
             ];
         }

@@ -383,6 +383,7 @@
 @section('schema')
     @include('clients.templates.schema_shop', [
         'products' => $productsMain,
+        'category' => $category ?? null,
     ])
 @endsection
 
