@@ -8,6 +8,10 @@
     <link rel="canonical" href="{{ url()->current() }}">
 @endsection
 
+@push('js_page')
+    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
+
 @push('styles')
     @include('clients.pages.policy.partials.styles')
 @endpush

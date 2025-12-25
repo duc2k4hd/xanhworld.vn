@@ -6,8 +6,8 @@
 <link rel="apple-touch-icon" href="{{ $settings->site_url ?? 'https://xanhworld.vn' }}/clients/assets/img/business/apple-touch-icon.png">
 
 <!-- Web App Manifest -->
-<link rel="manifest"
-      href="{{ $settings->site_url ?? 'https://xanhworld.vn' }}/clients/assets/img/business/site.webmanifest">
+{{-- <link rel="manifest"
+      href="{{ $settings->site_url ?? 'https://xanhworld.vn' }}/clients/assets/img/business/site.webmanifest"> --}}
 
 <meta name="theme-color" content="#ffffff">
 
