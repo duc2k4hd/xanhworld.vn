@@ -738,7 +738,7 @@
                                     <h4 class="xanhworld_single_info_images_tags_title">Thẻ: </h4>
                                     @if ($product->tags?->isNotEmpty())
                                         @foreach ($product->tags as $tag)
-                                            <a href="{{ route('client.shop.index', ['tags[]' => $tag->id]) }}" title="Xem tất cả sản phẩm có thẻ {{ $tag->name }}">
+                                            <a href="{{ route('client.shop.index', ['tags' => $tag->slug]) }}" title="Xem tất cả sản phẩm có thẻ {{ $tag->name }}">
                                                 <span class="xanhworld_single_info_images_tags_tag">#{{ $tag->name ?? 'thoi-trang' }}</span>
                                             </a>
                                         @endforeach
