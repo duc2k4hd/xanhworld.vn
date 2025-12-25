@@ -58,8 +58,8 @@
     "@type": "WebPage",
     "@id": "{{ $currentUrl }}#webpage",
     "url": "{{ $currentUrl }}",
-    "name": "{{ !empty($category) && !empty($category->metadata['meta_title']) ? $category->metadata['meta_title'] : ($category->name ?? ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD')) }}",
-    "description": "{{ !empty($category) && !empty($category->metadata['meta_description']) ? $category->metadata['meta_description'] : (!empty($category) ? strip_tags($category->description ?? 'Danh mục cây cảnh phong thủy, cây nội thất, cây để bàn, cây xanh trang trí không gian sống và làm việc tại Thế Giới Cây Xanh XWORLD.') : 'Danh mục cây cảnh phong thủy, cây nội thất, cây để bàn, cây xanh trang trí không gian sống và làm việc tại Thế Giới Cây Xanh XWORLD.') }}",
+    "name": {!! json_encode(!empty($category) && !empty($category->metadata['meta_title']) ? $category->metadata['meta_title'] : ($category->name ?? ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD')), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!},
+    "description": {!! json_encode(!empty($category) && !empty($category->metadata['meta_description']) ? $category->metadata['meta_description'] : (!empty($category) ? strip_tags($category->description ?? 'Danh mục cây cảnh phong thủy, cây nội thất, cây để bàn, cây xanh trang trí không gian sống và làm việc tại Thế Giới Cây Xanh XWORLD.') : 'Danh mục cây cảnh phong thủy, cây nội thất, cây để bàn, cây xanh trang trí không gian sống và làm việc tại Thế Giới Cây Xanh XWORLD.'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!},
     "inLanguage": "vi",
     "isPartOf": { "@id": "{{ $siteUrl }}#website" },
     "about": { "@id": "{{ $siteUrl }}#organization" },
@@ -145,10 +145,10 @@
     "@type": "ItemList",
     "@id": "{{ $currentUrl }}#itemlist",
     "url": "{{ $currentUrl }}",
-    "name": "Danh sách sản phẩm {{ !empty($category) && !empty($category->metadata['meta_title']) ? $category->metadata['meta_title'] : ($category->name ?? 'cây xanh, chậu cảnh và phụ kiện') }}",
+    "name": {!! json_encode('Danh sách sản phẩm '.(!empty($category) && !empty($category->metadata['meta_title']) ? $category->metadata['meta_title'] : ($category->name ?? 'cây xanh, chậu cảnh và phụ kiện')), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!},
     "itemListOrder": "https://schema.org/ItemListOrderAscending",
     "mainEntityOfPage": {
-      "@id": "{{ ($siteUrl. '/'. ($category?->slug ?? 'cua-hang')) ?? url()->current() }}"
+      "@id": "{{ $currentUrl }}#webpage"
     },
     "numberOfItems": {{ method_exists($products, 'total') ? $products->total() : $products->count() }},
     "itemListElement":[
@@ -159,8 +159,8 @@
       {
         "@type": "ListItem",
         "position": {{ $loop->iteration }},
-        "url": "{{ $productUrl }}",
-        "name": "{{ $product->name }}"
+        "url": {!! json_encode($productUrl, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!},
+        "name": {!! json_encode($product->name, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
       }{{ !$loop->last ? ',' : '' }}
       @endforeach
     ]

@@ -71,7 +71,7 @@ class ShopController extends Controller
         $productsMain = $this->buildProductListing(clone $filteredQuery, $filters, $keyword);
         $newProducts = $this->resolveNewProducts(clone $filteredQuery);
 
-        $seoMeta = $this->prepareSeoMeta($settings, $categoryContext['category'], $keyword, $filters['tags']);
+        $seoMeta = $this->prepareSeoMeta($settings, $categoryContext['category'], $keyword, $filters['tags'], $request);
 
         return view('clients.pages.shop.index', [
             'products' => $productsForView,
@@ -426,7 +426,7 @@ class ShopController extends Controller
         return $products;
     }
 
-    protected function prepareSeoMeta(object $settings, ?Category $category, string $keyword, array $tagIds = []): array
+    protected function prepareSeoMeta(object $settings, ?Category $category, string $keyword, array $tagIds = [], ?\Illuminate\Http\Request $request = null): array
     {
         $defaultSiteName = $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD';
 
@@ -455,11 +455,23 @@ class ShopController extends Controller
                 $description = 'Tổng hợp sản phẩm '.$tagNameStr.' đa dạng tại '.$defaultSiteName.'. Chất lượng tốt, giá ưu đãi, ship toàn quốc.';
             }
 
+            // Canonical URL cho tags: dùng slug từ request
+            $tagsSlug = $request ? $request->input('tags') : null;
+            if ($tagsSlug) {
+                // Nếu tags là array, chuyển thành string
+                if (is_array($tagsSlug)) {
+                    $tagsSlug = implode(',', $tagsSlug);
+                }
+                $canonicalUrl = route('client.shop.index', ['tags' => $tagsSlug]);
+            } else {
+                $canonicalUrl = url()->current();
+            }
+
             return [
                 'title' => $title,
                 'description' => $description,
                 'keywords' => $tagNameStr.', sản phẩm '.$tagNameStr.', '.$defaultSiteName.', cây xanh, chậu cảnh',
-                'canonical' => url()->current(),
+                'canonical' => $canonicalUrl,
                 'image' => asset('clients/assets/img/business/'.($settings->site_banner ?? $settings->site_logo)),
             ];
         }
