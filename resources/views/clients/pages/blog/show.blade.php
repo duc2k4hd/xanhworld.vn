@@ -9,8 +9,11 @@
     ) . ' | ' . ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD')
 )
 
-@section('head')
+@push('css_page')
     <link rel="stylesheet" href="{{ asset('clients/assets/css/blog.css') }}">
+@endpush
+
+@section('head')
     {{-- SEO Meta Tags --}}
     <meta name="description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt_text) }}">
     <meta name="keywords" content="{{ $pageKeywords ?? $post->meta_keywords }}">
