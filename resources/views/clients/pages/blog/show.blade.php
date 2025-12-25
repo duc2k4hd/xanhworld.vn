@@ -1,6 +1,13 @@
 @extends('clients.layouts.master')
 
-@section('title', $pageTitle ?? ($post->meta_title ?? $post->title))
+@section(
+    'title',
+    (
+        $pageTitle
+        ?? $post->meta_title
+        ?? $post->title
+    ) . ' | ' . ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD')
+)
 
 @section('head')
     <link rel="stylesheet" href="{{ asset('clients/assets/css/blog.css') }}">
