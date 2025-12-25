@@ -165,6 +165,7 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
 
     // Post Management
     Route::resource('posts', \App\Http\Controllers\Admins\PostController::class);
+    Route::post('posts/upload-image', [\App\Http\Controllers\Admins\PostController::class, 'uploadImage'])->name('posts.upload-image');
     Route::post('posts/{post}/publish', [\App\Http\Controllers\Admins\PostController::class, 'publish'])->name('posts.publish');
     Route::post('posts/{post}/archive', [\App\Http\Controllers\Admins\PostController::class, 'archive'])->name('posts.archive');
     Route::post('posts/{post}/duplicate', [\App\Http\Controllers\Admins\PostController::class, 'duplicate'])->name('posts.duplicate');

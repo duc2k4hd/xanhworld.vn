@@ -12,12 +12,12 @@
     <meta property="og:title" content="{{ $pageTitle ?? ($post->meta_title ?? $post->title) }}">
     <meta property="og:description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt_text) }}">
     <meta property="og:url" content="{{ $canonicalUrl ?? route('client.blog.show', $post) }}">
-    <meta property="og:image" content="{{ $coverAsset ?? asset('clients/assets/img/clothes/default.webp') }}">
+    <meta property="og:image" content="{{ $coverAsset ?? asset('clients/assets/img/posts/no-image.webp') }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $pageTitle ?? ($post->meta_title ?? $post->title) }}">
     <meta name="twitter:description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt_text) }}">
-    <meta name="twitter:image" content="{{ $coverAsset ?? asset('clients/assets/img/clothes/default.webp') }}">
-    <link rel="preload" as="image" href="{{ $coverAsset ?? asset('clients/assets/img/clothes/default.webp') }}">
+    <meta name="twitter:image" content="{{ $coverAsset ?? asset('clients/assets/img/posts/no-image.webp') }}">
+    <link rel="preload" as="image" href="{{ $coverAsset ?? asset('clients/assets/img/posts/no-image.webp') }}">
     {{-- Load Fonts: Playfair Display (Sang trọng) & Inter (Dễ đọc) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,7 +83,7 @@
                                 @if($galleryImages->isNotEmpty())
                                     @foreach($galleryImages as $index => $image)
                                         @php
-                                            $imgPath = 'clients/assets/img/clothes/'.$image->url;
+                                            $imgPath = 'clients/assets/img/posts/'.$image->url;
                                         @endphp
                                         <div class="xanhworld-article-carousel-item {{ $index === 0 ? 'active' : '' }}">
                                             <img width="100%" height="100%"
@@ -249,7 +249,7 @@
                                 <a href="{{ route('client.blog.show', $related) }}" class="xanhworld-article-sidebar-post">
                                     @php
                                         $relatedPath = $related->coverImagePath();
-                                        $relatedUrl = asset($relatedPath ?? 'clients/assets/img/clothes/default.webp');
+                                        $relatedUrl = asset($relatedPath ?? 'clients/assets/img/posts/no-image.webp');
                                     @endphp
                                     <img src="{{ $relatedUrl }}" alt="{{ $related->title }}" loading="lazy">
                                     <div class="xanhworld-article-sidebar-post-info">

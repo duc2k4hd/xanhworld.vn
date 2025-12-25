@@ -341,12 +341,25 @@ class PostService
             // Nếu là tên file (string)
             if (is_string($imageData) && ! empty(trim($imageData))) {
                 $filename = trim($imageData);
-                // Tìm Image record có url = filename
-                $image = Image::where('url', $filename)->first();
+
+                // Loại bỏ path nếu có, chỉ lấy tên file
+                $filename = basename($filename);
+
+                // Tìm Image record có url = filename hoặc url chứa filename trong path posts
+                $image = Image::where('url', $filename)
+                    ->orWhere('url', 'like', '%/posts/'.$filename)
+                    ->orWhere('url', 'like', 'posts/'.$filename)
+                    ->first();
+
                 if ($image) {
+                    // Cập nhật url nếu cần để đảm bảo đúng format
+                    if (! Str::contains($image->url, 'posts/')) {
+                        $image->url = $filename;
+                        $image->saveQuietly();
+                    }
                     $keepIds[] = $image->id;
                 } else {
-                    // Tạo Image record mới
+                    // Tạo Image record mới với chỉ tên file (không có path)
                     $newImage = Image::create([
                         'url' => $filename,
                         'title' => null,

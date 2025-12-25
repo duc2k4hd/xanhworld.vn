@@ -294,7 +294,7 @@ class BlogController extends Controller
 
         foreach ($latestPosts as $index => $post) {
             $coverPath = $post->coverImagePath();
-            $coverUrl = $coverPath ? asset($coverPath) : asset('clients/assets/img/clothes/no-image.webp');
+            $coverUrl = $coverPath ? asset($coverPath) : asset('clients/assets/img/posts/no-image.webp');
 
             $itemListElements[] = [
                 '@type' => 'ListItem',
@@ -413,7 +413,7 @@ class BlogController extends Controller
             $canonical = $siteUrl.'/tin-tuc/'.$post->slug;
         }
         $coverPath = $post->coverImagePath();
-        $cover = $coverPath ? asset($coverPath) : asset('clients/assets/img/clothes/no-image.webp');
+        $cover = $coverPath ? asset($coverPath) : asset('clients/assets/img/posts/no-image.webp');
 
         return [
             'title' => $title,
@@ -446,7 +446,7 @@ class BlogController extends Controller
     protected function buildShowSchemas(Post $post, Collection $tags): array
     {
         $coverPath = $post->coverImagePath();
-        $coverUrl = $coverPath ? asset($coverPath) : asset('clients/assets/img/clothes/default.webp');
+        $coverUrl = $coverPath ? asset($coverPath) : asset('clients/assets/img/posts/default.webp');
         $schema = [
             $this->buildBreadcrumbSchema([
                 [

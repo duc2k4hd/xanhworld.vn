@@ -4,7 +4,7 @@
     $mediaPicker = $mediaPicker ?? [
         'title' => 'Thư viện ảnh',
         'scope' => 'client',
-        'folder' => 'clothes',
+        'folder' => 'posts',
         'per_page' => 100,
         'list_url' => route('admin.media.list'),
         'upload_url' => route('admin.media.upload'),
@@ -184,10 +184,10 @@
                             @endphp
                             <div class="position-relative image-item" style="width: 100px; height: 100px;" data-index="{{ $index }}">
                                 @if($image)
-                                    <img src="{{ asset('clients/assets/img/clothes/' . $image->url) }}" 
+                                    <img src="{{ asset('clients/assets/img/posts/' . $image->url) }}" 
                                          class="img-fluid rounded border" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ $image->alt ?? '' }}">
                                 @elseif(!empty($imageId) && !is_numeric($imageId))
-                                    <img src="{{ asset('clients/assets/img/clothes/' . $imageId) }}" 
+                                    <img src="{{ asset('clients/assets/img/posts/' . $imageId) }}" 
                                          class="img-fluid rounded border" style="width: 100%; height: 100%; object-fit: cover;" alt="preview"
                                          onerror="this.parentElement.querySelector('.fallback').style.display='flex'; this.style.display='none';">
                                     <div class="fallback d-none align-items-center justify-content-center h-100 bg-light rounded border position-absolute top-0 start-0 w-100">
@@ -207,8 +207,10 @@
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="addImageToGallery()">+ Thêm ảnh (cũ)</button>
                         <button type="button" class="btn btn-sm btn-primary" id="post-media-picker-btn">📚 Chọn từ thư viện (mới)</button>
+                        <label for="post-direct-upload" class="btn btn-sm btn-success mb-0" style="cursor: pointer;">📤 Upload trực tiếp</label>
+                        <input type="file" id="post-direct-upload" accept="image/*" multiple style="display: none;" onchange="handleDirectUpload(event)">
                     </div>
-                    <small class="text-muted d-block mt-1">Chọn ảnh từ thư viện hoặc nhập tên file (ví dụ: banner.jpg)</small>
+                    <small class="text-muted d-block mt-1">Chọn ảnh từ thư viện, upload trực tiếp hoặc nhập tên file (ví dụ: banner.jpg)</small>
                 </div>
             </div>
         </div>
@@ -356,6 +358,59 @@
                 <input type="hidden" name="image_ids[]" value="${filename}">
             `;
             gallery.appendChild(wrapper);
+        }
+
+        function handleDirectUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) {
+                return;
+            }
+
+            const gallery = document.getElementById('image-gallery');
+            if (!gallery) {
+                return;
+            }
+
+            // Upload từng file
+            Array.from(files).forEach(file => {
+                const formData = new FormData();
+                formData.append('image', file);
+
+                fetch('{{ route("admin.posts.upload-image") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Thêm vào gallery
+                        const idx = gallery.querySelectorAll('.image-item').length;
+                        const div = document.createElement('div');
+                        div.className = 'position-relative image-item';
+                        div.style.cssText = 'width: 100px; height: 100px;';
+                        div.setAttribute('data-index', idx);
+                        div.innerHTML = `
+                            <img src="${data.url}" class="img-fluid rounded border" style="width: 100%; height: 100%; object-fit: cover;" alt="${data.image.alt || ''}">
+                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" 
+                                    onclick="removeImage(this)" style="transform: translate(50%, -50%); padding: 2px 6px;">×</button>
+                            <input type="hidden" name="image_ids[]" value="${data.filename}">
+                        `;
+                        gallery.appendChild(div);
+                    } else {
+                        alert('Upload thất bại: ' + (data.message || 'Lỗi không xác định'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Upload error', error);
+                    alert('Upload ảnh thất bại.');
+                });
+            });
+
+            // Reset input
+            event.target.value = '';
         }
 
         function scheduleAutosave() {

@@ -48,8 +48,9 @@ class MediaService
     {
         $results = [];
         $rootPath = $this->getRootPath($scope);
+        $originalFolder = $folder;
 
-        // Normalize folder path
+        // Normalize folder path - chỉ lấy tên folder, không có path đầy đủ
         $folder = trim($folder, '/\\');
         $folder = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $folder);
 
@@ -59,10 +60,24 @@ class MediaService
             $folder = str_replace($rootNormalized.DIRECTORY_SEPARATOR, '', $folder);
         }
 
+        // Loại bỏ các phần path không cần thiết như 'clients/assets/img' hoặc 'img'
+        // Chỉ giữ lại phần folder name (ví dụ: 'posts')
+        $folderParts = explode(DIRECTORY_SEPARATOR, $folder);
+        $validParts = [];
+        foreach ($folderParts as $part) {
+            $part = trim($part);
+            // Bỏ qua các phần như 'clients', 'assets', 'img', 'admins' vì đã có trong rootPath
+            if (! empty($part) && ! in_array(strtolower($part), ['clients', 'assets', 'img', 'admins'])) {
+                $validParts[] = $part;
+            }
+        }
+        $folder = implode(DIRECTORY_SEPARATOR, $validParts);
+
         $targetPath = empty($folder) ? $rootPath : $rootPath.DIRECTORY_SEPARATOR.$folder;
 
         Log::debug('Media uploadFiles', [
-            'folder' => $folder,
+            'input_folder' => $originalFolder,
+            'normalized_folder' => $folder,
             'targetPath' => $targetPath,
             'scope' => $scope,
             'exists' => File::exists($targetPath),

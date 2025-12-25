@@ -220,15 +220,18 @@ class Post extends Model
             return null;
         }
 
+        // Nếu đã có path đầy đủ, giữ nguyên
         if (Str::startsWith($value, 'clients/assets/img/')) {
             return $value;
         }
 
+        // Nếu có chứa dấu /, thêm prefix
         if (Str::contains($value, '/')) {
             return 'clients/assets/img/'.$value;
         }
 
-        return 'clients/assets/img/clothes/'.$value;
+        // Mặc định: lấy từ thư mục posts cho Post model
+        return 'clients/assets/img/posts/'.$value;
     }
 
     protected static function booted(): void

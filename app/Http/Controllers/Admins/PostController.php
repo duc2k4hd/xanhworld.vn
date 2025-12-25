@@ -261,12 +261,103 @@ class PostController extends Controller
             ->with('success', 'Đã khôi phục phiên bản bản thảo.');
     }
 
+    public function uploadImage(Request $request): JsonResponse
+    {
+        $request->validate([
+            'image' => ['required', 'image', 'mimes:webp,jpg,jpeg,png,gif', 'max:5120'], // 5MB
+        ]);
+
+        try {
+            $file = $request->file('image');
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = strtolower($file->getClientOriginalExtension());
+
+            // Generate unique filename
+            $slugName = \Illuminate\Support\Str::slug($originalName);
+            $destination = public_path('clients/assets/img/posts');
+            if (! is_dir($destination)) {
+                mkdir($destination, 0755, true);
+            }
+
+            // Convert to webp if possible
+            $finalExtension = $extension;
+            $finalName = $slugName.'-'.time().'.'.$finalExtension;
+
+            // Check if file exists, add counter
+            $counter = 1;
+            while (file_exists($destination.'/'.$finalName)) {
+                $finalName = $slugName.'-'.time().'-'.$counter.'.'.$finalExtension;
+                $counter++;
+            }
+
+            $targetPath = $destination.'/'.$finalName;
+
+            // Convert to webp if image and WebP is supported
+            if (in_array($extension, ['jpg', 'jpeg', 'png']) && function_exists('imagewebp')) {
+                $finalExtension = 'webp';
+                $finalName = pathinfo($finalName, PATHINFO_FILENAME).'.webp';
+                $targetPath = $destination.'/'.$finalName;
+
+                // Use FileManager to convert
+                $fileManager = app(\App\Services\Media\FileManager::class);
+                $converted = $fileManager->convertToWebp($file->getRealPath(), $targetPath, 2048);
+
+                if (! $converted || ! file_exists($targetPath)) {
+                    // Fallback: keep original format
+                    $finalExtension = $extension;
+                    $finalName = pathinfo($finalName, PATHINFO_FILENAME).'.'.$extension;
+                    $targetPath = $destination.'/'.$finalName;
+                    $file->move($destination, $finalName);
+                }
+            } else {
+                // Keep original format
+                $file->move($destination, $finalName);
+            }
+
+            // Create Image record in database
+            $image = \App\Models\Image::create([
+                'url' => $finalName,
+                'title' => $originalName,
+                'alt' => $originalName,
+                'is_primary' => false,
+                'order' => 0,
+            ]);
+
+            // Build full URL
+            $baseUrl = config('app.url');
+            $fullUrl = rtrim($baseUrl, '/').'/clients/assets/img/posts/'.$finalName;
+
+            return response()->json([
+                'success' => true,
+                'filename' => $finalName,
+                'url' => $fullUrl,
+                'image_id' => $image->id,
+                'image' => [
+                    'id' => $image->id,
+                    'url' => $finalName,
+                    'title' => $image->title,
+                    'alt' => $image->alt,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('PostController uploadImage error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể upload ảnh: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
     private function mediaPickerConfig(): array
     {
         return [
             'title' => 'Chọn ảnh từ thư viện',
             'scope' => 'client',
-            'folder' => 'clothes',
+            'folder' => 'posts',
             'per_page' => 100,
             'list_url' => route('admin.media.list'),
             'upload_url' => route('admin.media.upload'),

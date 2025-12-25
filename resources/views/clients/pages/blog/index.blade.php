@@ -111,7 +111,7 @@
                     <article class="blog-featured-card">
                         @php
                             $featuredCover = $featured->coverImagePath();
-                            $featuredCoverUrl = asset($featuredCover ?? 'clients/assets/img/clothes/default.webp');
+                            $featuredCoverUrl = asset($featuredCover ?? 'clients/assets/img/posts/no-image.webp');
                         @endphp
                         <img src="{{ $featuredCoverUrl }}" alt="{{ $featured->title }}" loading="lazy">
 
@@ -147,7 +147,7 @@
                     <article class="blog-card">
                         @php
                             $coverPath = $post->coverImagePath();
-                            $coverUrl = asset($coverPath ?? 'clients/assets/img/clothes/default.webp');
+                            $coverUrl = asset($coverPath ?? 'clients/assets/img/posts/no-image.webp');
                         @endphp
                         <img src="{{ $coverUrl }}" alt="{{ $post->title }}" loading="lazy">
 
