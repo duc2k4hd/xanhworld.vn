@@ -445,63 +445,180 @@ class BlogController extends Controller
 
     protected function buildShowSchemas(Post $post, Collection $tags): array
     {
+        $settings = \Illuminate\Support\Facades\View::shared('settings');
+        $siteUrl = rtrim($settings->site_url ?? config('app.url') ?? url('/'), '/');
+        $siteName = $settings->site_name ?? config('app.name') ?? 'THẾ GIỚI CÂY XANH XWORLD';
+        $canonicalUrl = $post->meta_canonical
+            ? $siteUrl.'/'.ltrim($post->meta_canonical, '/')
+            : $siteUrl.'/tin-tuc/'.$post->slug;
+        $postUrl = route('client.blog.show', $post);
+        $blogIndexUrl = route('client.blog.index');
+
+        // Lấy ảnh cover
         $coverPath = $post->coverImagePath();
-        $coverUrl = $coverPath ? asset($coverPath) : asset('clients/assets/img/posts/default.webp');
-        $schema = [
-            $this->buildBreadcrumbSchema([
-                [
-                    'name' => 'Trang chủ',
-                    'url' => route('client.home.index'),
-                ],
-                [
-                    'name' => 'Tin tức',
-                    'url' => route('client.blog.index'),
-                ],
-                [
-                    'name' => $post->title,
-                    'url' => route('client.blog.show', $post),
-                ],
-            ]),
+        $coverUrl = $coverPath ? asset($coverPath) : asset('clients/assets/img/posts/no-image.webp');
+
+        // Lấy thông tin author
+        $authorName = $post->author?->name ?? $post->creator?->name ?? 'Đội ngũ biên tập';
+        // Loại bỏ emoji từ author name
+        $authorName = preg_replace('/[\x{1F300}-\x{1F9FF}]/u', '', $authorName);
+        $authorName = trim($authorName);
+        if (empty($authorName)) {
+            $authorName = 'Đội ngũ biên tập';
+        }
+        $authorSlug = Str::slug($authorName);
+        $authorId = $siteUrl.'/tac-gia/'.$authorSlug;
+
+        // Tính word count và time required
+        $content = strip_tags($post->content ?? '');
+        $wordCount = str_word_count($content);
+        // Ước tính thời gian đọc: 200 từ/phút
+        $readingTimeMinutes = max(1, ceil($wordCount / 200));
+        $timeRequired = 'PT'.$readingTimeMinutes.'M';
+
+        // Lấy logo organization
+        $logoUrl = asset('favicon-512x512.png');
+        if (file_exists(public_path('favicon-512x512.png'))) {
+            $logoUrl = asset('favicon-512x512.png');
+        } elseif (isset($settings->site_logo) && ! empty($settings->site_logo)) {
+            $logoUrl = asset('clients/assets/img/business/'.$settings->site_logo);
+        }
+
+        // Lấy kích thước ảnh - ưu tiên 1200x675 cho Google Discover
+        // Nếu ảnh thực tế lớn hơn thì dùng kích thước thực tế
+        $imageWidth = 1200;
+        $imageHeight = 675;
+        if ($coverPath && file_exists(public_path($coverPath))) {
+            $imageInfo = @getimagesize(public_path($coverPath));
+            if ($imageInfo && $imageInfo[0] >= 1200 && $imageInfo[1] >= 630) {
+                // Dùng kích thước thực tế nếu đủ lớn (>= 1200x630)
+                $imageWidth = $imageInfo[0];
+                $imageHeight = $imageInfo[1];
+            }
+            // Nếu ảnh nhỏ hơn, giữ nguyên 1200x675 (chuẩn Google Discover)
+        }
+
+        $schemas = [];
+
+        // 1. BreadcrumbList (giữ nguyên)
+        $schemas[] = $this->buildBreadcrumbSchema([
             [
-                '@context' => 'https://schema.org',
-                '@type' => 'BlogPosting',
-                'headline' => $post->title,
-                'description' => $post->meta_description ?? $post->excerpt_text,
-                'mainEntityOfPage' => route('client.blog.show', $post),
-                'datePublished' => optional($post->published_at)->toIso8601String(),
-                'dateModified' => optional($post->updated_at)->toIso8601String(),
-                'image' => $coverUrl,
-                'author' => [
-                    '@type' => 'Person',
-                    'name' => $post->author?->name ?? $post->creator?->name ?? 'Editorial Team',
-                ],
-                'publisher' => [
-                    '@type' => 'Organization',
-                    'name' => config('app.name'),
-                    'url' => config('app.url') ?? url('/'),
-                ],
-                'articleSection' => $post->category?->name,
-                'keywords' => $tags->pluck('name')->implode(', '),
+                'name' => 'Trang chủ',
+                'url' => route('client.home.index'),
+            ],
+            [
+                'name' => 'Tin tức',
+                'url' => $blogIndexUrl,
+            ],
+            [
+                'name' => $post->title,
+                'url' => $postUrl,
+            ],
+        ]);
+
+        // 2. Organization (Publisher - dùng chung toàn site)
+        $schemas[] = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Organization',
+            '@id' => $siteUrl.'/#organization',
+            'name' => $siteName,
+            'url' => $siteUrl,
+            'logo' => $logoUrl,
+        ];
+
+        // 3. WebSite (với tên thương hiệu)
+        $schemas[] = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            '@id' => $siteUrl.'/#website',
+            'name' => $siteName,
+            'url' => $siteUrl,
+            'inLanguage' => 'vi-VN',
+            'publisher' => [
+                '@type' => 'Organization',
+                '@id' => $siteUrl.'/#organization',
             ],
         ];
 
-        if ($tags->isNotEmpty()) {
-            $schema[] = [
-                '@context' => 'https://schema.org',
-                '@type' => 'ItemList',
-                'name' => 'Từ khóa bài viết',
-                'itemListElement' => $tags->values()->map(function ($tag, $index) {
-                    return [
-                        '@type' => 'ListItem',
-                        'position' => $index + 1,
-                        'name' => $tag->name,
-                        'url' => route('client.blog.index', ['tag' => $tag->slug]),
-                    ];
-                }),
-            ];
+        // 4. WebPage
+        $schemas[] = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            '@id' => $canonicalUrl,
+            'url' => $canonicalUrl,
+            'name' => $post->title,
+            'inLanguage' => 'vi-VN',
+            'isPartOf' => [
+                '@type' => 'WebSite',
+                '@id' => $siteUrl.'/#website',
+            ],
+        ];
+
+        // 5. BlogPosting (quan trọng nhất - đầy đủ)
+        $blogPostingSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BlogPosting',
+            '@id' => $canonicalUrl.'#blogposting',
+            'headline' => $post->title,
+            'description' => $post->meta_description ?? $post->excerpt_text ?? '',
+            'inLanguage' => 'vi-VN',
+            'mainEntityOfPage' => [
+                '@type' => 'WebPage',
+                '@id' => $canonicalUrl,
+            ],
+            'image' => [
+                '@type' => 'ImageObject',
+                'url' => $coverUrl,
+                'width' => $imageWidth,
+                'height' => $imageHeight,
+            ],
+            'author' => [
+                '@type' => 'Person',
+                '@id' => $authorId,
+                'name' => $authorName,
+            ],
+            'publisher' => [
+                '@type' => 'Organization',
+                '@id' => $siteUrl.'/#organization',
+                'name' => $siteName,
+                'url' => $siteUrl,
+                'logo' => [
+                    '@type' => 'ImageObject',
+                    'url' => $logoUrl,
+                    'width' => 512,
+                    'height' => 512,
+                ],
+            ],
+            'datePublished' => optional($post->published_at ?? $post->created_at)->toIso8601String(),
+            'dateModified' => optional($post->updated_at)->toIso8601String(),
+            'wordCount' => $wordCount,
+            'timeRequired' => $timeRequired,
+            'isPartOf' => [
+                '@type' => 'Blog',
+                '@id' => $blogIndexUrl,
+            ],
+        ];
+
+        // Thêm articleSection nếu có category
+        if ($post->category) {
+            $blogPostingSchema['articleSection'] = $post->category->name;
         }
 
-        return $schema;
+        // Thêm keywords - ưu tiên meta_keywords, fallback về tags
+        $keywords = null;
+        if (! empty($post->meta_keywords)) {
+            $keywords = $post->meta_keywords;
+        } elseif ($tags->isNotEmpty()) {
+            $keywords = $tags->pluck('name')->implode(', ');
+        }
+
+        if ($keywords) {
+            $blogPostingSchema['keywords'] = $keywords;
+        }
+
+        $schemas[] = $blogPostingSchema;
+
+        return $schemas;
     }
 
     protected function buildContentAnchors(?string $content): array
