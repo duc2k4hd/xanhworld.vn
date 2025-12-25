@@ -71,7 +71,7 @@ class ShopController extends Controller
         $productsMain = $this->buildProductListing(clone $filteredQuery, $filters, $keyword);
         $newProducts = $this->resolveNewProducts(clone $filteredQuery);
 
-        $seoMeta = $this->prepareSeoMeta($settings, $categoryContext['category'], $keyword);
+        $seoMeta = $this->prepareSeoMeta($settings, $categoryContext['category'], $keyword, $filters['tags']);
 
         return view('clients.pages.shop.index', [
             'products' => $productsForView,
@@ -426,9 +426,43 @@ class ShopController extends Controller
         return $products;
     }
 
-    protected function prepareSeoMeta(object $settings, ?Category $category, string $keyword): array
+    protected function prepareSeoMeta(object $settings, ?Category $category, string $keyword, array $tagIds = []): array
     {
         $defaultSiteName = $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD';
+
+        // Xử lý tags nếu có
+        $tagNames = [];
+        if (! empty($tagIds)) {
+            $tags = \App\Models\Tag::whereIn('id', $tagIds)
+                ->where('is_active', true)
+                ->pluck('name')
+                ->toArray();
+            $tagNames = array_filter($tags);
+        }
+
+        // Trường hợp có tags
+        if (! empty($tagNames)) {
+            $tagNameStr = implode(', ', $tagNames);
+            $tagCount = count($tagNames);
+
+            // Title format: Thẻ sản phẩm: "Tag1, Tag2" - SiteName
+            $title = 'Thẻ sản phẩm: "'.$tagNameStr.'" - '.$defaultSiteName;
+
+            // Description không cắt
+            if ($tagCount === 1) {
+                $description = 'Khám phá bộ sưu tập sản phẩm '.$tagNameStr.' chất lượng cao tại '.$defaultSiteName.'. Đa dạng mẫu mã, giá tốt, giao hàng nhanh.';
+            } else {
+                $description = 'Tổng hợp sản phẩm '.$tagNameStr.' đa dạng tại '.$defaultSiteName.'. Chất lượng tốt, giá ưu đãi, ship toàn quốc.';
+            }
+
+            return [
+                'title' => $title,
+                'description' => $description,
+                'keywords' => $tagNameStr.', sản phẩm '.$tagNameStr.', '.$defaultSiteName.', cây xanh, chậu cảnh',
+                'canonical' => url()->current(),
+                'image' => asset('clients/assets/img/business/'.($settings->site_banner ?? $settings->site_logo)),
+            ];
+        }
 
         if ($category) {
             // Lấy metadata từ JSON array
@@ -438,12 +472,18 @@ class ShopController extends Controller
             $metaKeywords = $metadata['meta_keywords'] ?? null;
             $metaCanonical = $metadata['meta_canonical'] ?? null;
 
+            // Title không cắt
+            $title = $metaTitle
+                ? $metaTitle.' – '.$defaultSiteName
+                : $category->name.' - '.$defaultSiteName;
+
+            // Description không cắt
+            $description = $metaDescription
+                ?? strip_tags($category->description ?: 'Khám phá các sản phẩm '.$category->name.' chất lượng tại '.$defaultSiteName.'. Đa dạng mẫu mã, giá tốt.');
+
             return [
-                'title' => $metaTitle
-                    ? $metaTitle.' – '.$defaultSiteName
-                    : $category->name.' - '.$defaultSiteName,
-                'description' => $metaDescription
-                    ?? strip_tags($category->description ?: 'Khám phá các sản phẩm '.$category->name.' chất lượng tại '.$defaultSiteName.'.'),
+                'title' => $title,
+                'description' => $description,
                 'keywords' => $metaKeywords
                     ?? $category->name.', cây xanh, chậu cảnh, '.$defaultSiteName,
                 'canonical' => $metaCanonical
@@ -455,19 +495,29 @@ class ShopController extends Controller
         }
 
         if ($keyword !== '') {
+            // Title không cắt
+            $title = 'Kết quả tìm kiếm "'.$keyword.'" - '.$defaultSiteName;
+
+            // Description không cắt
+            $description = 'Tìm thấy các sản phẩm liên quan đến "'.$keyword.'" tại '.$defaultSiteName.'. Đa dạng mẫu mã, chất lượng tốt, giá ưu đãi.';
+
             return [
-                'title' => 'Kết quả cho "'.$keyword.'" - '.$defaultSiteName,
-                'description' => 'Tìm kiếm sản phẩm liên quan tới '.$keyword.' tại '.$defaultSiteName.'.',
-                'keywords' => $keyword.', shop '.$defaultSiteName.', cây cảnh',
+                'title' => $title,
+                'description' => $description,
+                'keywords' => $keyword.', shop '.$defaultSiteName.', cây cảnh, tìm kiếm',
                 'canonical' => url()->current(),
                 'image' => asset('clients/assets/img/business/'.($settings->site_banner ?? $settings->site_logo)),
             ];
         }
 
+        // Trang shop chính: Title và Description tối ưu cho SEO
+        $title = 'Cửa hàng Cây Xanh - '.$defaultSiteName;
+        $description = 'Cửa hàng cây xanh, chậu cảnh, phụ kiện trang trí uy tín tại '.$defaultSiteName.'. Đa dạng sản phẩm, chất lượng cao, giá tốt, giao hàng nhanh toàn quốc.';
+
         return [
-            'title' => 'Cửa hàng '.$defaultSiteName.' - Thế giới cây xanh',
-            'description' => 'Khám phá bộ sưu tập cây xanh, chậu cảnh và phụ kiện tại '.$defaultSiteName.'.',
-            'keywords' => 'shop '.$defaultSiteName.', cây xanh, chậu cảnh, phụ kiện garden',
+            'title' => $title,
+            'description' => $description,
+            'keywords' => 'cửa hàng cây xanh, shop cây cảnh, '.$defaultSiteName.', cây phong thủy, chậu cảnh, phụ kiện garden',
             'canonical' => $settings->site_url ? $settings->site_url.'/cua-hang' : url()->current(),
             'image' => asset('clients/assets/img/business/'.($settings->site_banner ?? $settings->site_logo)),
         ];
