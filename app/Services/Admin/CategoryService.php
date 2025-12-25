@@ -5,6 +5,7 @@ namespace App\Services\Admin;
 use App\Helpers\CategoryHelper;
 use App\Models\Category;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -48,12 +49,26 @@ class CategoryService
             $data['is_active'] = true;
         }
 
-        // Handle metadata
+        // Handle metadata - encode with unescaped Unicode
+        $metadataJson = null;
         if (isset($data['metadata']) && is_array($data['metadata'])) {
-            $data['metadata'] = json_encode($data['metadata']);
+            // Filter out null and empty values
+            $filtered = array_filter($data['metadata'], function ($val) {
+                return $val !== null && $val !== '';
+            });
+            if (! empty($filtered)) {
+                $metadataJson = json_encode($filtered, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+            unset($data['metadata']);
         }
 
         $category = Category::create($data);
+
+        // Set metadata directly to bypass cast
+        if ($metadataJson !== null) {
+            DB::table('categories')->where('id', $category->id)->update(['metadata' => $metadataJson]);
+            $category->refresh();
+        }
 
         Log::info('Category created', [
             'category_id' => $category->id,
@@ -117,16 +132,32 @@ class CategoryService
             $data['is_active'] = true;
         }
 
-        // Handle metadata
+        // Handle metadata - encode with unescaped Unicode
+        $metadataJson = null;
         if (isset($data['metadata'])) {
             if (is_array($data['metadata'])) {
-                $data['metadata'] = json_encode($data['metadata']);
+                // Filter out null and empty values
+                $filtered = array_filter($data['metadata'], function ($val) {
+                    return $val !== null && $val !== '';
+                });
+                if (! empty($filtered)) {
+                    $metadataJson = json_encode($filtered, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                } else {
+                    $metadataJson = null;
+                }
             } elseif (empty($data['metadata'])) {
-                $data['metadata'] = null;
+                $metadataJson = null;
             }
+            unset($data['metadata']);
         }
 
         $category->update($data);
+
+        // Set metadata directly to bypass cast
+        if (isset($metadataJson)) {
+            DB::table('categories')->where('id', $category->id)->update(['metadata' => $metadataJson]);
+            $category->refresh();
+        }
 
         Log::info('Category updated', [
             'category_id' => $category->id,
