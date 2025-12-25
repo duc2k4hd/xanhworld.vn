@@ -132,5 +132,3 @@ class AdminMediaTargetController extends Controller
         });
     }
 }
-
-

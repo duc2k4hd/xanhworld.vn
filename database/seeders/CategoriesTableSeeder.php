@@ -455,5 +455,3 @@ class CategoriesTableSeeder extends Seeder
         ], ['id']);
     }
 }
-
-

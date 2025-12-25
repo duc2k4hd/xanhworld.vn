@@ -34,8 +34,8 @@ class AdminMediaUploadController extends Controller
         MediaAssignmentService $assignment
     ) {
         $validated = $request->validate([
-            'folder' => 'required|in:' . implode(',', array_keys($this->folders)),
-            'target_type' => 'required|in:' . implode(',', $this->targets),
+            'folder' => 'required|in:'.implode(',', array_keys($this->folders)),
+            'target_type' => 'required|in:'.implode(',', $this->targets),
             'target_id' => 'required|integer|min:1',
             'title' => 'nullable|string|max:255',
             'alt' => 'nullable|string|max:255',
@@ -67,10 +67,8 @@ class AdminMediaUploadController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Đã upload và gán ' . count($results) . ' ảnh.',
+            'message' => 'Đã upload và gán '.count($results).' ảnh.',
             'items' => $results,
         ]);
     }
 }
-
-

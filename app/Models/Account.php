@@ -170,7 +170,6 @@ class Account extends Authenticatable
         ];
     }
 
-
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;

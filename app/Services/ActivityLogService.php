@@ -39,4 +39,3 @@ class ActivityLogService
         ActivityLog::log($action, $model, $description, null, $data);
     }
 }
-

@@ -32,5 +32,3 @@ class AdminMediaSearchController extends Controller
         ]);
     }
 }
-
-

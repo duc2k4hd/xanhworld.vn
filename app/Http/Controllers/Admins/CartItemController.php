@@ -77,4 +77,3 @@ class CartItemController extends Controller
             ->with('success', 'Đã xóa sản phẩm khỏi giỏ hàng.');
     }
 }
-

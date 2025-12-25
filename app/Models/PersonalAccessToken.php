@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Carbon\Carbon;
 
 class PersonalAccessToken extends Model
 {
@@ -62,6 +62,7 @@ class PersonalAccessToken extends Model
     public function markUsed(): bool
     {
         $this->last_used_at = Carbon::now();
+
         return $this->save();
     }
 }

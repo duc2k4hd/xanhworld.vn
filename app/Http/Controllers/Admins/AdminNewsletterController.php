@@ -89,14 +89,14 @@ class AdminNewsletterController extends Controller
         // Log - chỉ log nếu có account tương ứng với email
         $account = Account::where('email', $email)->first();
         if ($account) {
-        $this->accountLogService->record(
-            'newsletter.deleted',
+            $this->accountLogService->record(
+                'newsletter.deleted',
                 $account->id,
-            null,
-            [],
-            ['email' => $email],
-            false
-        );
+                null,
+                [],
+                ['email' => $email],
+                false
+            );
         }
 
         if (request()->expectsJson() || request()->ajax()) {
@@ -314,7 +314,7 @@ class AdminNewsletterController extends Controller
             if ($request->filled('footer')) {
                 $emailData['footer'] = $request->input('footer');
             }
-            
+
             // Set email mặc định nếu không chọn từ form
             // Lưu ý: giá trị "0" vẫn là hợp lệ (sử dụng cấu hình .env), nên không dùng toán tử ?: ở đây
             if ($request->has('email_account_id') && $request->input('email_account_id') !== '') {
@@ -322,7 +322,7 @@ class AdminNewsletterController extends Controller
             } else {
                 $emailAccountId = (int) (config('email_defaults.newsletter_marketing') ?? 0);
             }
-            
+
             $results = $this->newsletterService->sendMarketingEmail(
                 $subscriptionIds,
                 $request->input('subject'),

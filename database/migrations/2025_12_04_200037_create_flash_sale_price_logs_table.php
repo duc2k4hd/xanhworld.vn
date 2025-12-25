@@ -36,5 +36,3 @@ return new class extends Migration
         Schema::dropIfExists('flash_sale_price_logs');
     }
 };
-
-

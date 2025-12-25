@@ -28,7 +28,7 @@ class AdminMediaAssignController extends Controller
         $validated = $request->validate([
             'source' => 'required|in:product_image,post_thumbnail,category_image,banner_desktop,banner_mobile,profile_avatar,profile_sub_avatar',
             'media_id' => 'required',
-            'target_type' => 'required|in:' . implode(',', $this->targets),
+            'target_type' => 'required|in:'.implode(',', $this->targets),
             'target_id' => 'required|integer|min:1',
         ]);
 
@@ -110,5 +110,3 @@ class AdminMediaAssignController extends Controller
         ];
     }
 }
-
-

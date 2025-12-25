@@ -24,6 +24,3 @@ class AddressFilterRequest extends FormRequest
         ];
     }
 }
-
-
-

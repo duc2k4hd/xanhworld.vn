@@ -673,5 +673,3 @@ class SettingsTableSeeder extends Seeder
         ], ['id']);
     }
 }
-
-

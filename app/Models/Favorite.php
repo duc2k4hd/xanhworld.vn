@@ -10,12 +10,13 @@ class Favorite extends Model
     use HasFactory;
 
     protected $table = 'favorites';
+
     protected $fillable = [
         'product_id',
         'account_id',
         'session_id',
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
 
     protected $casts = [
@@ -41,6 +42,7 @@ class Favorite extends Model
         if ($accountId) {
             return $query->where('account_id', $accountId);
         }
+
         return $query->whereNull('account_id')->where('session_id', $sessionId);
     }
 

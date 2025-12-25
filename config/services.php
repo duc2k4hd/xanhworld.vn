@@ -64,7 +64,7 @@ return [
     ],
 
     'tinymce' => [
-        'key' => env('APP_KEY_TINYMCE')
+        'key' => env('APP_KEY_TINYMCE'),
     ],
 
     'google' => [

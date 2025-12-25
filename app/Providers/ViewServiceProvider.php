@@ -84,20 +84,20 @@ class ViewServiceProvider extends ServiceProvider
                 $sessionId = null;
             }
 
-                try {
-                    $account = auth('web')->user() ?? null;
+            try {
+                $account = auth('web')->user() ?? null;
 
                 // Lấy cart: nếu đã đăng nhập thì lấy theo account_id, nếu chưa thì lấy theo session_id
-                    $cartQuery = Cart::query()->active()->with(['items' => function ($q) {
-                        $q->where(function ($q2) {
-                            $q2->whereNull('status')->orWhere('status', 'active');
-                        });
-                    }]);
+                $cartQuery = Cart::query()->active()->with(['items' => function ($q) {
+                    $q->where(function ($q2) {
+                        $q2->whereNull('status')->orWhere('status', 'active');
+                    });
+                }]);
 
                 if ($accountId) {
                     // Đã đăng nhập: chỉ lấy cart của account này
                     $cartQuery->where('account_id', $accountId);
-                    } else {
+                } else {
                     // Chưa đăng nhập: chỉ lấy cart theo session và không có account_id
                     // QUAN TRỌNG: Phải đảm bảo account_id là NULL để không lấy cart của user khác
                     if ($sessionId) {
@@ -106,19 +106,19 @@ class ViewServiceProvider extends ServiceProvider
                         // Nếu không có sessionId (ví dụ Googlebot), không lấy cart
                         $cartQuery->whereRaw('1 = 0');
                     }
-                    }
+                }
 
-                    $cart = $cartQuery->orderByDesc('id')->first();
+                $cart = $cartQuery->orderByDesc('id')->first();
 
                 // Đếm số lượng cart items
-                    $cartItemSumQuery = CartItem::query()->active()
-                        ->where(function ($q) {
-                            $q->whereNull('status')->orWhere('status', 'active');
-                        })
+                $cartItemSumQuery = CartItem::query()->active()
+                    ->where(function ($q) {
+                        $q->whereNull('status')->orWhere('status', 'active');
+                    })
                     ->whereHas('cart', function ($q) use ($accountId, $sessionId) {
                         if ($accountId) {
                             $q->where('account_id', $accountId);
-                            } else {
+                        } else {
                             // QUAN TRỌNG: Phải đảm bảo account_id là NULL
                             if ($sessionId) {
                                 $q->whereNull('account_id')->where('session_id', $sessionId);
@@ -126,49 +126,49 @@ class ViewServiceProvider extends ServiceProvider
                                 // Nếu không có sessionId (ví dụ Googlebot), không lấy cart items
                                 $q->whereRaw('1 = 0');
                             }
-                            }
-                        });
+                        }
+                    });
 
-                    $cartCount = (int) ($cartItemSumQuery->sum('quantity') ?? 0);
-                    $cartLink = $cartCount > 0 ? route('client.cart.index') : null;
+                $cartCount = (int) ($cartItemSumQuery->sum('quantity') ?? 0);
+                $cartLink = $cartCount > 0 ? route('client.cart.index') : null;
 
                 // Lấy favorites
                 $favorites = Favorite::ofOwner($accountId, $sessionId)->pluck('product_id');
-                    $favCount = $favorites->count();
-                    $favIds = $favorites->toArray();
+                $favCount = $favorites->count();
+                $favIds = $favorites->toArray();
                 $favLink = $favCount > 0 ? route('client.wishlist.index') : null;
 
-                    $sharedPayload = [
-                        'account' => $account,
-                        'cart' => $cart,
-                        'cartCount' => $cartCount,
-                        'cartLink' => $cartLink,
-                        'cartQuantity' => $cartCount,
-                        'cartQty' => $cartCount,
-                        'cart_items_count' => $cartCount,
-                        'cartUrl' => $cartLink,
-                        'wishlistCount' => $favCount,
-                        'wishlistLink' => $favLink,
-                        'favoriteProductIds' => $favIds,
-                    ];
-                } catch (Throwable $e) {
-                    Log::debug('Trình soạn thảo ViewServiceProvider đã bỏ qua', [
+                $sharedPayload = [
+                    'account' => $account,
+                    'cart' => $cart,
+                    'cartCount' => $cartCount,
+                    'cartLink' => $cartLink,
+                    'cartQuantity' => $cartCount,
+                    'cartQty' => $cartCount,
+                    'cart_items_count' => $cartCount,
+                    'cartUrl' => $cartLink,
+                    'wishlistCount' => $favCount,
+                    'wishlistLink' => $favLink,
+                    'favoriteProductIds' => $favIds,
+                ];
+            } catch (Throwable $e) {
+                Log::debug('Trình soạn thảo ViewServiceProvider đã bỏ qua', [
                     'error' => $e->getMessage(),
-                    ]);
+                ]);
 
-                    $sharedPayload = [
-                        'account' => null,
-                        'cart' => null,
-                        'cartCount' => 0,
-                        'cartLink' => null,
-                        'cartQuantity' => 0,
-                        'cartQty' => 0,
-                        'cart_items_count' => 0,
-                        'cartUrl' => null,
-                        'wishlistCount' => 0,
-                        'wishlistLink' => null,
-                        'favoriteProductIds' => [],
-                    ];
+                $sharedPayload = [
+                    'account' => null,
+                    'cart' => null,
+                    'cartCount' => 0,
+                    'cartLink' => null,
+                    'cartQuantity' => 0,
+                    'cartQty' => 0,
+                    'cart_items_count' => 0,
+                    'cartUrl' => null,
+                    'wishlistCount' => 0,
+                    'wishlistLink' => null,
+                    'favoriteProductIds' => [],
+                ];
             }
 
             foreach ($sharedPayload as $key => $value) {

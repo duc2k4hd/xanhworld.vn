@@ -22,5 +22,3 @@ class UpdateOrderStatusRequest extends FormRequest
         ];
     }
 }
-
-

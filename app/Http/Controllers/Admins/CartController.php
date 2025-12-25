@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 class CartController extends Controller
 {
     protected CartService $cartService;
+
     protected OrderService $orderService;
 
     public function __construct(CartService $cartService, OrderService $orderService)
@@ -64,8 +65,8 @@ class CartController extends Controller
         $query = Cart::with(['account', 'items' => function ($q) {
             $q->where('status', 'active');
         }])
-        ->where('status', 'active')
-        ->has('items', '>', 0);
+            ->where('status', 'active')
+            ->has('items', '>', 0);
 
         if ($keyword = $request->get('keyword')) {
             $query->where(function ($q) use ($keyword) {
@@ -135,7 +136,7 @@ class CartController extends Controller
     {
         // Validate cart (skip price check for admin-created orders)
         $errors = $this->cartService->validateCart($cart, skipPriceCheck: true);
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             return redirect()
                 ->route('admin.carts.show', $cart)
                 ->with('error', implode(' ', $errors));
@@ -164,12 +165,11 @@ class CartController extends Controller
 
             return redirect()
                 ->route('admin.carts.show', $cart)
-                ->with('success', 'Đã tạo đơn hàng thành công! Mã đơn: ' . $order->code);
+                ->with('success', 'Đã tạo đơn hàng thành công! Mã đơn: '.$order->code);
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Không thể tạo đơn hàng: ' . $e->getMessage());
+                ->with('error', 'Không thể tạo đơn hàng: '.$e->getMessage());
         }
     }
 }
-

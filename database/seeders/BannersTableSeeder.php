@@ -98,5 +98,3 @@ class BannersTableSeeder extends Seeder
         ], ['id']);
     }
 }
-
-

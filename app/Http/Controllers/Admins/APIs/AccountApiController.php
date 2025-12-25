@@ -26,8 +26,7 @@ class AccountApiController extends Controller
     public function __construct(
         protected AccountLogService $accountLogService,
         protected AccountEmailVerificationService $verificationService
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {
@@ -85,12 +84,12 @@ class AccountApiController extends Controller
         $changes = [];
 
         DB::transaction(function () use ($account, $validated, $profileData, &$changes) {
-            if (!empty($validated)) {
+            if (! empty($validated)) {
                 $beforeAccount = $account->getOriginal();
                 $account->fill($validated);
                 $dirtyAccount = $account->getDirty();
 
-                if (!empty($dirtyAccount)) {
+                if (! empty($dirtyAccount)) {
                     $account->save();
                     $changes['account'] = [
                         'before' => array_intersect_key($beforeAccount, $dirtyAccount),
@@ -99,13 +98,13 @@ class AccountApiController extends Controller
                 }
             }
 
-            if (!empty($profileData)) {
+            if (! empty($profileData)) {
                 $profile = $account->profile()->firstOrNew([]);
                 $beforeProfile = $profile->getOriginal();
                 $profile->fill($profileData);
                 $dirtyProfile = $profile->getDirty();
 
-                if (!empty($dirtyProfile)) {
+                if (! empty($dirtyProfile)) {
                     $profile->save();
                     $changes['profile'] = [
                         'before' => array_intersect_key($beforeProfile, $dirtyProfile),
@@ -115,7 +114,7 @@ class AccountApiController extends Controller
             }
         });
 
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             $this->accountLogService->record('account.updated', $account->id, null, $changes);
         }
 
@@ -140,14 +139,14 @@ class AccountApiController extends Controller
 
         $target = $request->has('is_active')
             ? $request->boolean('is_active')
-            : !$account->is_active;
+            : ! $account->is_active;
 
         $account->forceFill([
             'is_active' => $target,
             'account_status' => $target ? Account::STATUS_ACTIVE : Account::STATUS_INACTIVE,
         ])->save();
 
-        if (!$target) {
+        if (! $target) {
             $this->terminateSessions($account);
         }
 
@@ -291,4 +290,3 @@ class AccountApiController extends Controller
         return $validated;
     }
 }
- 

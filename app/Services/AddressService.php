@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\Account;
 use App\Models\Address;
 use App\Models\AddressAudit;
-use App\Models\Account;
 use Illuminate\Support\Facades\DB;
 
 class AddressService
@@ -88,5 +88,3 @@ class AddressService
         });
     }
 }
-
-

@@ -70,11 +70,11 @@ class Contact extends Model
         }
 
         return $query->where(function ($q) use ($keyword): void {
-            $q->where('name', 'like', '%' . $keyword . '%')
-                ->orWhere('email', 'like', '%' . $keyword . '%')
-                ->orWhere('phone', 'like', '%' . $keyword . '%')
-                ->orWhere('subject', 'like', '%' . $keyword . '%')
-                ->orWhere('message', 'like', '%' . $keyword . '%');
+            $q->where('name', 'like', '%'.$keyword.'%')
+                ->orWhere('email', 'like', '%'.$keyword.'%')
+                ->orWhere('phone', 'like', '%'.$keyword.'%')
+                ->orWhere('subject', 'like', '%'.$keyword.'%')
+                ->orWhere('message', 'like', '%'.$keyword.'%');
         });
     }
 

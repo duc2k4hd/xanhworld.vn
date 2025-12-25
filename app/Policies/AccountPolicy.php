@@ -13,7 +13,7 @@ class AccountPolicy
 
     public function view(Account $admin, Account $account): bool
     {
-        if (!$this->isAdminOrWriter($admin)) {
+        if (! $this->isAdminOrWriter($admin)) {
             return false;
         }
 
@@ -29,7 +29,7 @@ class AccountPolicy
 
     public function update(Account $admin, Account $account): bool
     {
-        if (!$this->isAdminOrWriter($admin)) {
+        if (! $this->isAdminOrWriter($admin)) {
             return false;
         }
 
@@ -46,7 +46,7 @@ class AccountPolicy
     public function delete(Account $admin, Account $account): bool
     {
         // Only admin can delete accounts
-        if (!$admin->isAdmin()) {
+        if (! $admin->isAdmin()) {
             return false;
         }
 
@@ -62,7 +62,7 @@ class AccountPolicy
     public function lock(Account $admin, Account $account): bool
     {
         // Only admin can lock accounts
-        if (!$admin->isAdmin()) {
+        if (! $admin->isAdmin()) {
             return false;
         }
 
@@ -93,7 +93,7 @@ class AccountPolicy
     public function changeRole(Account $admin, Account $account): bool
     {
         // Only admin can change roles
-        if (!$admin->isAdmin()) {
+        if (! $admin->isAdmin()) {
             return false;
         }
 
@@ -119,4 +119,3 @@ class AccountPolicy
         ]);
     }
 }
-

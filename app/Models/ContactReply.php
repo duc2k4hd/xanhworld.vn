@@ -27,5 +27,3 @@ class ContactReply extends Model
         return $this->belongsTo(Account::class);
     }
 }
-
-

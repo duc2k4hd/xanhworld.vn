@@ -15,9 +15,7 @@ use Illuminate\Support\Str;
 
 class AccountProfileController extends Controller
 {
-    public function __construct(protected AccountLogService $accountLogService)
-    {
-    }
+    public function __construct(protected AccountLogService $accountLogService) {}
 
     public function show(Account $account)
     {
@@ -36,7 +34,7 @@ class AccountProfileController extends Controller
         $before = array_intersect_key($profile->getOriginal(), $dirty);
         $profile->save();
 
-        if (!empty($dirty)) {
+        if (! empty($dirty)) {
             $this->accountLogService->record('profile.updated', $account->id, null, [
                 'before' => $before,
                 'after' => $dirty,
@@ -53,7 +51,7 @@ class AccountProfileController extends Controller
         $profile = $this->ensureProfile($account);
         $nextState = $request->has('is_public')
             ? $request->boolean('is_public')
-            : !$profile->is_public;
+            : ! $profile->is_public;
 
         $profile->is_public = $nextState;
         $profile->save();
@@ -106,7 +104,7 @@ class AccountProfileController extends Controller
             $changes['sub_avatar'] = $profile->sub_avatar;
         }
 
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             $profile->save();
             $this->accountLogService->record('profile.avatar_updated', $account->id, null, $changes);
         }
@@ -123,12 +121,12 @@ class AccountProfileController extends Controller
     {
         $directory = $this->avatarDirectoryPath();
 
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             mkdir($directory, 0755, true);
         }
 
         $extension = strtolower($file->getClientOriginalExtension() ?: 'jpg');
-        $filename = $account->id . '_' . $type . '_' . Str::random(20) . '.' . $extension;
+        $filename = $account->id.'_'.$type.'_'.Str::random(20).'.'.$extension;
 
         $file->move($directory, $filename);
 
@@ -142,13 +140,13 @@ class AccountProfileController extends Controller
 
     protected function rememberHistory(Profile $profile, string $field, ?string $oldFilename): void
     {
-        if (!$oldFilename) {
+        if (! $oldFilename) {
             return;
         }
 
-        $key = $field . '_history';
+        $key = $field.'_history';
         $history = $profile->{$key};
-        if (!is_array($history)) {
+        if (! is_array($history)) {
             $history = [];
         }
         array_unshift($history, $oldFilename);
@@ -157,9 +155,9 @@ class AccountProfileController extends Controller
 
     protected function restoreFromHistory(Profile $profile, string $field): ?string
     {
-        $key = $field . '_history';
+        $key = $field.'_history';
         $history = $profile->{$key};
-        if (!is_array($history) || empty($history)) {
+        if (! is_array($history) || empty($history)) {
             return null;
         }
         $next = array_shift($history);

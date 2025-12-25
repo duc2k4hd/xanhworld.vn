@@ -31,7 +31,7 @@ class EmailTemplateController extends Controller
      */
     public function create()
     {
-        $emailTemplate = new EmailTemplate();
+        $emailTemplate = new EmailTemplate;
 
         return view('admins.email-templates.edit', compact('emailTemplate'));
     }
@@ -89,7 +89,7 @@ class EmailTemplateController extends Controller
      */
     public function toggle(EmailTemplate $emailTemplate)
     {
-        $emailTemplate->update(['is_active' => !$emailTemplate->is_active]);
+        $emailTemplate->update(['is_active' => ! $emailTemplate->is_active]);
 
         return back()->with('success', 'Đã cập nhật trạng thái template.');
     }

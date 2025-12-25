@@ -41,7 +41,7 @@ class CommentService
         $parentComment = Comment::findOrFail($commentId);
 
         // Tự động duyệt comment khi admin reply
-        if (!$parentComment->is_approved) {
+        if (! $parentComment->is_approved) {
             $parentComment->is_approved = true;
             $parentComment->save();
         }

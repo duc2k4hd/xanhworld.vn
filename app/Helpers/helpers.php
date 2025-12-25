@@ -1,12 +1,12 @@
 <?php
 
 use App\Models\Setting;
-use Illuminate\Support\Facades\Auth;
 
-if (!function_exists('renderMeta')) {
-    function renderMeta($text) {
+if (! function_exists('renderMeta')) {
+    function renderMeta($text)
+    {
         // Nếu chưa có settings trong config thì nạp vào
-        if (!config()->has('settings')) {
+        if (! config()->has('settings')) {
             try {
                 // Query DB 1 lần
                 $settings = Setting::pluck('value', 'key')->toArray();
@@ -17,22 +17,19 @@ if (!function_exists('renderMeta')) {
             }
         }
 
-        
-
         // Lấy subname từ config, fallback mặc định
         $shopName = config('settings.subname', 'NOBI FASHION');
 
         return str_replace(
             [
-                        '[NOBI]currentyear[NOBI]',
-                        '[NOBI]subname[NOBI]'
-                    ],
+                '[NOBI]currentyear[NOBI]',
+                '[NOBI]subname[NOBI]',
+            ],
             [
-                        date('n') >= 11 ? date('Y') + 1 : date('Y'),
-                        $shopName
-                    ],
+                date('n') >= 11 ? date('Y') + 1 : date('Y'),
+                $shopName,
+            ],
             $text
         );
     }
 }
-

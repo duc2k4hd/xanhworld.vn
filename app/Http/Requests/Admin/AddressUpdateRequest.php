@@ -30,6 +30,3 @@ class AddressUpdateRequest extends FormRequest
         ];
     }
 }
-
-
-

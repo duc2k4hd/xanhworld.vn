@@ -13,13 +13,14 @@ class AccountEmailVerification extends Model
     public $timestamps = false;
 
     protected $table = 'account_email_verifications';
+
     protected $fillable = [
         'account_id',
         'token',
         'created_at',
         'expires_at',
     ];
-    
+
     protected $casts = [
         'expires_at' => 'datetime',
         'created_at' => 'datetime',

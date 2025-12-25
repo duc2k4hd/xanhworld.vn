@@ -35,5 +35,3 @@ return new class extends Migration
         Schema::dropIfExists('account_logs');
     }
 };
-
-

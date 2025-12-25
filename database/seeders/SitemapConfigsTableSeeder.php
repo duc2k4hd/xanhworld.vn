@@ -24,5 +24,3 @@ class SitemapConfigsTableSeeder extends Seeder
         ], ['id']);
     }
 }
-
-

@@ -120,4 +120,3 @@ trait HasImageIds
         $this->resolvedImages = null;
     }
 }
-

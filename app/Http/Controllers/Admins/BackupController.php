@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 
 class BackupController extends Controller
 {
@@ -60,7 +59,7 @@ class BackupController extends Controller
     {
         $filePath = storage_path('app/backups/'.$fileName);
 
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return back()->with('error', 'File backup không tồn tại.');
         }
 
@@ -74,7 +73,7 @@ class BackupController extends Controller
     {
         $filePath = storage_path('app/backups/'.$fileName);
 
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return back()->with('error', 'File backup không tồn tại.');
         }
 
@@ -94,7 +93,7 @@ class BackupController extends Controller
 
         $filePath = storage_path('app/backups/'.$fileName);
 
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return back()->with('error', 'File backup không tồn tại.');
         }
 

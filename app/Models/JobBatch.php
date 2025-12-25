@@ -9,7 +9,9 @@ class JobBatch extends Model
     protected $table = 'job_batches';
 
     public $incrementing = false;
+
     protected $primaryKey = 'id';
+
     protected $keyType = 'string';
 
     public $timestamps = false;

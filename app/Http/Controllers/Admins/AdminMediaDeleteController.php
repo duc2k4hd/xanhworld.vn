@@ -22,5 +22,3 @@ class AdminMediaDeleteController extends Controller
         ], $success ? 200 : 400);
     }
 }
-
-

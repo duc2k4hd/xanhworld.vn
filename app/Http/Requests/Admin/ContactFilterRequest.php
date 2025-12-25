@@ -25,5 +25,3 @@ class ContactFilterRequest extends FormRequest
         ];
     }
 }
-
-

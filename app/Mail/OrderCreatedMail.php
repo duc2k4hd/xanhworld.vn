@@ -16,8 +16,7 @@ class OrderCreatedMail extends Mailable
 
     public function __construct(
         public Order $order
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
@@ -58,4 +57,3 @@ class OrderCreatedMail extends Mailable
         return [];
     }
 }
-

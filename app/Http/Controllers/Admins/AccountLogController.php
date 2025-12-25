@@ -72,19 +72,19 @@ class AccountLogController extends Controller
 
     protected function applyFilters($query, array $filters): void
     {
-        if (!empty($filters['type'])) {
+        if (! empty($filters['type'])) {
             $query->where('type', $filters['type']);
         }
 
-        if (!empty($filters['types'])) {
+        if (! empty($filters['types'])) {
             $query->whereIn('type', array_filter($filters['types']));
         }
 
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->whereDate('created_at', '>=', $filters['date_from']);
         }
 
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->whereDate('created_at', '<=', $filters['date_to']);
         }
     }

@@ -66,7 +66,7 @@ class OrderItemController extends Controller
             }
 
             $data = $request->validated();
-            
+
             // Update item
             $orderItem->update([
                 'quantity' => $data['quantity'],
@@ -83,7 +83,7 @@ class OrderItemController extends Controller
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Không thể cập nhật: ' . $e->getMessage());
+                ->with('error', 'Không thể cập nhật: '.$e->getMessage());
         }
     }
 
@@ -112,8 +112,7 @@ class OrderItemController extends Controller
                 ->with('success', 'Đã xóa sản phẩm khỏi đơn hàng.');
         } catch (\Exception $e) {
             return back()
-                ->with('error', 'Không thể xóa: ' . $e->getMessage());
+                ->with('error', 'Không thể xóa: '.$e->getMessage());
         }
     }
 }
-

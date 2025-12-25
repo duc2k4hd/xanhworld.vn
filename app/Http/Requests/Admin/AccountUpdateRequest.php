@@ -43,4 +43,3 @@ class AccountUpdateRequest extends FormRequest
         ];
     }
 }
-

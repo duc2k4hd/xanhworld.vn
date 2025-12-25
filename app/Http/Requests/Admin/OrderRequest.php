@@ -43,5 +43,3 @@ class OrderRequest extends FormRequest
         ];
     }
 }
-
-

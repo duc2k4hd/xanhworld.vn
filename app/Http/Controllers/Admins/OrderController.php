@@ -1004,7 +1004,7 @@ class OrderController extends Controller
         $orders = $query->orderByDesc('created_at')->get();
 
         // Create Excel file
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Orders');
 
@@ -1033,6 +1033,7 @@ class OrderController extends Controller
         foreach ($orders as $order) {
             $items = $order->items->map(function ($item) {
                 $variant = $item->variant ? ' ('.$item->variant->name.')' : '';
+
                 return $item->product->name.$variant.' x'.$item->quantity;
             })->implode('; ');
 
@@ -1072,7 +1073,7 @@ class OrderController extends Controller
 
         $fileName = 'orders_export_'.now()->format('Y-m-d_H-i-s').'.xlsx';
         $tempDir = storage_path('app/tmp');
-        if (!is_dir($tempDir)) {
+        if (! is_dir($tempDir)) {
             mkdir($tempDir, 0755, true);
         }
         $fullPath = $tempDir.'/'.$fileName;

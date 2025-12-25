@@ -35,7 +35,7 @@ class ContactReplyService
             Mail::send([], [], function (Message $mail) use ($to, $message, $attachment, $fromAddress, $fromName): void {
                 $mail->to($to)
                     ->from($fromAddress, $fromName)
-                    ->subject('Phản hồi liên hệ từ ' . config('app.name'))
+                    ->subject('Phản hồi liên hệ từ '.config('app.name'))
                     ->html($message);
 
                 if ($attachment instanceof UploadedFile) {
@@ -70,5 +70,3 @@ class ContactReplyService
         }
     }
 }
-
-

@@ -52,5 +52,3 @@ class NewsletterPublicController extends Controller
             ->with('success', 'Bạn đã hủy đăng ký nhận bản tin thành công.');
     }
 }
-
-

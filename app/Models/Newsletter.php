@@ -96,8 +96,8 @@ class Newsletter extends Model
         }
 
         return $query->where(function ($q) use ($keyword): void {
-            $q->where('email', 'like', '%' . $keyword . '%')
-                ->orWhere('ip_address', 'like', '%' . $keyword . '%');
+            $q->where('email', 'like', '%'.$keyword.'%')
+                ->orWhere('ip_address', 'like', '%'.$keyword.'%');
         });
     }
 

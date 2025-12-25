@@ -34,5 +34,3 @@ class AccountsTableSeeder extends Seeder
         ], ['id']);
     }
 }
-
-

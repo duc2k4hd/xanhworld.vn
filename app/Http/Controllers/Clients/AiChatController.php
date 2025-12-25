@@ -13,8 +13,7 @@ class AiChatController extends Controller
 {
     public function __construct(
         private AiAssistantService $aiAssistantService
-    ) {
-    }
+    ) {}
 
     public function __invoke(AiChatRequest $request): JsonResponse
     {

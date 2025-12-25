@@ -30,5 +30,3 @@ class NewsletterSendBulkRequest extends FormRequest
         ];
     }
 }
-
-

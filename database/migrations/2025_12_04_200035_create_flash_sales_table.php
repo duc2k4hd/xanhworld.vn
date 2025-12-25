@@ -50,5 +50,3 @@ return new class extends Migration
         Schema::dropIfExists('flash_sales');
     }
 };
-
-

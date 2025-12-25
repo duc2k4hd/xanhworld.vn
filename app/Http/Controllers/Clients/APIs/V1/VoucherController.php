@@ -12,9 +12,7 @@ use Throwable;
 
 class VoucherController extends Controller
 {
-    public function __construct(private VoucherService $voucherService)
-    {
-    }
+    public function __construct(private VoucherService $voucherService) {}
 
     public function apply(VoucherApplyRequest $request): JsonResponse
     {
@@ -87,4 +85,3 @@ class VoucherController extends Controller
         ]);
     }
 }
-

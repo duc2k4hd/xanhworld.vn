@@ -32,5 +32,3 @@ class NewsletterCampaign extends Model
         'filter_date_to' => 'date',
     ];
 }
-
-

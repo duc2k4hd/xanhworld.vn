@@ -207,7 +207,7 @@ class BlogController extends Controller
                 $comment->setRelation('adminReply', $adminReplies->get($comment->id));
             }
         });
-        
+
         // Get total count for "load more" functionality
         $totalComments = Comment::where('commentable_type', 'post')
             ->where('commentable_id', $post->id)

@@ -416,7 +416,7 @@ class AccountController extends Controller
         $query = Account::with(['profile', 'addresses']);
 
         // Apply filters
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('name', 'like', "%{$filters['search']}%")
                     ->orWhere('email', 'like', "%{$filters['search']}%")
@@ -424,11 +424,11 @@ class AccountController extends Controller
             });
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['role'])) {
+        if (! empty($filters['role'])) {
             $query->where('role', $filters['role']);
         }
 
@@ -443,7 +443,7 @@ class AccountController extends Controller
         $accounts = $query->orderBy('created_at', 'desc')->get();
 
         // Create Excel file
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Accounts');
 
@@ -503,7 +503,7 @@ class AccountController extends Controller
 
         $fileName = 'accounts_export_'.now()->format('Y-m-d_H-i-s').'.xlsx';
         $tempDir = storage_path('app/tmp');
-        if (!is_dir($tempDir)) {
+        if (! is_dir($tempDir)) {
             mkdir($tempDir, 0755, true);
         }
         $fullPath = $tempDir.'/'.$fileName;

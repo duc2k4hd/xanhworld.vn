@@ -6,27 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\Voucher;
 use App\Services\VoucherAnalyticsService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Illuminate\Http\JsonResponse;
 
 class VoucherAnalyticsController extends Controller
 {
-    public function __construct(private readonly VoucherAnalyticsService $analyticsService)
-    {
-    }
+    public function __construct(private readonly VoucherAnalyticsService $analyticsService) {}
 
     /**
      * Dashboard tổng quan
      */
     public function dashboard(Request $request): View
     {
-        $startDate = $request->input('start_date') 
-            ? Carbon::parse($request->input('start_date')) 
+        $startDate = $request->input('start_date')
+            ? Carbon::parse($request->input('start_date'))
             : Carbon::now()->subDays(30);
-        
-        $endDate = $request->input('end_date') 
-            ? Carbon::parse($request->input('end_date')) 
+
+        $endDate = $request->input('end_date')
+            ? Carbon::parse($request->input('end_date'))
             : Carbon::now();
 
         $overallStats = $this->analyticsService->getOverallStats($startDate, $endDate);
@@ -51,12 +49,12 @@ class VoucherAnalyticsController extends Controller
     {
         $voucher = Voucher::findOrFail($voucherId);
 
-        $startDate = $request->input('start_date') 
-            ? Carbon::parse($request->input('start_date')) 
+        $startDate = $request->input('start_date')
+            ? Carbon::parse($request->input('start_date'))
             : Carbon::now()->subDays(30);
-        
-        $endDate = $request->input('end_date') 
-            ? Carbon::parse($request->input('end_date')) 
+
+        $endDate = $request->input('end_date')
+            ? Carbon::parse($request->input('end_date'))
             : Carbon::now();
 
         $period = $request->input('period', 'daily');
@@ -79,12 +77,12 @@ class VoucherAnalyticsController extends Controller
      */
     public function getRevenueTrendData(int $voucherId, Request $request): JsonResponse
     {
-        $startDate = $request->input('start_date') 
-            ? Carbon::parse($request->input('start_date')) 
+        $startDate = $request->input('start_date')
+            ? Carbon::parse($request->input('start_date'))
             : Carbon::now()->subDays(30);
-        
-        $endDate = $request->input('end_date') 
-            ? Carbon::parse($request->input('end_date')) 
+
+        $endDate = $request->input('end_date')
+            ? Carbon::parse($request->input('end_date'))
             : Carbon::now();
 
         $period = $request->input('period', 'daily');
@@ -102,12 +100,12 @@ class VoucherAnalyticsController extends Controller
      */
     public function getOverallStats(Request $request): JsonResponse
     {
-        $startDate = $request->input('start_date') 
-            ? Carbon::parse($request->input('start_date')) 
+        $startDate = $request->input('start_date')
+            ? Carbon::parse($request->input('start_date'))
             : null;
-        
-        $endDate = $request->input('end_date') 
-            ? Carbon::parse($request->input('end_date')) 
+
+        $endDate = $request->input('end_date')
+            ? Carbon::parse($request->input('end_date'))
             : null;
 
         $stats = $this->analyticsService->getOverallStats($startDate, $endDate);
@@ -118,4 +116,3 @@ class VoucherAnalyticsController extends Controller
         ]);
     }
 }
-

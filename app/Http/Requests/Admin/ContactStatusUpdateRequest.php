@@ -19,5 +19,3 @@ class ContactStatusUpdateRequest extends FormRequest
         ];
     }
 }
-
-

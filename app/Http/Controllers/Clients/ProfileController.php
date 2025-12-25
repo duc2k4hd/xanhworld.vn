@@ -15,8 +15,7 @@ class ProfileController extends Controller
 {
     public function __construct(
         private ProductViewService $productViewService
-    ) {
-    }
+    ) {}
 
     /**
      * Hiển thị trang profile

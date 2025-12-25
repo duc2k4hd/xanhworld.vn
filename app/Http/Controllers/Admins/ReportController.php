@@ -7,13 +7,12 @@ use App\Models\Account;
 use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
@@ -47,10 +46,10 @@ class ReportController extends Controller
         // Calculate summary with a fresh query
         $summaryQuery = Order::where('status', '!=', 'cancelled')
             ->whereBetween('created_at', [$dateFrom, Carbon::parse($dateTo)->endOfDay()]);
-        
+
         $totalRevenue = $summaryQuery->sum('final_price');
         $totalOrders = $summaryQuery->count();
-        
+
         $summary = [
             'total_revenue' => $totalRevenue,
             'total_orders' => $totalOrders,
@@ -183,10 +182,11 @@ class ReportController extends Controller
 
         if ($format === 'pdf') {
             $pdf = Pdf::loadView('admins.reports.exports.revenue-pdf', compact('data', 'dateFrom', 'dateTo'));
+
             return $pdf->download('revenue_report_'.$dateFrom.'_'.$dateTo.'.pdf');
         }
 
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Doanh thu');
 
@@ -218,10 +218,11 @@ class ReportController extends Controller
 
         if ($format === 'pdf') {
             $pdf = Pdf::loadView('admins.reports.exports.products-pdf', compact('data', 'dateFrom', 'dateTo'));
+
             return $pdf->download('products_report_'.$dateFrom.'_'.$dateTo.'.pdf');
         }
 
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Sản phẩm');
 
@@ -256,10 +257,11 @@ class ReportController extends Controller
 
         if ($format === 'pdf') {
             $pdf = Pdf::loadView('admins.reports.exports.customers-pdf', compact('data', 'dateFrom', 'dateTo'));
+
             return $pdf->download('customers_report_'.$dateFrom.'_'.$dateTo.'.pdf');
         }
 
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Khách hàng');
 
@@ -287,10 +289,11 @@ class ReportController extends Controller
 
         if ($format === 'pdf') {
             $pdf = Pdf::loadView('admins.reports.exports.inventory-pdf', compact('data', 'dateFrom', 'dateTo'));
+
             return $pdf->download('inventory_report_'.$dateFrom.'_'.$dateTo.'.pdf');
         }
 
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Tồn kho');
 
@@ -315,7 +318,7 @@ class ReportController extends Controller
     protected function downloadExcel(Spreadsheet $spreadsheet, string $fileName)
     {
         $tempDir = storage_path('app/tmp');
-        if (!is_dir($tempDir)) {
+        if (! is_dir($tempDir)) {
             mkdir($tempDir, 0755, true);
         }
         $fullPath = $tempDir.'/'.$fileName;

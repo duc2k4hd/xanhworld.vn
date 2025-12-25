@@ -14,21 +14,21 @@ class ImageController extends Controller
         $url = $request->query('url');
         $width = (int) $request->query('width', 300);
 
-        if (!$url || $width <= 0 || $width > 1900) {
+        if (! $url || $width <= 0 || $width > 1900) {
             abort(404);
         }
 
         $path = public_path(parse_url($url, PHP_URL_PATH));
-        if (!is_file($path)) {
+        if (! is_file($path)) {
             abort(404);
         }
 
         $cacheDir = public_path("clients/assets/img/clothes/resize/{$width}");
-        if (!is_dir($cacheDir)) {
+        if (! is_dir($cacheDir)) {
             mkdir($cacheDir, 0755, true);
         }
 
-        $filename = pathinfo($path, PATHINFO_FILENAME) . '.webp';
+        $filename = pathinfo($path, PATHINFO_FILENAME).'.webp';
         $cachePath = "{$cacheDir}/{$filename}";
 
         // CACHE HIT

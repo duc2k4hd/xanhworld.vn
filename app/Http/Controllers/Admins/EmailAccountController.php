@@ -20,7 +20,7 @@ class EmailAccountController extends Controller
         if ($keyword = $request->get('keyword')) {
             $query->where(function ($q) use ($keyword) {
                 $q->where('email', 'like', "%{$keyword}%")
-                  ->orWhere('name', 'like', "%{$keyword}%");
+                    ->orWhere('name', 'like', "%{$keyword}%");
             });
         }
 
@@ -40,7 +40,8 @@ class EmailAccountController extends Controller
      */
     public function create()
     {
-        $emailAccount = new EmailAccount();
+        $emailAccount = new EmailAccount;
+
         return view('admins.email-accounts.create', compact('emailAccount'));
     }
 
@@ -51,14 +52,14 @@ class EmailAccountController extends Controller
     {
         DB::transaction(function () use ($request) {
             $data = $request->validated();
-            
+
             // Xóa password nếu để trống
             if (empty($data['mail_password'])) {
                 unset($data['mail_password']);
             }
-            
+
             // Nếu đặt làm mặc định, bỏ mặc định các email khác
-            if (!empty($data['is_default'])) {
+            if (! empty($data['is_default'])) {
                 EmailAccount::where('id', '!=', 0)->update(['is_default' => false]);
             }
 
@@ -85,14 +86,14 @@ class EmailAccountController extends Controller
     {
         DB::transaction(function () use ($request, $emailAccount) {
             $data = $request->validated();
-            
+
             // Xóa password nếu để trống (giữ nguyên password cũ)
             if (empty($data['mail_password'])) {
                 unset($data['mail_password']);
             }
-            
+
             // Nếu đặt làm mặc định, bỏ mặc định các email khác
-            if (!empty($data['is_default'])) {
+            if (! empty($data['is_default'])) {
                 EmailAccount::where('id', '!=', $emailAccount->id)->update(['is_default' => false]);
             }
 

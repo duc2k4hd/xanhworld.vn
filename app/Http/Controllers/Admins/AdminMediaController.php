@@ -103,5 +103,3 @@ class AdminMediaController extends Controller
         );
     }
 }
-
-

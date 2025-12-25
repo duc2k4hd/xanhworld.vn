@@ -10,6 +10,7 @@ class Address extends Model
     use HasFactory;
 
     protected $table = 'addresses';
+
     protected $fillable = [
         'account_id',
         'full_name',
@@ -53,16 +54,16 @@ class Address extends Model
                 $q->where('account_id', $accountId);
             })
             ->when($filters['full_name'] ?? null, function ($q, $fullName) {
-                $q->where('full_name', 'like', '%' . $fullName . '%');
+                $q->where('full_name', 'like', '%'.$fullName.'%');
             })
             ->when($filters['phone_number'] ?? null, function ($q, $phone) {
-                $q->where('phone_number', 'like', '%' . $phone . '%');
+                $q->where('phone_number', 'like', '%'.$phone.'%');
             })
             ->when($filters['province'] ?? null, function ($q, $province) {
-                $q->where('province', 'like', '%' . $province . '%');
+                $q->where('province', 'like', '%'.$province.'%');
             })
             ->when($filters['district'] ?? null, function ($q, $district) {
-                $q->where('district', 'like', '%' . $district . '%');
+                $q->where('district', 'like', '%'.$district.'%');
             })
             ->when(array_key_exists('address_type', $filters) && $filters['address_type'] !== null, function ($q) use ($filters) {
                 $q->where('address_type', $filters['address_type']);

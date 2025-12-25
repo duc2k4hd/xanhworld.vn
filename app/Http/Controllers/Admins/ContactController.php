@@ -4,21 +4,21 @@ namespace App\Http\Controllers\Admins;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ContactFilterRequest;
-use App\Http\Requests\Admin\ContactStatusUpdateRequest;
 use App\Http\Requests\Admin\ContactReplyRequest;
+use App\Http\Requests\Admin\ContactStatusUpdateRequest;
 use App\Models\Contact;
-use App\Models\Account;
-use App\Services\ContactService;
 use App\Services\ContactReplyService;
+use App\Services\ContactService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ContactController extends Controller
 {
     protected ContactService $contactService;
+
     protected ContactReplyService $replyService;
 
     public function __construct(ContactService $contactService, ContactReplyService $replyService)
@@ -110,7 +110,7 @@ class ContactController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'Không thể cập nhật trạng thái: ' . $e->getMessage());
+            return back()->with('error', 'Không thể cập nhật trạng thái: '.$e->getMessage());
         }
     }
 
@@ -128,7 +128,7 @@ class ContactController extends Controller
 
             return back()->with('success', 'Đã cập nhật ghi chú nội bộ.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Không thể cập nhật ghi chú: ' . $e->getMessage());
+            return back()->with('error', 'Không thể cập nhật ghi chú: '.$e->getMessage());
         }
     }
 
@@ -157,7 +157,7 @@ class ContactController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'Không thể gửi email trả lời: ' . $e->getMessage());
+            return back()->with('error', 'Không thể gửi email trả lời: '.$e->getMessage());
         }
     }
 
@@ -189,14 +189,14 @@ class ContactController extends Controller
                 'delete' => 'xóa',
             ];
 
-            return back()->with('success', 'Đã ' . ($actionLabels[$request->action] ?? 'thực hiện') . ' ' . count($contactIds) . ' liên hệ.');
+            return back()->with('success', 'Đã '.($actionLabels[$request->action] ?? 'thực hiện').' '.count($contactIds).' liên hệ.');
         } catch (\Exception $e) {
             Log::error('Failed to perform bulk action', [
                 'action' => $request->action,
                 'error' => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'Không thể thực hiện thao tác: ' . $e->getMessage());
+            return back()->with('error', 'Không thể thực hiện thao tác: '.$e->getMessage());
         }
     }
 
@@ -212,7 +212,7 @@ class ContactController extends Controller
                 ->route('admin.contacts.index')
                 ->with('success', 'Đã xóa liên hệ.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Không thể xóa liên hệ: ' . $e->getMessage());
+            return back()->with('error', 'Không thể xóa liên hệ: '.$e->getMessage());
         }
     }
 
@@ -227,7 +227,7 @@ class ContactController extends Controller
 
             return back()->with('success', 'Đã khôi phục liên hệ.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Không thể khôi phục liên hệ: ' . $e->getMessage());
+            return back()->with('error', 'Không thể khôi phục liên hệ: '.$e->getMessage());
         }
     }
 
@@ -242,7 +242,7 @@ class ContactController extends Controller
 
         try {
             return response()->download(
-                storage_path('app/public/' . $contact->attachment_path)
+                storage_path('app/public/'.$contact->attachment_path)
             );
         } catch (\Throwable $e) {
             Log::error('Failed to download contact attachment', [
@@ -305,7 +305,7 @@ class ContactController extends Controller
         $contacts = $query->get();
 
         // Create Excel file
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Contacts');
 
@@ -358,7 +358,7 @@ class ContactController extends Controller
 
         $fileName = 'contacts_export_'.now()->format('Y-m-d_H-i-s').'.xlsx';
         $tempDir = storage_path('app/tmp');
-        if (!is_dir($tempDir)) {
+        if (! is_dir($tempDir)) {
             mkdir($tempDir, 0755, true);
         }
         $fullPath = $tempDir.'/'.$fileName;
@@ -369,4 +369,3 @@ class ContactController extends Controller
         return response()->download($fullPath, $fileName)->deleteFileAfterSend(true);
     }
 }
-

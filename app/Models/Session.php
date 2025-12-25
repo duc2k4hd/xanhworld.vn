@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\Carbon;
 
 class Session extends Model
 {
@@ -22,8 +22,11 @@ class Session extends Model
     protected $casts = [
         'last_activity' => 'integer',
     ];
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     /**
@@ -48,6 +51,7 @@ class Session extends Model
     public function scopeRecentlyActive($query, int $seconds = 1800)
     {
         $cutoff = Carbon::now()->subSeconds($seconds)->getTimestamp();
+
         return $query->where('last_activity', '>=', $cutoff);
     }
 }

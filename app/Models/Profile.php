@@ -42,6 +42,6 @@ class Profile extends Model
             return null;
         }
 
-        return '/storage/' . ltrim($this->avatar, '/');
+        return '/storage/'.ltrim($this->avatar, '/');
     }
 }

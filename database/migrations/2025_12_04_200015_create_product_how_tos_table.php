@@ -30,5 +30,3 @@ return new class extends Migration
         Schema::dropIfExists('product_how_tos');
     }
 };
-
-

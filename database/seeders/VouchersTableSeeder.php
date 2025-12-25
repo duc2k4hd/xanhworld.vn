@@ -97,5 +97,3 @@ class VouchersTableSeeder extends Seeder
         ], ['id']);
     }
 }
-
-

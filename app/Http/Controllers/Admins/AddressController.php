@@ -5,16 +5,14 @@ namespace App\Http\Controllers\Admins;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AddressFilterRequest;
 use App\Http\Requests\Admin\AddressUpdateRequest;
+use App\Models\Account;
 use App\Models\Address;
 use App\Models\AddressAudit;
-use App\Models\Account;
 use App\Services\AddressService;
 
 class AddressController extends Controller
 {
-    public function __construct(protected AddressService $addressService)
-    {
-    }
+    public function __construct(protected AddressService $addressService) {}
 
     public function index(AddressFilterRequest $request)
     {
@@ -161,4 +159,3 @@ class AddressController extends Controller
         );
     }
 }
-

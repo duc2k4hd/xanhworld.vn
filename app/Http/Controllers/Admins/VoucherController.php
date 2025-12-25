@@ -366,7 +366,6 @@ class VoucherController extends Controller
         return $filename;
     }
 
-
     public function uploadImage(Request $request): JsonResponse
     {
         $request->validate([

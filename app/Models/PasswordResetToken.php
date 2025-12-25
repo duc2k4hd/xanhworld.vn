@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class PasswordResetToken extends Model
 {
     protected $table = 'password_reset_tokens';
 
     public $incrementing = false;
+
     protected $primaryKey = 'email';
+
     protected $keyType = 'string';
 
     public $timestamps = false;
@@ -48,5 +50,4 @@ class PasswordResetToken extends Model
 
         return Carbon::parse($this->created_at)->addMinutes($ttlMinutes)->isPast();
     }
-
 }

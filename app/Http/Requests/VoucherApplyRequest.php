@@ -23,4 +23,3 @@ class VoucherApplyRequest extends FormRequest
         ];
     }
 }
-
