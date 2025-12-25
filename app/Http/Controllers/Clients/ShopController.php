@@ -194,7 +194,27 @@ class ShopController extends Controller
         if (! is_array($tags)) {
             $tags = explode(',', (string) $tags);
         }
-        $tags = array_values(array_filter(array_map('intval', $tags), fn ($id) => $id > 0));
+
+        // Convert slug to ID if needed
+        $tagIds = [];
+        foreach ($tags as $tag) {
+            $tag = trim($tag);
+            if (empty($tag)) {
+                continue;
+            }
+
+            // If it's numeric, treat as ID
+            if (is_numeric($tag)) {
+                $tagIds[] = (int) $tag;
+            } else {
+                // Otherwise, treat as slug and find ID
+                $tagModel = \App\Models\Tag::where('slug', $tag)->where('is_active', true)->first();
+                if ($tagModel) {
+                    $tagIds[] = $tagModel->id;
+                }
+            }
+        }
+        $tags = array_values(array_unique(array_filter($tagIds, fn ($id) => $id > 0)));
 
         $allowedSort = ['default', 'newest', 'price-asc', 'price-desc', 'name-asc', 'name-desc'];
         $sort = $request->input('sort', 'default');

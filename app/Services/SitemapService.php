@@ -66,7 +66,8 @@ class SitemapService
         }
 
         if ($this->isEnabled('tags')) {
-            $this->generateTags();
+            $this->generateTagsProducts();
+            $this->generateTagsPosts();
         }
 
         if ($this->isEnabled('pages')) {
@@ -124,7 +125,7 @@ class SitemapService
                 foreach ($this->paginate($count) as $page) {
                     foreach ($this->buildPageUrls('posts', $page) as $loc) {
                         // Chỉ thêm nếu chưa có trong danh sách
-                        if (!in_array($loc, $seenUrls, true)) {
+                        if (! in_array($loc, $seenUrls, true)) {
                             $entries[] = [
                                 'loc' => $loc,
                                 'lastmod' => $lastmod,
@@ -140,7 +141,7 @@ class SitemapService
                 foreach ($this->paginate($count) as $page) {
                     foreach ($this->buildPageUrls('products', $page) as $loc) {
                         // Chỉ thêm nếu chưa có trong danh sách
-                        if (!in_array($loc, $seenUrls, true)) {
+                        if (! in_array($loc, $seenUrls, true)) {
                             $entries[] = [
                                 'loc' => $loc,
                                 'lastmod' => $lastmod,
@@ -160,7 +161,11 @@ class SitemapService
 
             if ($this->isEnabled('tags')) {
                 $entries[] = [
-                    'loc' => url('/sitemap-tags.xml'),
+                    'loc' => url('/sitemap-tags-products.xml'),
+                    'lastmod' => $lastmod,
+                ];
+                $entries[] = [
+                    'loc' => url('/sitemap-tags-posts.xml'),
                     'lastmod' => $lastmod,
                 ];
             }
@@ -282,21 +287,82 @@ class SitemapService
         });
     }
 
-    public function generateTags(): string
+    public function generateTagsProducts(): string
     {
         if (! $this->isEnabled('tags')) {
             return $this->buildUrlSet([]);
         }
 
-        return $this->remember('tags', function () {
+        return $this->remember('tags_products', function () {
+            // Lấy tất cả tags được sử dụng trong products
+            $tagIds = Product::query()
+                ->where('is_active', true)
+                ->whereNotNull('tag_ids')
+                ->pluck('tag_ids')
+                ->flatten()
+                ->filter()
+                ->unique()
+                ->toArray();
+
+            if (empty($tagIds)) {
+                return $this->buildUrlSet([]);
+            }
+
             $tags = Tag::query()
                 ->where('is_active', true)
+                ->whereIn('id', $tagIds)
                 ->orderBy('id')
                 ->get();
 
             $urls = [];
             foreach ($tags as $tag) {
-                $loc = url('/tin-tuc?tag='.$tag->slug);
+                // Format: /cua-hang?tags=slug
+                $loc = route('client.shop.index', ['tags' => $tag->slug]);
+                if ($this->isUrlExcluded($loc)) {
+                    continue;
+                }
+
+                $urls[] = [
+                    'loc' => $loc,
+                    'changefreq' => 'weekly',
+                    'priority' => '0.5',
+                ];
+            }
+
+            return $this->buildUrlSet($urls);
+        });
+    }
+
+    public function generateTagsPosts(): string
+    {
+        if (! $this->isEnabled('tags')) {
+            return $this->buildUrlSet([]);
+        }
+
+        return $this->remember('tags_posts', function () {
+            // Lấy tất cả tags được sử dụng trong posts
+            $tagIds = Post::query()
+                ->where('status', 'published')
+                ->whereNotNull('tag_ids')
+                ->pluck('tag_ids')
+                ->flatten()
+                ->filter()
+                ->unique()
+                ->toArray();
+
+            if (empty($tagIds)) {
+                return $this->buildUrlSet([]);
+            }
+
+            $tags = Tag::query()
+                ->where('is_active', true)
+                ->whereIn('id', $tagIds)
+                ->orderBy('id')
+                ->get();
+
+            $urls = [];
+            foreach ($tags as $tag) {
+                $loc = url('/tin-tuc?tags='.$tag->slug);
                 if ($this->isUrlExcluded($loc)) {
                     continue;
                 }
@@ -469,7 +535,7 @@ class SitemapService
         if ($total <= 0) {
             return [];
         }
-        
+
         $perFile = $this->getUrlsPerFile();
         $pages = (int) ceil($total / $perFile);
 

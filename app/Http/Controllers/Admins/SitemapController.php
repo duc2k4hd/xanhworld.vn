@@ -89,9 +89,15 @@ class SitemapController extends Controller
                 'icon' => '📂',
             ],
             [
-                'name' => 'Tags',
-                'description' => 'Danh sách các thẻ nội dung (tags) dùng để phân loại bài viết.',
-                'url' => url('/sitemap-tags.xml'),
+                'name' => 'Tags - Sản phẩm',
+                'description' => 'Danh sách các thẻ sản phẩm.',
+                'url' => url('/sitemap-tags-products.xml'),
+                'icon' => '🏷️',
+            ],
+            [
+                'name' => 'Tags - Bài viết',
+                'description' => 'Danh sách các thẻ bài viết.',
+                'url' => url('/sitemap-tags-posts.xml'),
                 'icon' => '🏷️',
             ],
             [
@@ -214,7 +220,8 @@ class SitemapController extends Controller
                 'posts' => $this->sitemapService->generatePosts($page),
                 'products' => $this->sitemapService->generateProducts($page),
                 'categories' => $this->sitemapService->generateCategories(),
-                'tags' => $this->sitemapService->generateTags(),
+                'tags-products' => $this->sitemapService->generateTagsProducts(),
+                'tags-posts' => $this->sitemapService->generateTagsPosts(),
                 'pages' => $this->sitemapService->generatePages(),
                 'images' => $this->sitemapService->generateImages(),
                 default => throw new \InvalidArgumentException('Invalid sitemap type'),

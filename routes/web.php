@@ -188,7 +188,8 @@ Route::get('/sitemap-products-{page}.xml', [SitemapPublicController::class, 'pro
     ->whereNumber('page')
     ->where('page', '>=2');
 Route::get('/sitemap-categories.xml', [SitemapPublicController::class, 'categories']);
-Route::get('/sitemap-tags.xml', [SitemapPublicController::class, 'tags']);
+Route::get('/sitemap-tags-products.xml', [SitemapPublicController::class, 'tagsProducts']);
+Route::get('/sitemap-tags-posts.xml', [SitemapPublicController::class, 'tagsPosts']);
 Route::get('/sitemap-pages.xml', [SitemapPublicController::class, 'pages']);
 Route::get('/sitemap-images.xml', [SitemapPublicController::class, 'images']);
 

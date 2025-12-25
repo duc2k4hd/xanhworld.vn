@@ -26,7 +26,8 @@ class SitemapPublicController extends Controller
             ['name' => 'Bài viết', 'description' => 'Danh sách bài viết.', 'url' => url('/sitemap-posts.xml'), 'icon' => '📝'],
             ['name' => 'Sản phẩm', 'description' => 'Danh sách sản phẩm.', 'url' => url('/sitemap-products.xml'), 'icon' => '🛒'],
             ['name' => 'Danh mục', 'description' => 'Danh sách danh mục.', 'url' => url('/sitemap-categories.xml'), 'icon' => '📂'],
-            ['name' => 'Tags', 'description' => 'Danh sách thẻ.', 'url' => url('/sitemap-tags.xml'), 'icon' => '🏷️'],
+            ['name' => 'Tags - Sản phẩm', 'description' => 'Danh sách thẻ sản phẩm.', 'url' => url('/sitemap-tags-products.xml'), 'icon' => '🏷️'],
+            ['name' => 'Tags - Bài viết', 'description' => 'Danh sách thẻ bài viết.', 'url' => url('/sitemap-tags-posts.xml'), 'icon' => '🏷️'],
             ['name' => 'Trang tĩnh', 'description' => 'Các trang tĩnh.', 'url' => url('/sitemap-pages.xml'), 'icon' => '📄'],
             ['name' => 'Hình ảnh', 'description' => 'Các ảnh quan trọng.', 'url' => url('/sitemap-images.xml'), 'icon' => '🖼️'],
         ];
@@ -43,9 +44,10 @@ class SitemapPublicController extends Controller
     public function index()
     {
         $cacheKey = 'sitemap.index';
+
         return $this->xmlResponse(
             Cache::remember($cacheKey, 1440, function () {
-                return $this->safeGenerate(fn() => $this->sitemapService->generateIndex());
+                return $this->safeGenerate(fn () => $this->sitemapService->generateIndex());
             })
         );
     }
@@ -60,7 +62,7 @@ class SitemapPublicController extends Controller
 
         return $this->xmlResponse(
             Cache::remember($cacheKey, 1440, function () use ($page) {
-                return $this->safeGenerate(fn() => $this->sitemapService->generatePosts($page));
+                return $this->safeGenerate(fn () => $this->sitemapService->generatePosts($page));
             })
         );
     }
@@ -75,7 +77,7 @@ class SitemapPublicController extends Controller
 
         return $this->xmlResponse(
             Cache::remember($cacheKey, 1440, function () use ($page) {
-                return $this->safeGenerate(fn() => $this->sitemapService->generateProducts($page));
+                return $this->safeGenerate(fn () => $this->sitemapService->generateProducts($page));
             })
         );
     }
@@ -87,19 +89,31 @@ class SitemapPublicController extends Controller
     {
         return $this->xmlResponse(
             Cache::remember('sitemap.categories', 1440, function () {
-                return $this->safeGenerate(fn() => $this->sitemapService->generateCategories());
+                return $this->safeGenerate(fn () => $this->sitemapService->generateCategories());
             })
         );
     }
 
     // ===============================
-    //            TAGS
+    //       TAGS - PRODUCTS
     // ===============================
-    public function tags()
+    public function tagsProducts()
     {
         return $this->xmlResponse(
-            Cache::remember('sitemap.tags', 1440, function () {
-                return $this->safeGenerate(fn() => $this->sitemapService->generateTags());
+            Cache::remember('sitemap.tags_products', 1440, function () {
+                return $this->safeGenerate(fn () => $this->sitemapService->generateTagsProducts());
+            })
+        );
+    }
+
+    // ===============================
+    //        TAGS - POSTS
+    // ===============================
+    public function tagsPosts()
+    {
+        return $this->xmlResponse(
+            Cache::remember('sitemap.tags_posts', 1440, function () {
+                return $this->safeGenerate(fn () => $this->sitemapService->generateTagsPosts());
             })
         );
     }
@@ -111,7 +125,7 @@ class SitemapPublicController extends Controller
     {
         return $this->xmlResponse(
             Cache::remember('sitemap.pages', 1440, function () {
-                return $this->safeGenerate(fn() => $this->sitemapService->generatePages());
+                return $this->safeGenerate(fn () => $this->sitemapService->generatePages());
             })
         );
     }
@@ -123,7 +137,7 @@ class SitemapPublicController extends Controller
     {
         return $this->xmlResponse(
             Cache::remember('sitemap.images', 1440, function () {
-                return $this->safeGenerate(fn() => $this->sitemapService->generateImages());
+                return $this->safeGenerate(fn () => $this->sitemapService->generateImages());
             })
         );
     }
@@ -133,7 +147,7 @@ class SitemapPublicController extends Controller
     // ===============================
     protected function xmlResponse(?string $content)
     {
-        if (!$content) {
+        if (! $content) {
             $content = '<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>';
         }
 
@@ -150,7 +164,7 @@ class SitemapPublicController extends Controller
         } catch (\Throwable $e) {
 
             // Log lỗi thật vào storage/logs
-            \Log::error("Sitemap Error: ".$e->getMessage());
+            \Log::error('Sitemap Error: '.$e->getMessage());
 
             // Không trả 500 cho Google → trả XML rỗng hợp lệ
             return '<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>';
