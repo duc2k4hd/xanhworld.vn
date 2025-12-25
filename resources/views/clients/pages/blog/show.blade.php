@@ -52,17 +52,17 @@
     <link rel="preconnect" href="{{ $imageDomain }}" crossorigin>
     
     {{-- SEO Meta Tags --}}
-    <meta name="description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt_text) }}">
+    <meta name="description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt) }}">
     <meta name="keywords" content="{{ $pageKeywords ?? $post->meta_keywords }}">
     <link rel="canonical" href="{{ $canonicalUrl ?? route('client.blog.show', $post) }}">
     <meta property="og:type" content="article">
     <meta property="og:title" content="{{ $pageTitle ?? ($post->meta_title ?? $post->title) }}">
-    <meta property="og:description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt_text) }}">
+    <meta property="og:description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt) }}">
     <meta property="og:url" content="{{ $canonicalUrl ?? route('client.blog.show', $post) }}">
     <meta property="og:image" content="{{ $coverAsset ?? asset('clients/assets/img/posts/no-image.webp') }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $pageTitle ?? ($post->meta_title ?? $post->title) }}">
-    <meta name="twitter:description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt_text) }}">
+    <meta name="twitter:description" content="{{ $pageDescription ?? ($post->meta_description ?? $post->excerpt) }}">
     <meta name="twitter:image" content="{{ $coverAsset ?? asset('clients/assets/img/posts/no-image.webp') }}">
 @endsection
 

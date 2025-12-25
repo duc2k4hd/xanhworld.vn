@@ -126,7 +126,7 @@
                                 </a>
                             </h3>
 
-                            <p class="blog-featured-card-excerpt">{{ $featured->excerpt_text }}</p>
+                            <p class="blog-featured-card-excerpt">{{ $featured->excerpt ?? $settings->site_name ?? config('app.name') }}</p>
 
                             <div class="blog-featured-card-meta">
                                 <span>{{ optional($featured->published_at)->format('d/m/Y') }}</span>
@@ -163,7 +163,7 @@
                                 </a>
                             </h3>
 
-                            <p class="blog-card-excerpt">{{ $post->excerpt_text }}</p>
+                            <p class="blog-card-excerpt">{{ $post->excerpt ?? $settings->site_name ?? config('app.name') }}</p>
 
                             <div class="blog-card-footer">
                                 <span>{{ number_format($post->views) }} xem</span>

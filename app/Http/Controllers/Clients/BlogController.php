@@ -304,7 +304,7 @@ class BlogController extends Controller
                     '@id' => route('client.blog.show', $post),
                     'url' => route('client.blog.show', $post),
                     'headline' => $post->title,
-                    'description' => $post->excerpt_text,
+                    'description' => $post->excerpt,
                     'datePublished' => optional($post->published_at)->toIso8601String(),
                     'image' => $coverUrl,
                     'author' => [
@@ -403,7 +403,7 @@ class BlogController extends Controller
     {
         $siteName = config('app.name');
         $title = $post->meta_title ?? ($post->title.' | '.$siteName);
-        $description = $post->meta_description ?? $post->excerpt_text;
+        $description = $post->meta_description ?? $post->excerpt;
         $keywords = $post->meta_keywords ?? $post->tags()->pluck('name')->implode(', ');
         $settings = View::shared('settings');
         $siteUrl = rtrim($settings->site_url ?? config('app.url') ?? url('/'), '/');
@@ -460,8 +460,9 @@ class BlogController extends Controller
 
         // Lấy thông tin author
         $authorName = $post->author?->name ?? $post->creator?->name ?? 'Đội ngũ biên tập';
-        // Loại bỏ emoji từ author name
-        $authorName = preg_replace('/[\x{1F300}-\x{1F9FF}]/u', '', $authorName);
+        // Loại bỏ emoji và ký tự đặc biệt từ author name (cải thiện regex)
+        $authorName = preg_replace('/[\x{1F300}-\x{1F9FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]/u', '', $authorName);
+        $authorName = preg_replace('/[^\p{L}\p{N}\s]/u', '', $authorName); // Loại bỏ tất cả ký tự đặc biệt
         $authorName = trim($authorName);
         if (empty($authorName)) {
             $authorName = 'Đội ngũ biên tập';
@@ -476,12 +477,28 @@ class BlogController extends Controller
         $readingTimeMinutes = max(1, ceil($wordCount / 200));
         $timeRequired = 'PT'.$readingTimeMinutes.'M';
 
-        // Lấy logo organization
+        // Lấy logo organization và kích thước thực tế
         $logoUrl = asset('favicon-512x512.png');
+        $logoWidth = 512;
+        $logoHeight = 512;
+
         if (file_exists(public_path('favicon-512x512.png'))) {
             $logoUrl = asset('favicon-512x512.png');
+            $logoInfo = @getimagesize(public_path('favicon-512x512.png'));
+            if ($logoInfo) {
+                $logoWidth = $logoInfo[0];
+                $logoHeight = $logoInfo[1];
+            }
         } elseif (isset($settings->site_logo) && ! empty($settings->site_logo)) {
+            $logoPath = public_path('clients/assets/img/business/'.$settings->site_logo);
             $logoUrl = asset('clients/assets/img/business/'.$settings->site_logo);
+            if (file_exists($logoPath)) {
+                $logoInfo = @getimagesize($logoPath);
+                if ($logoInfo) {
+                    $logoWidth = $logoInfo[0];
+                    $logoHeight = $logoInfo[1];
+                }
+            }
         }
 
         // Lấy kích thước ảnh - ưu tiên 1200x675 cho Google Discover
@@ -555,12 +572,35 @@ class BlogController extends Controller
         ];
 
         // 5. BlogPosting (quan trọng nhất - đầy đủ)
+        // Đảm bảo description không rỗng
+        $description = $post->meta_description ?? $post->excerpt_text ?? $post->excerpt ?? '';
+        if (empty(trim($description))) {
+            // Fallback: tạo description từ title và excerpt
+            $description = mb_substr(strip_tags($post->content ?? ''), 0, 160);
+            if (empty($description)) {
+                $description = $post->title.' - '.$siteName;
+            }
+        }
+
+        // Đảm bảo dates luôn có giá trị hợp lệ
+        $datePublished = ($post->published_at ?? $post->created_at);
+        if (! $datePublished) {
+            $datePublished = now();
+        }
+        $dateModified = $post->updated_at ?? $datePublished;
+
+        // Đảm bảo image dimensions là số nguyên dương
+        $imageWidth = max(1, (int) $imageWidth);
+        $imageHeight = max(1, (int) $imageHeight);
+        $logoWidth = max(1, (int) $logoWidth);
+        $logoHeight = max(1, (int) $logoHeight);
+
         $blogPostingSchema = [
             '@context' => 'https://schema.org',
             '@type' => 'BlogPosting',
             '@id' => $canonicalUrl.'#blogposting',
             'headline' => $post->title,
-            'description' => $post->meta_description ?? $post->excerpt_text ?? '',
+            'description' => $description,
             'inLanguage' => 'vi-VN',
             'mainEntityOfPage' => [
                 '@type' => 'WebPage',
@@ -585,13 +625,13 @@ class BlogController extends Controller
                 'logo' => [
                     '@type' => 'ImageObject',
                     'url' => $logoUrl,
-                    'width' => 512,
-                    'height' => 512,
+                    'width' => $logoWidth,
+                    'height' => $logoHeight,
                 ],
             ],
-            'datePublished' => optional($post->published_at ?? $post->created_at)->toIso8601String(),
-            'dateModified' => optional($post->updated_at)->toIso8601String(),
-            'wordCount' => $wordCount,
+            'datePublished' => $datePublished->toIso8601String(),
+            'dateModified' => $dateModified->toIso8601String(),
+            'wordCount' => max(0, (int) $wordCount),
             'timeRequired' => $timeRequired,
             'isPartOf' => [
                 '@type' => 'Blog',
