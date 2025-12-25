@@ -52,7 +52,7 @@
                 <strong>Từ khóa:</strong>
                         </div>
             @foreach($tags as $tag)
-                <a href="{{ route('client.blog.index', ['tag' => $tag->slug]) }}" class="xanhworld-article-tag"># {{ $tag->name }}</a>
+                <a href="{{ route('client.blog.index', ['tags' => $tag->slug]) }}" class="xanhworld-article-tag"># {{ $tag->name }}</a>
             @endforeach
                     </div>
         @endif
@@ -199,6 +199,23 @@
                                 'totalComments' => $totalComments ?? 0
                             ])
                         </div>
+
+                        <!-- Tags Section -->
+                        @if($tags->isNotEmpty())
+                        <div class="xanhworld-article-tags-footer">
+                            <div class="xanhworld-article-tags-footer-label">
+                                <strong>Thẻ:</strong>
+                            </div>
+                            <div class="xanhworld-article-tags-footer-list">
+                                @php
+                                    $allTagSlugs = $tags->pluck('slug')->implode(',');
+                                @endphp
+                                @foreach($tags as $tag)
+                                    <a href="{{ route('client.blog.index', ['tags' => $allTagSlugs]) }}" class="xanhworld-article-tag-footer">#{{ $tag->name }}</a>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
                 </div>
                     </div>
                 </div>

@@ -32,9 +32,43 @@ class BlogController extends Controller
             $postsQuery->where('category_id', $activeCategory->id);
         }
 
-        $activeTag = null;
+        $activeTags = collect();
         $shouldNoindex = false;
-        if ($request->has('tag')) {
+
+        // Xử lý tags mới: tags=slug1,slug2
+        if ($request->has('tags')) {
+            $shouldNoindex = true;
+            $tagsInput = $request->input('tags');
+
+            // Nếu là array, chuyển thành string
+            if (is_array($tagsInput)) {
+                $tagsInput = implode(',', $tagsInput);
+            }
+
+            // Tách các tags
+            $tagSlugs = array_filter(array_map('trim', explode(',', (string) $tagsInput)));
+
+            if (! empty($tagSlugs)) {
+                $activeTags = Tag::query()
+                    ->whereIn('slug', $tagSlugs)
+                    ->where('entity_type', Post::class)
+                    ->where('is_active', true)
+                    ->get();
+
+                if ($activeTags->isNotEmpty()) {
+                    $tagIds = $activeTags->pluck('id')->toArray();
+                    $postsQuery->where(function ($query) use ($tagIds) {
+                        foreach ($tagIds as $tagId) {
+                            $query->orWhereJsonContains('tag_ids', (int) $tagId)
+                                ->orWhereJsonContains('tag_ids', (string) $tagId);
+                        }
+                    });
+                }
+            }
+        }
+
+        // Xử lý tag cũ (backward compatibility): tag=slug
+        if ($request->has('tag') && ! $request->has('tags')) {
             $shouldNoindex = true;
             $tagSlug = trim((string) $request->query('tag'));
 
@@ -44,14 +78,13 @@ class BlogController extends Controller
                     ->where('entity_type', Post::class)
                     ->first();
 
-                if (! $activeTag) {
-                    abort(404);
+                if ($activeTag) {
+                    $activeTags = collect([$activeTag]);
+                    $postsQuery->where(function ($query) use ($activeTag) {
+                        $query->whereJsonContains('tag_ids', (int) $activeTag->id)
+                            ->orWhereJsonContains('tag_ids', (string) $activeTag->id);
+                    });
                 }
-
-                $postsQuery->where(function ($query) use ($activeTag) {
-                    $query->whereJsonContains('tag_ids', (int) $activeTag->id)
-                        ->orWhereJsonContains('tag_ids', (string) $activeTag->id);
-                });
             }
         }
 
@@ -114,7 +147,7 @@ class BlogController extends Controller
         Post::preloadImages($popularPosts);
 
         $schemaData = $this->buildIndexSchemas($posts->getCollection());
-        $meta = $this->resolveIndexMeta($activeCategory, $activeTag, $searchTerm ?? null);
+        $meta = $this->resolveIndexMeta($activeCategory, $activeTags->first(), $searchTerm ?? null);
 
         return view('clients.pages.blog.index', [
             'posts' => $posts,
@@ -125,7 +158,8 @@ class BlogController extends Controller
             'popularPosts' => $popularPosts,
             'schemaData' => $schemaData,
             'activeCategory' => $activeCategory,
-            'activeTag' => $activeTag,
+            'activeTag' => $activeTags->first(),
+            'activeTags' => $activeTags,
             'searchTerm' => $searchTerm ?? null,
             'pageTitle' => $meta['title'],
             'pageDescription' => $meta['description'],
