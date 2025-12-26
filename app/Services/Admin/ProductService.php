@@ -763,7 +763,7 @@ class ProductService
 
             // Debug: Log attributes để kiểm tra (chỉ log khi có attributes)
             if (! empty($attributes)) {
-                \Log::info('Variant attributes being saved', [
+                Log::info('Variant attributes being saved', [
                     'variant_name' => $name,
                     'attributes' => $attributes,
                     'attributes_json' => json_encode($attributes),

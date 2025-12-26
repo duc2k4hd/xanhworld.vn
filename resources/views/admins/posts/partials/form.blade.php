@@ -612,6 +612,7 @@
                 hasMore: true,
                 search: '',
                 loading: false,
+                folder: mediaPickerConfig.folder || '',
             };
 
             const overlay = document.createElement('div');
@@ -637,13 +638,34 @@
                     <button type="button" class="btn btn-link text-danger" data-close>&times;</button>
                 </div>
                 <div class="mb-3">
-                    <div class="input-group input-group-sm mb-2">
-                        <span class="input-group-text">🔍</span>
-                        <input type="text" class="form-control" placeholder="Tìm ảnh theo tên..." data-media-search>
+                    <div class="alert alert-info mb-3" style="padding: 12px; background: #e0f2fe; border: 1px solid #3b82f6; border-radius: 8px;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <strong style="color: #1e40af;">📂 Chọn thư mục lưu ảnh:</strong>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background: #fff;">📁</span>
+                            <input type="text" class="form-control" placeholder="Nhập tên folder (ví dụ: posts, clothes, categories)" data-media-folder value="${state.folder}" style="font-weight: 500;">
+                            <button class="btn btn-primary" type="button" data-media-folder-apply style="font-weight: 600;">Áp dụng</button>
+                        </div>
+                        <div class="form-text mt-1" style="color: #1e40af; font-size: 12px;">
+                            <strong>Lưu ý:</strong> Ảnh sẽ được lưu vào <code>/clients/assets/img/[folder]</code>. Bạn <strong>PHẢI</strong> nhập folder trước khi upload!
+                        </div>
                     </div>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-sm btn-primary" data-media-upload-trigger>Tải ảnh mới</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" data-media-refresh>↻ Làm mới</button>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-8">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">🔍</span>
+                                <input type="text" class="form-control" placeholder="Tìm ảnh theo tên..." data-media-search>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-media-refresh>↻ Làm mới</button>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-primary" data-media-upload-trigger>
+                            <strong>📤 Tải ảnh mới</strong>
+                        </button>
                         <input type="file" accept="image/*" multiple hidden data-media-upload>
                     </div>
                 </div>
@@ -660,6 +682,8 @@
 
             const grid = modal.querySelector('[data-media-grid]');
             const searchInput = modal.querySelector('[data-media-search]');
+            const folderInput = modal.querySelector('[data-media-folder]');
+            const folderApply = modal.querySelector('[data-media-folder-apply]');
             const loadMoreBtn = modal.querySelector('[data-media-load-more]');
             const loadingIndicator = modal.querySelector('[data-media-loading]');
             const emptyState = modal.querySelector('[data-media-empty]');
@@ -754,9 +778,15 @@
 
                 setLoading(true);
 
+                const currentFolder = (state.folder || mediaPickerConfig.folder || '').trim();
+                if (!currentFolder) {
+                    alert('Vui lòng nhập folder (ví dụ: posts, clothes) trước khi tải hoặc upload ảnh.');
+                    return;
+                }
+
                 const params = new URLSearchParams({
                     scope: mediaPickerConfig.scope || 'client',
-                    folder: mediaPickerConfig.folder || '',
+                    folder: currentFolder,
                     limit: state.perPage,
                     page: state.page,
                 });
@@ -797,9 +827,15 @@
                 }
 
                 const formData = new FormData();
+                const currentFolder = (state.folder || mediaPickerConfig.folder || '').trim();
+                if (!currentFolder) {
+                    alert('Vui lòng nhập folder (ví dụ: posts, clothes) trước khi upload.');
+                    return;
+                }
+
                 Array.from(fileList).forEach((file) => formData.append('files[]', file));
                 formData.append('scope', mediaPickerConfig.scope || 'client');
-                formData.append('folder', mediaPickerConfig.folder || '');
+                formData.append('folder', currentFolder);
 
                 setLoading(true);
 
@@ -819,8 +855,13 @@
                         return;
                     }
 
+                    // Prepend uploaded files to the beginning (newest first)
                     renderFiles(uploaded, { prepend: true });
+                    // Update state: prepend uploaded files to maintain order
                     state.files = uploaded.concat(state.files);
+                    // Reset search to show newly uploaded files
+                    state.search = '';
+                    searchInput.value = '';
                     emptyState.classList.add('d-none');
                     updateStatus();
                 } catch (error) {
@@ -839,6 +880,20 @@
                     state.search = this.value.trim();
                     fetchFiles(true);
                 }, 400);
+            });
+
+            folderApply.addEventListener('click', () => {
+                state.folder = (folderInput.value || '').trim();
+                state.page = 1;
+                state.hasMore = true;
+                fetchFiles(true);
+            });
+
+            folderInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    folderApply.click();
+                }
             });
 
             loadMoreBtn.addEventListener('click', () => fetchFiles());

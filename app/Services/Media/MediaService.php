@@ -50,9 +50,17 @@ class MediaService
         $rootPath = $this->getRootPath($scope);
         $originalFolder = $folder;
 
+        // Normalize rootPath để đảm bảo dùng đúng DIRECTORY_SEPARATOR
+        $rootPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $rootPath);
+        $rootPath = rtrim($rootPath, DIRECTORY_SEPARATOR);
+
         // Normalize folder path - chỉ lấy tên folder, không có path đầy đủ
         $folder = trim($folder, '/\\');
         $folder = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $folder);
+
+        if ($folder === '') {
+            throw new \InvalidArgumentException('Folder không được để trống. Vui lòng chọn thư mục lưu trữ.');
+        }
 
         // Remove any full path prefixes if accidentally included
         $rootNormalized = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $rootPath);
@@ -73,11 +81,15 @@ class MediaService
         }
         $folder = implode(DIRECTORY_SEPARATOR, $validParts);
 
+        // Build targetPath với DIRECTORY_SEPARATOR nhất quán
         $targetPath = empty($folder) ? $rootPath : $rootPath.DIRECTORY_SEPARATOR.$folder;
+        // Đảm bảo targetPath được normalize hoàn toàn
+        $targetPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $targetPath);
 
         Log::debug('Media uploadFiles', [
             'input_folder' => $originalFolder,
             'normalized_folder' => $folder,
+            'rootPath' => $rootPath,
             'targetPath' => $targetPath,
             'scope' => $scope,
             'exists' => File::exists($targetPath),
@@ -114,70 +126,29 @@ class MediaService
     }
 
     /**
-     * Upload single file with webp conversion and thumbnail generation
+     * Upload single file.
+     *
+     * Giữ nguyên định dạng gốc (không tự convert sang WebP, không tạo thumbnail).
      */
     protected function uploadSingleFile(UploadedFile $file, string $targetPath, string $scope): array
     {
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $extension = strtolower($file->getClientOriginalExtension());
         $slugName = Str::slug($originalName);
+        $finalExtension = $extension;
+        $finalName = $slugName.'.'.$extension;
+        $finalPath = $targetPath.DIRECTORY_SEPARATOR.$finalName;
 
-        // Convert to webp if image and WebP is supported
-        if (in_array($extension, ['jpg', 'jpeg', 'png']) && function_exists('imagewebp')) {
-            $finalExtension = 'webp';
-            $finalName = $this->generateUniqueFilename($targetPath, $slugName, 'webp');
-            $finalPath = $targetPath.DIRECTORY_SEPARATOR.$finalName;
+        // Nếu trùng tên, replace: xóa file cũ
+        if (File::exists($finalPath)) {
+            File::delete($finalPath);
+        }
 
-            // Convert and resize
-            Log::debug('Media uploadSingleFile: Converting to WebP', [
-                'source' => $file->getRealPath(),
-                'target' => $finalPath,
-                'original_name' => $file->getClientOriginalName(),
-            ]);
+        // Lưu trực tiếp file gốc (không tạo thumbnail)
+        $file->move($targetPath, $finalName);
 
-            $converted = $this->fileManager->convertToWebp($file->getRealPath(), $finalPath, 2048);
-
-            if (! $converted) {
-                Log::warning('Media uploadSingleFile: WebP conversion failed, keeping original format', [
-                    'source' => $file->getRealPath(),
-                    'target' => $finalPath,
-                ]);
-                // Fallback: keep original format
-                $finalExtension = $extension;
-                $finalName = $this->generateUniqueFilename($targetPath, $slugName, $extension);
-                $finalPath = $targetPath.DIRECTORY_SEPARATOR.$finalName;
-                $file->move($targetPath, $finalName);
-            } elseif (! File::exists($finalPath)) {
-                Log::warning('Media uploadSingleFile: WebP file not found after conversion, keeping original', [
-                    'target' => $finalPath,
-                ]);
-                // Fallback: keep original format
-                $finalExtension = $extension;
-                $finalName = $this->generateUniqueFilename($targetPath, $slugName, $extension);
-                $finalPath = $targetPath.DIRECTORY_SEPARATOR.$finalName;
-                $file->move($targetPath, $finalName);
-            }
-
-            // Generate thumbnail
-            try {
-                $this->thumbnailService->generateThumbnail($finalPath, $targetPath.DIRECTORY_SEPARATOR.'thumbs', $finalName);
-            } catch (\Throwable $e) {
-                Log::warning('Thumbnail generation failed', [
-                    'file' => $finalPath,
-                    'error' => $e->getMessage(),
-                ]);
-                // Continue even if thumbnail fails
-            }
-        } else {
-            // Keep original for non-image files
-            $finalExtension = $extension;
-            $finalName = $this->generateUniqueFilename($targetPath, $slugName, $extension);
-            $finalPath = $targetPath.DIRECTORY_SEPARATOR.$finalName;
-            $file->move($targetPath, $finalName);
-
-            if (! File::exists($finalPath)) {
-                throw new \Exception('Failed to move uploaded file');
-            }
+        if (! File::exists($finalPath)) {
+            throw new \Exception('Failed to move uploaded file');
         }
 
         // Verify file exists before getting info
@@ -196,14 +167,15 @@ class MediaService
         ];
 
         // Lưu thông tin vào bảng images để tái sử dụng trong sản phẩm / bài viết
+        // Title và alt lưu tên file bỏ đuôi đi
         try {
-            $imageTitle = $fileInfo['original_name'] ?? $originalName.'.'.$finalExtension;
+            $imageTitleWithoutExtension = pathinfo($finalName, PATHINFO_FILENAME);
 
             Image::create([
                 'url' => $finalName,
-                'title' => $imageTitle,
+                'title' => $imageTitleWithoutExtension,
                 'notes' => null,
-                'alt' => $imageTitle,
+                'alt' => $imageTitleWithoutExtension,
                 'is_primary' => false,
                 'order' => 0,
             ]);
@@ -454,6 +426,17 @@ class MediaService
             $filePath = str_replace($rootNormalized.DIRECTORY_SEPARATOR, '', $filePath);
         }
 
+        // Nếu path vẫn còn chứa prefix public (clients/assets/img hoặc admins/img) thì cắt bỏ
+        $marker = $scope === 'admin'
+            ? 'admins'.DIRECTORY_SEPARATOR.'img'
+            : 'clients'.DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.'img';
+
+        $markerPos = stripos($filePath, $marker);
+        if ($markerPos !== false) {
+            $filePath = substr($filePath, $markerPos + strlen($marker));
+            $filePath = ltrim($filePath, DIRECTORY_SEPARATOR);
+        }
+
         $fullFilePath = empty($filePath) ? $rootPath : $rootPath.DIRECTORY_SEPARATOR.$filePath;
 
         Log::debug('Media deleteFile', [
@@ -479,13 +462,26 @@ class MediaService
         }
 
         try {
+            // Lấy filename để xóa trong database
+            $filename = basename($fullFilePath);
+
+            // Xóa file trong filesystem
             File::delete($fullFilePath);
 
-            // Delete thumbnail if exists
+            // Xóa thumbnail nếu có
             $thumbPath = dirname($fullFilePath).DIRECTORY_SEPARATOR.'thumbs'.DIRECTORY_SEPARATOR.basename($fullFilePath);
             if (File::exists($thumbPath)) {
                 File::delete($thumbPath);
             }
+
+            // Xóa record trong database (Image model)
+            // Một số bản ghi cũ có thể lưu cả path (posts/filename hoặc .../posts/filename)
+            // Image::where(function ($query) use ($filename) {
+            //     $query->where('url', $filename)
+            //         ->orWhere('url', 'like', '%/posts/'.$filename)
+            //         ->orWhere('url', 'like', 'posts/'.$filename)
+            //         ->orWhere('url', 'like', '%/'.$filename);
+            // })->forceDelete();
 
             $this->logActivity('delete', $filePath, $scope);
 

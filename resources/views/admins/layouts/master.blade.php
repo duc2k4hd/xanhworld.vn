@@ -471,6 +471,50 @@
             border-color: #3b82f6;
             background: #eff6ff;
         }
+        .media-picker-card {
+            position: relative;
+        }
+        .media-picker-checkbox-wrapper {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 10;
+            background: rgba(255,255,255,0.9);
+            border-radius: 4px;
+            padding: 2px;
+        }
+        .media-picker-context-menu {
+            position: fixed;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            min-width: 180px;
+            padding: 4px 0;
+            display: none;
+        }
+        .media-picker-context-menu-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #334155;
+            transition: background 0.15s;
+        }
+        .media-picker-context-menu-item:hover {
+            background: #f1f5f9;
+        }
+        .media-picker-context-menu-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 4px 0;
+        }
+        .media-picker-context-menu-item[data-action="delete"] {
+            color: #dc2626;
+        }
+        .media-picker-context-menu-item[data-action="delete"]:hover {
+            background: #fee2e2;
+        }
         .media-picker-thumb {
             width: 100%;
             height: 100px;

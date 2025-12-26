@@ -188,6 +188,7 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
         Route::post('/move', [MediaController::class, 'move'])->name('move');
         Route::post('/copy', [MediaController::class, 'copy'])->name('copy');
         Route::post('/delete', [MediaController::class, 'delete'])->name('delete');
+        Route::post('/bulk-delete', [MediaController::class, 'bulkDelete'])->name('bulk-delete');
         Route::post('/update-meta', [MediaController::class, 'updateMeta'])->name('update-meta');
         Route::post('/folder/create', [MediaController::class, 'createFolder'])->name('folder.create');
         Route::post('/folder/rename', [MediaController::class, 'renameFolder'])->name('folder.rename');

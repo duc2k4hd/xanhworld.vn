@@ -42,14 +42,47 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0">
+                <!-- Context Menu -->
+                <div id="mediaPickerContextMenu" class="media-picker-context-menu" style="display: none;">
+                    <div class="media-picker-context-menu-item" data-action="preview">
+                        <span>👁️ Xem chi tiết</span>
+                    </div>
+                    <div class="media-picker-context-menu-item" data-action="copy-url">
+                        <span>📋 Copy URL</span>
+                    </div>
+                    <div class="media-picker-context-menu-item" data-action="copy-filename">
+                        <span>📝 Copy tên file</span>
+                    </div>
+                    <div class="media-picker-context-menu-divider"></div>
+                    <div class="media-picker-context-menu-item" data-action="delete">
+                        <span>🗑️ Xóa ảnh</span>
+                    </div>
+                </div>
                 <div class="media-picker d-flex">
                     <div class="media-picker-main flex-grow-1">
-                        <div class="media-picker-toolbar d-flex align-items-center gap-2 flex-wrap p-3 border-bottom">
-                            <button class="btn btn-primary btn-sm" id="mediaPickerUploadBtn">📤 Upload</button>
-                            <button class="btn btn-outline-secondary btn-sm" id="mediaPickerRefreshBtn">🔄 Reload</button>
-                            <input type="text" class="form-control form-control-sm" style="max-width: 320px;" id="mediaPickerSearch" placeholder="Tìm kiếm theo tên/alt/title...">
-                            <div class="ms-auto d-flex align-items-center gap-2">
-                                <span class="small text-muted" id="mediaPickerCount"></span>
+                        <div class="p-3 border-bottom">
+                            <div class="alert alert-info mb-3" style="padding: 12px; background: #e0f2fe; border: 1px solid #3b82f6; border-radius: 8px;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <strong style="color: #1e40af;">📂 Chọn thư mục lưu ảnh:</strong>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #fff;">📁</span>
+                                    <select class="form-select" id="mediaPickerFolder" style="font-weight: 500;">
+                                        <option value="">-- Chọn folder --</option>
+                                    </select>
+                                </div>
+                                <div class="form-text mt-1" style="color: #1e40af; font-size: 12px;">
+                                    <strong>Lưu ý:</strong> Ảnh sẽ được lưu vào <code>/clients/assets/img/[folder]</code>. Bạn <strong>PHẢI</strong> chọn folder trước khi upload!
+                                </div>
+                            </div>
+                            <div class="media-picker-toolbar d-flex align-items-center gap-2 flex-wrap">
+                                <button class="btn btn-primary btn-sm" id="mediaPickerUploadBtn">📤 Upload</button>
+                                <button class="btn btn-outline-secondary btn-sm" id="mediaPickerRefreshBtn">🔄 Reload</button>
+                                <button class="btn btn-danger btn-sm d-none" id="mediaPickerBulkDeleteBtn">🗑️ Xóa đã chọn (<span id="mediaPickerSelectedCount">0</span>)</button>
+                                <input type="text" class="form-control form-control-sm" style="max-width: 320px;" id="mediaPickerSearch" placeholder="Tìm kiếm theo tên/alt/title...">
+                                <div class="ms-auto d-flex align-items-center gap-2">
+                                    <span class="small text-muted" id="mediaPickerCount"></span>
+                                </div>
                             </div>
                         </div>
                         <div class="media-picker-grid p-3" id="mediaPickerGrid">
@@ -123,11 +156,17 @@
             const updateMetaBtn = document.getElementById('mediaPickerUpdateMeta');
             const deleteBtn = document.getElementById('mediaPickerDelete');
             const selectionInfo = document.getElementById('mediaPickerSelectionInfo');
+            const contextMenu = document.getElementById('mediaPickerContextMenu');
+            const folderSelect = document.getElementById('mediaPickerFolder');
+            const bulkDeleteBtn = document.getElementById('mediaPickerBulkDeleteBtn');
+            const selectedCountSpan = document.getElementById('mediaPickerSelectedCount');
 
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
             fileInput.multiple = true;
             fileInput.accept = 'image/*';
+
+            let contextMenuFile = null;
 
             const state = {
                 page: 1,
@@ -140,14 +179,42 @@
                 mode: 'single',
                 onSelect: null,
                 scope: 'client',
-                folder: null, // Thêm folder vào state
+                folder: '', // Folder mặc định
             };
+
+            // Load folder list
+            function loadFolders() {
+                fetch(`{{ route('admin.media.folder-tree') }}?scope=${state.scope}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success && data.tree) {
+                            const select = folderSelect;
+                            select.innerHTML = '<option value="">-- Chọn folder --</option>';
+                            function addFolders(folders, prefix = '') {
+                                folders.forEach(folder => {
+                                    const option = document.createElement('option');
+                                    option.value = folder.path;
+                                    option.textContent = prefix + folder.name;
+                                    select.appendChild(option);
+                                    if (folder.children && folder.children.length > 0) {
+                                        addFolders(folder.children, prefix + folder.name + ' / ');
+                                    }
+                                });
+                            }
+                            addFolders(data.tree);
+                            if (state.folder) {
+                                select.value = state.folder;
+                            }
+                        }
+                    })
+                    .catch(err => console.error('Load folders error:', err));
+            }
 
             window.openMediaPicker = function (options = {}) {
                 state.mode = options.mode === 'multiple' ? 'multiple' : 'single';
                 state.onSelect = typeof options.onSelect === 'function' ? options.onSelect : null;
                 state.scope = options.scope || 'client';
-                state.folder = options.folder || null; // Nhận folder từ options
+                state.folder = options.folder || ''; // Nhận folder từ options hoặc để trống
                 state.selected.clear();
                 state.current = null;
                 selectionInfo.textContent = 'Chưa chọn ảnh';
@@ -156,6 +223,7 @@
                 state.page = 1;
                 state.search = '';
                 searchEl.value = '';
+                loadFolders();
                 loadPage();
                 modal.show();
             };
@@ -166,6 +234,7 @@
                 params.set('page', state.page);
                 params.set('limit', state.perPage);
                 if (state.search) params.set('search', state.search);
+                if (state.folder) params.set('folder', state.folder);
                 return params.toString();
             }
 
@@ -215,7 +284,12 @@
                         }
                         
                         state.total = total;
-                        state.files = files;
+                        // Sort: ảnh mới nhất lên đầu (modified_at DESC)
+                        state.files = files.sort((a, b) => {
+                            const timeA = new Date(a.modified_at || a.created_at || 0).getTime();
+                            const timeB = new Date(b.modified_at || b.created_at || 0).getTime();
+                            return timeB - timeA; // Mới nhất lên đầu
+                        });
                         renderGrid();
                         updatePager();
                     })
@@ -235,10 +309,15 @@
                 state.files.forEach(file => {
                     const card = document.createElement('div');
                     card.className = 'media-picker-card';
+                    card.style.height = 'fit-content';
                     card.dataset.path = file.path || file.url || file.filename;
                     const url = file.url || '';
                     const sizeText = file.size ? formatSize(file.size) : (file.mime_type || '');
+                    const isSelected = state.selected.has(card.dataset.path);
                     card.innerHTML = `
+                        <div class="media-picker-checkbox-wrapper" style="position: absolute; top: 8px; left: 8px; z-index: 10;">
+                            <input type="checkbox" class="form-check-input media-picker-checkbox" ${isSelected ? 'checked' : ''} data-path="${card.dataset.path}" style="width: 20px; height: 20px; cursor: pointer;">
+                        </div>
                         <div class="media-picker-thumb">
                             <img src="${url}" alt="${file.filename || ''}" onerror="this.style.display='none'">
                         </div>
@@ -247,11 +326,25 @@
                             <div class="media-picker-size">${sizeText}</div>
                         </div>
                     `;
-                    if (state.selected.has(card.dataset.path)) {
+                    if (isSelected) {
                         card.classList.add('selected');
                     }
-                    card.addEventListener('click', () => {
+                    const checkbox = card.querySelector('.media-picker-checkbox');
+                    checkbox.addEventListener('click', (e) => {
+                        e.stopPropagation();
                         toggleSelect(card.dataset.path, file);
+                    });
+                    card.addEventListener('click', (e) => {
+                        if (e.target !== checkbox && !checkbox.contains(e.target)) {
+                            toggleSelect(card.dataset.path, file);
+                        }
+                    });
+                    // Context menu (right-click)
+                    card.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        contextMenuFile = file;
+                        showContextMenu(e.clientX, e.clientY);
                     });
                     frag.appendChild(card);
                 });
@@ -274,7 +367,14 @@
                 state.current = file;
                 renderGrid();
                 updatePreview(file);
-                selectionInfo.textContent = `${state.selected.size} ảnh đã chọn`;
+                const selectedCount = state.selected.size;
+                selectionInfo.textContent = selectedCount > 0 ? `${selectedCount} ảnh đã chọn` : 'Chưa chọn ảnh';
+                if (selectedCountSpan) {
+                    selectedCountSpan.textContent = selectedCount;
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.classList.toggle('d-none', selectedCount === 0);
+                }
             }
 
             function updatePreview(file) {
@@ -334,13 +434,30 @@
             });
 
             uploadBtn.addEventListener('click', () => {
+                const currentFolder = (folderSelect?.value || '').trim();
+                if (!currentFolder) {
+                    alert('Vui lòng chọn folder trước khi upload.');
+                    if (folderSelect) {
+                        folderSelect.focus();
+                    }
+                    return;
+                }
                 fileInput.click();
             });
             fileInput.addEventListener('change', () => {
                 if (!fileInput.files?.length) return;
+                const currentFolder = (folderSelect?.value || '').trim();
+                if (!currentFolder) {
+                    alert('Vui lòng chọn folder trước khi upload.');
+                    fileInput.value = '';
+                    if (folderSelect) {
+                        folderSelect.focus();
+                    }
+                    return;
+                }
                 const formData = new FormData();
                 formData.append('scope', state.scope);
-                formData.append('folder', '');
+                formData.append('folder', currentFolder);
                 Array.from(fileInput.files).forEach(f => formData.append('files[]', f));
                 gridEl.innerHTML = '<div class="text-center text-muted py-5">Đang upload...</div>';
                 fetch(`{{ route('admin.media.upload') }}`, {
@@ -350,6 +467,7 @@
                 }).then(r => r.json())
                     .then(() => {
                         fileInput.value = '';
+                        state.folder = currentFolder;
                         loadPage();
                     })
                     .catch(() => {
@@ -357,6 +475,68 @@
                         gridEl.innerHTML = '<div class="text-center text-danger py-4">Upload thất bại</div>';
                     });
             });
+
+            // Xử lý thay đổi folder
+            if (folderSelect) {
+                folderSelect.addEventListener('change', () => {
+                    state.folder = (folderSelect.value || '').trim();
+                    state.page = 1;
+                    loadPage();
+                });
+            }
+
+            // Xử lý xóa hàng loạt
+            if (bulkDeleteBtn) {
+                bulkDeleteBtn.addEventListener('click', () => {
+                    const selectedPaths = Array.from(state.selected);
+                    if (selectedPaths.length === 0) {
+                        alert('Chưa chọn ảnh nào để xóa.');
+                        return;
+                    }
+                    if (!confirm(`Bạn có chắc muốn xóa ${selectedPaths.length} ảnh đã chọn?`)) {
+                        return;
+                    }
+                    bulkDeleteBtn.disabled = true;
+                    bulkDeleteBtn.textContent = 'Đang xóa...';
+                    fetch(`{{ route('admin.media.bulk-delete') }}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            paths: selectedPaths,
+                            scope: state.scope
+                        })
+                    })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                state.selected.clear();
+                                state.current = null;
+                                selectionInfo.textContent = 'Chưa chọn ảnh';
+                                previewEmpty.classList.remove('d-none');
+                                previewWrap.classList.add('d-none');
+                                if (selectedCountSpan) {
+                                    selectedCountSpan.textContent = '0';
+                                }
+                                bulkDeleteBtn.classList.add('d-none');
+                                loadPage();
+                            } else {
+                                alert('Xóa thất bại: ' + (data.error || 'Unknown error'));
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Bulk delete error:', err);
+                            alert('Xóa thất bại. Vui lòng thử lại.');
+                        })
+                        .finally(() => {
+                            bulkDeleteBtn.disabled = false;
+                            bulkDeleteBtn.innerHTML = '🗑️ Xóa đã chọn (<span id="mediaPickerSelectedCount">0</span>)';
+                            selectedCountSpan = document.getElementById('mediaPickerSelectedCount');
+                        });
+                });
+            }
 
             useBtn.addEventListener('click', () => {
                 if (!state.selected.size || !state.onSelect) return;
@@ -412,9 +592,11 @@
                 });
             });
 
-            deleteBtn.addEventListener('click', () => {
-                if (!state.current) return;
+            function deleteFile(file) {
+                const pathToDelete = file.path || file.url || '';
+                if (!pathToDelete) return;
                 if (!confirm('Bạn có chắc muốn xoá ảnh này?')) return;
+                
                 fetch(`{{ route('admin.media.delete') }}`, {
                     method: 'POST',
                     headers: {
@@ -422,16 +604,113 @@
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: JSON.stringify({
-                        path: state.current.path || state.current.url || '',
+                        path: pathToDelete,
                         scope: state.scope
                     })
                 }).then(r => r.json()).then(() => {
-                    state.selected.delete(state.current.path || state.current.url || '');
-                    state.current = null;
-                    selectionInfo.textContent = `${state.selected.size} ảnh đã chọn`;
+                    state.selected.delete(pathToDelete);
+                    if (state.current && (state.current.path === pathToDelete || state.current.url === pathToDelete)) {
+                        state.current = null;
+                        previewEmpty.classList.remove('d-none');
+                        previewWrap.classList.add('d-none');
+                    }
+                    const selectedCount = state.selected.size;
+                    selectionInfo.textContent = selectedCount > 0 ? `${selectedCount} ảnh đã chọn` : 'Chưa chọn ảnh';
+                    if (selectedCountSpan) {
+                        selectedCountSpan.textContent = selectedCount;
+                    }
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.classList.toggle('d-none', selectedCount === 0);
+                    }
                     loadPage();
                 });
+            }
+
+            deleteBtn.addEventListener('click', () => {
+                if (!state.current) return;
+                deleteFile(state.current);
             });
+
+            // Context menu functions
+            function showContextMenu(x, y) {
+                if (!contextMenu || !contextMenuFile) return;
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = x + 'px';
+                contextMenu.style.top = y + 'px';
+                
+                // Đảm bảo menu không bị tràn ra ngoài màn hình
+                setTimeout(() => {
+                    const rect = contextMenu.getBoundingClientRect();
+                    if (rect.right > window.innerWidth) {
+                        contextMenu.style.left = (x - rect.width) + 'px';
+                    }
+                    if (rect.bottom > window.innerHeight) {
+                        contextMenu.style.top = (y - rect.height) + 'px';
+                    }
+                }, 0);
+            }
+
+            function hideContextMenu() {
+                if (contextMenu) {
+                    contextMenu.style.display = 'none';
+                }
+                contextMenuFile = null;
+            }
+
+            function copyToClipboard(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Đã copy: ' + text);
+                }).catch(() => {
+                    // Fallback cho trình duyệt cũ
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    alert('Đã copy: ' + text);
+                });
+            }
+
+            // Context menu event listeners
+            if (contextMenu) {
+                contextMenu.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const action = e.target.closest('.media-picker-context-menu-item')?.dataset.action;
+                    if (!action || !contextMenuFile) return;
+
+                    switch (action) {
+                        case 'preview':
+                            toggleSelect(contextMenuFile.path || contextMenuFile.url || contextMenuFile.filename, contextMenuFile);
+                            hideContextMenu();
+                            break;
+                        case 'copy-url':
+                            copyToClipboard(contextMenuFile.url || '');
+                            hideContextMenu();
+                            break;
+                        case 'copy-filename':
+                            copyToClipboard(contextMenuFile.filename || contextMenuFile.name || '');
+                            hideContextMenu();
+                            break;
+                        case 'delete':
+                            deleteFile(contextMenuFile);
+                            hideContextMenu();
+                            break;
+                    }
+                });
+
+                // Đóng menu khi click ra ngoài
+                document.addEventListener('click', () => {
+                    hideContextMenu();
+                });
+                document.addEventListener('contextmenu', (e) => {
+                    if (!contextMenu.contains(e.target)) {
+                        hideContextMenu();
+                    }
+                });
+            }
         })();
     </script>
 @endpush

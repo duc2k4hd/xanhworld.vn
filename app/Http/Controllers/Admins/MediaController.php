@@ -108,17 +108,87 @@ class MediaController extends Controller
             unset($file);
         }
 
-        $filesCollection = collect($files)
-            ->when($search !== '', function ($collection) use ($search) {
-                $keyword = Str::lower($search);
+        $filesCollection = collect($files);
 
-                return $collection->filter(function ($file) use ($keyword) {
-                    return Str::contains(Str::lower($file['filename'] ?? ''), $keyword)
-                        || Str::contains(Str::lower($file['title'] ?? ''), $keyword)
-                        || Str::contains(Str::lower($file['alt'] ?? ''), $keyword);
-                });
-            })
-            ->sortByDesc(fn ($file) => $file['modified_at'] ?? $file['created_at'] ?? $file['filename'] ?? '');
+        if ($search !== '') {
+            $keywordRaw = trim($search);
+            $keywordLower = Str::lower($keywordRaw);
+            $keywordSlug = Str::slug($keywordRaw);
+
+            $filesCollection = $filesCollection
+                ->map(function ($file) use ($keywordLower, $keywordSlug) {
+                    $filename = Str::lower($file['filename'] ?? '');
+                    $title = Str::lower($file['title'] ?? '');
+                    $alt = Str::lower($file['alt'] ?? '');
+                    $path = Str::lower($file['path'] ?? '');
+
+                    // Chuẩn hoá path để tìm theo link (bỏ domain, prefix thư mục)
+                    $normalizedPath = ltrim($path, '/');
+                    $normalizedPath = preg_replace(
+                        '#^(clients/assets/img/|admins/img/|img/)+#',
+                        '',
+                        $normalizedPath
+                    );
+
+                    $basename = Str::lower(pathinfo($filename, PATHINFO_FILENAME));
+                    $slugFilename = Str::slug($basename);
+                    $slugTitle = Str::slug($file['title'] ?? '');
+
+                    $score = 0;
+
+                    // ƯU TIÊN CAO NHẤT: Khớp chính xác theo slug (cụm từ chính xác đã chuyển thành slug)
+                    // Ví dụ: search "cây phong thủy" → slug "cay-phong-thuy" → match với title/filename có slug = "cay-phong-thuy"
+                    if ($keywordSlug !== '' && ($slugTitle === $keywordSlug || $slugFilename === $keywordSlug)) {
+                        $score += 200; // Điểm cao nhất cho exact slug match
+                    }
+
+                    // Ưu tiên thứ 2: Khớp chính xác theo title / filename (không slug)
+                    if ($title === $keywordLower || $basename === $keywordLower) {
+                        $score += 150;
+                    }
+
+                    // Ưu tiên thứ 3: Khớp gần đúng theo slug (slug chứa keyword slug)
+                    // Ví dụ: search "phong thủy" → slug "phong-thuy" → match với title có slug chứa "phong-thuy"
+                    if ($keywordSlug !== '') {
+                        if (Str::contains($slugTitle, $keywordSlug)) {
+                            $score += 80;
+                        }
+                        if (Str::contains($slugFilename, $keywordSlug)) {
+                            $score += 75;
+                        }
+                    }
+
+                    // Ưu tiên thứ 4: Khớp gần đúng (contains) - không phải slug
+                    if ($keywordLower !== '' && Str::contains($title, $keywordLower)) {
+                        $score += 50;
+                    }
+                    if ($keywordLower !== '' && Str::contains($basename, $keywordLower)) {
+                        $score += 45;
+                    }
+                    if ($keywordLower !== '' && Str::contains($normalizedPath, $keywordLower)) {
+                        $score += 40;
+                    }
+                    if ($keywordLower !== '' && Str::contains($alt, $keywordLower)) {
+                        $score += 35;
+                    }
+
+                    $file['__search_score'] = $score;
+                    $file['__matched'] = $score > 0;
+
+                    return $file;
+                })
+                ->filter(fn ($file) => $file['__matched'] ?? false);
+        }
+
+        $filesCollection = $filesCollection->sortByDesc(function ($file) {
+            $score = $file['__search_score'] ?? 0;
+            $timestamp = $file['modified_at'] ?? $file['created_at'] ?? '';
+
+            return [
+                $score,
+                $timestamp,
+            ];
+        });
 
         $total = $filesCollection->count();
         $perPage = $limit ?? max($filesCollection->count(), 1);
@@ -155,12 +225,18 @@ class MediaController extends Controller
         $request->validate([
             'files' => 'required|array',
             'files.*' => 'file|max:10240', // 10MB max
-            'folder' => 'nullable|string',
+            'folder' => 'required|string', // Bắt buộc chọn folder, không được rỗng
             'scope' => 'required|in:admin,client',
         ]);
 
         $files = $request->file('files');
-        $folder = (string) ($request->get('folder', '') ?? '');
+        $folder = trim((string) ($request->get('folder', '') ?? ''));
+        if ($folder === '') {
+            return response()->json([
+                'success' => false,
+                'error' => 'Vui lòng chọn thư mục lưu trữ (folder) trước khi upload.',
+            ], 422);
+        }
         $scope = $request->get('scope', 'admin');
 
         // Normalize folder path
@@ -357,6 +433,51 @@ class MediaController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Bulk delete files
+     */
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        if (! $this->permissionService->can('delete')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'paths' => 'required|array',
+            'paths.*' => 'required|string',
+            'scope' => 'required|in:admin,client',
+        ]);
+
+        $paths = $request->get('paths', []);
+        $scope = $request->get('scope');
+        $successCount = 0;
+        $failedPaths = [];
+
+        foreach ($paths as $path) {
+            try {
+                $success = $this->mediaService->deleteFile($path, $scope);
+                if ($success) {
+                    $successCount++;
+                } else {
+                    $failedPaths[] = $path;
+                }
+            } catch (\Throwable $e) {
+                Log::error('Media bulk delete error', [
+                    'path' => $path,
+                    'error' => $e->getMessage(),
+                ]);
+                $failedPaths[] = $path;
+            }
+        }
+
+        return response()->json([
+            'success' => $successCount > 0,
+            'deleted_count' => $successCount,
+            'failed_count' => count($failedPaths),
+            'failed_paths' => $failedPaths,
+        ]);
     }
 
     /**
