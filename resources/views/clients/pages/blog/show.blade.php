@@ -207,39 +207,39 @@
 
                             // Random 1 item
                             $avatarColor = $colorAvatar[array_rand($colorAvatar)];
-    @endphp
+                        @endphp
                         <!-- Author Info -->
                         <div class="xanhworld-article-author-info">
                             <div class="xanhworld-article-author-avatar">
                                 <img width="100%" height="100%" src="https://ui-avatars.com/api/?name={{ $post?->creator?->name ?? 'Đức Nobi 💖' }}&background={{ $avatarColor['background'] }}&color={{ $avatarColor['color'] }}&size=48&rounded=true" alt="">
-        </div>
+                            </div>
                             <div class="xanhworld-article-author-details">
                                 <h3>{{ $post?->creator?->name ?? 'Đội ngũ biên tập' }}<span class="xanhworld-article-verified-badge"></span></h3>
                                 <p>📅 {{ optional($post->published_at)->format('d/m/Y') ?? $post->updated_at->format('d/m/Y') }}</p>
-                </div>
-            </div>
+                            </div>
+                        </div>
 
                         @mobile
                             <!-- TOC Mobile -->
-                @if($toc->isNotEmpty())
-                                <div class="xanhworld-article-toc" id="toc-mobile">
-                                    <div class="xanhworld-article-toc-title">
-                                        <p>📑 Mục lục</p>
-                                    </div>
-                                    <ul class="xanhworld-article-toc-list">
-                            @foreach($toc as $item)
-                                            <li class="{{ $item['tag'] === 'h3' ? 'xanhworld-article-toc-item-h3' : '' }}">
-                                    <a href="#{{ $item['id'] }}">{{ $item['label'] }}</a>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+                            @if($toc->isNotEmpty())
+                                            <div class="xanhworld-article-toc" id="toc-mobile">
+                                                <div class="xanhworld-article-toc-title">
+                                                    <p>📑 Mục lục</p>
+                                                </div>
+                                                <ul class="xanhworld-article-toc-list">
+                                        @foreach($toc as $item)
+                                                        <li class="{{ $item['tag'] === 'h3' ? 'xanhworld-article-toc-item-h3' : '' }}">
+                                                <a href="#{{ $item['id'] }}">{{ $item['label'] }}</a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
                         @endmobile
 
                         <!-- Article Content -->
                         <article class="xanhworld-article-article-content rich-content">
-                    {!! $contentWithAnchors !!}
+                            {!! $contentWithAnchors !!}
                         </article>
 
                         <!-- Comments Section -->
@@ -255,68 +255,97 @@
 
                         <!-- Tags Section -->
                         @if($tags->isNotEmpty())
-                        <div class="xanhworld-article-tags-footer">
-                            <div class="xanhworld-article-tags-footer-label">
-                                <strong>Thẻ:</strong>
+                            <div class="xanhworld-article-tags-footer">
+                                <div class="xanhworld-article-tags-footer-label">
+                                    <strong>Thẻ:</strong>
+                                </div>
+                                <div class="xanhworld-article-tags-footer-list">
+                                    @php
+                                        $allTagSlugs = $tags->pluck('slug')->implode(',');
+                                    @endphp
+                                    @foreach($tags as $tag)
+                                        <a href="{{ route('client.blog.index', ['tags' => $allTagSlugs]) }}" class="xanhworld-article-tag-footer">#{{ $tag->name }}</a>
+                                    @endforeach
+                                </div>
                             </div>
-                            <div class="xanhworld-article-tags-footer-list">
-                                @php
-                                    $allTagSlugs = $tags->pluck('slug')->implode(',');
-                                @endphp
-                                @foreach($tags as $tag)
-                                    <a href="{{ route('client.blog.index', ['tags' => $allTagSlugs]) }}" class="xanhworld-article-tag-footer">#{{ $tag->name }}</a>
-                                @endforeach
-                            </div>
-                        </div>
                         @endif
-                </div>
+
+                        <!-- Bài viết liên quan -->
+                        @if($relatedPosts->isNotEmpty())
+                            <div class="xanhworld-article-related-posts">
+                                <div class="xanhworld-article-related-posts-title">
+                                    <h3>📰 Bài viết liên quan</h3>
+                                </div>
+                                <div class="xanhworld-article-related-posts-list">
+                                    @foreach($relatedPosts as $related)
+                                        @php
+                                            // Images đã được preload trong controller, không cần query lại
+                                            $relatedPath = $related->coverImagePath();
+                                            $relatedUrl = asset($relatedPath ?? 'clients/assets/img/posts/no-image.webp');
+                                        @endphp
+                                        <a href="{{ route('client.blog.show', $related) }}" class="xanhworld-article-related-post-item">
+                                            <div class="xanhworld-article-related-post-image">
+                                                <img src="{{ $relatedUrl }}" alt="{{ $related->title }}" loading="lazy">
+                                            </div>
+                                            <div class="xanhworld-article-related-post-info">
+                                                <h4>{{ str()->limit($related->title, 70) }}</h4>
+                                                <span class="xanhworld-article-related-post-date">
+                                                    📅 {{ optional($related->published_at)->format('d/m/Y') ?? $related->created_at->format('d/m/Y') }}
+                                                </span>
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
+            </div>
 
             <div class="xanhworld-article-sidebar">
                 <div class="xanhworld-article-sidebar-content">
                     @desktop
                         <!-- TOC -->
-                @if($toc->isNotEmpty())
-                            <div class="xanhworld-article-toc" id="toc-desktop">
-                                <div class="xanhworld-article-toc-title">
-                                    <p>📑 Mục lục</p>
-                                </div>
-                                <ul class="xanhworld-article-toc-list">
-                            @foreach($toc as $item)
-                                        <li class="{{ $item['tag'] === 'h3' ? 'xanhworld-article-toc-item-h3' : '' }}">
-                                    <a href="#{{ $item['id'] }}">{{ $item['label'] }}</a>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+                        @if($toc->isNotEmpty())
+                                    <div class="xanhworld-article-toc" id="toc-desktop">
+                                        <div class="xanhworld-article-toc-title">
+                                            <p>📑 Mục lục</p>
+                                        </div>
+                                        <ul class="xanhworld-article-toc-list">
+                                    @foreach($toc as $item)
+                                                <li class="{{ $item['tag'] === 'h3' ? 'xanhworld-article-toc-item-h3' : '' }}">
+                                            <a href="#{{ $item['id'] }}">{{ $item['label'] }}</a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                     @enddesktop
-                @if($relatedPosts->isNotEmpty())
-                    <div class="xanhworld-article-sidebar-content-item">
-                        <div class="xanhworld-article-sidebar-content-item-title">
-                            <h3>Bài viết liên quan</h3>
+                    @if($relatedPosts->isNotEmpty())
+                        <div class="xanhworld-article-sidebar-content-item">
+                            <div class="xanhworld-article-sidebar-content-item-title">
+                                <h3>Bài viết liên quan</h3>
+                            </div>
+                                    <div class="xanhworld-article-sidebar-posts">
+                                @foreach($relatedPosts as $related)
+                                    @php
+                                        // Images đã được preload trong controller, không cần query lại
+                                        $relatedPath = $related->coverImagePath();
+                                        $relatedUrl = asset($relatedPath ?? 'clients/assets/img/posts/no-image.webp');
+                                    @endphp
+                                    <a href="{{ route('client.blog.show', $related) }}" class="xanhworld-article-sidebar-post">
+                                        <img src="{{ $relatedUrl }}" alt="{{ $related->title }}" loading="lazy">
+                                        <div class="xanhworld-article-sidebar-post-info">
+                                            <h4>{{ str()->limit($related->title, 60) }}</h4>
+                                            <span>{{ optional($related->published_at)->format('d/m/Y') }}</span>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            </div>
                         </div>
-                                <div class="xanhworld-article-sidebar-posts">
-                            @foreach($relatedPosts as $related)
-                                @php
-                                    // Images đã được preload trong controller, không cần query lại
-                                    $relatedPath = $related->coverImagePath();
-                                    $relatedUrl = asset($relatedPath ?? 'clients/assets/img/posts/no-image.webp');
-                                @endphp
-                                <a href="{{ route('client.blog.show', $related) }}" class="xanhworld-article-sidebar-post">
-                                    <img src="{{ $relatedUrl }}" alt="{{ $related->title }}" loading="lazy">
-                                    <div class="xanhworld-article-sidebar-post-info">
-                                        <h4>{{ str()->limit($related->title, 60) }}</h4>
-                                        <span>{{ optional($related->published_at)->format('d/m/Y') }}</span>
-                                    </div>
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
+                    @endif
                 </div>
-        </div>
+            </div>
         </div>
     </div>
 @endsection
