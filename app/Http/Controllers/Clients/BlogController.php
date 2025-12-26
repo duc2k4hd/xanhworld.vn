@@ -684,37 +684,46 @@ class BlogController extends Controller
         $tocItems = [];
         $usedIds = [];
 
-        foreach (['h2', 'h3'] as $tag) {
-            $nodes = $dom->getElementsByTagName($tag);
+        // Lấy tất cả các heading (h2, h3) theo thứ tự xuất hiện trong DOM
+        $xpath = new \DOMXPath($dom);
+        $headings = $xpath->query('//h2 | //h3');
 
-            foreach ($nodes as $node) {
-                $text = trim($node->textContent ?? '');
-
-                if ($text === '') {
-                    continue;
-                }
-
-                $baseId = Str::slug(Str::limit($text, 80, ''));
-                if ($baseId === '') {
-                    $baseId = 'section-'.(count($tocItems) + 1);
-                }
-
-                $id = $baseId;
-                $suffix = 1;
-                while (in_array($id, $usedIds, true)) {
-                    $id = $baseId.'-'.$suffix;
-                    $suffix++;
-                }
-
-                $usedIds[] = $id;
-                $node->setAttribute('id', $id);
-
-                $tocItems[] = [
-                    'id' => $id,
-                    'label' => $text,
-                    'tag' => $tag,
-                ];
+        foreach ($headings as $node) {
+            // Đảm bảo node là DOMElement để có thể setAttribute
+            if (! ($node instanceof \DOMElement)) {
+                continue;
             }
+
+            $tag = $node->nodeName; // 'h2' hoặc 'h3'
+            $text = trim($node->textContent ?? '');
+
+            if ($text === '') {
+                continue;
+            }
+
+            // Tạo ID unique từ text
+            $baseId = Str::slug(Str::limit($text, 80, ''));
+            if ($baseId === '') {
+                $baseId = 'section-'.(count($tocItems) + 1);
+            }
+
+            // Đảm bảo ID không trùng
+            $id = $baseId;
+            $suffix = 1;
+            while (in_array($id, $usedIds, true)) {
+                $id = $baseId.'-'.$suffix;
+                $suffix++;
+            }
+
+            $usedIds[] = $id;
+            $node->setAttribute('id', $id);
+
+            // Lưu theo thứ tự xuất hiện trong content
+            $tocItems[] = [
+                'id' => $id,
+                'label' => $text,
+                'tag' => $tag,
+            ];
         }
 
         return [

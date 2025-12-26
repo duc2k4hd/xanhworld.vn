@@ -371,60 +371,131 @@
             // });
         });
 
-        // Auto Highlight TOC on scroll
+        // Auto Highlight TOC on scroll - Tối ưu hiệu năng
         document.addEventListener('DOMContentLoaded', () => {
             // Support both desktop and mobile TOC
-            const tocContainer = document.getElementById('toc-desktop') || document.getElementById('toc-mobile');
+            const tocDesktop = document.getElementById('toc-desktop');
+            const tocMobile = document.getElementById('toc-mobile');
+            const tocContainer = tocDesktop || tocMobile;
+            
             if (!tocContainer) return;
 
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    const id = entry.target.getAttribute('id');
-                    if (!id) return;
-                    
-                    const tocLink = tocContainer.querySelector(`a[href="#${id}"]`);
-                    if (!tocLink) return;
+            // Cache các heading elements để tránh query lại nhiều lần
+            const contentSections = document.querySelectorAll('.xanhworld-article-article-content h2[id], .xanhworld-article-article-content h3[id]');
+            if (contentSections.length === 0) return;
 
-                        if (entry.isIntersecting) {
-                        // Remove active from all
-                        tocContainer.querySelectorAll('a').forEach(link => link.classList.remove('active'));
-                        // Add active to current
-                            tocLink.classList.add('active');
-                    }
-                });
-            }, {
-                rootMargin: '-20% 0px -70% 0px',
-                threshold: 0
+            // Cache các TOC links để tăng tốc độ
+            const tocLinks = new Map();
+            tocContainer.querySelectorAll('a').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href) {
+                    const id = href.substring(1);
+                    tocLinks.set(id, link);
+                }
             });
 
-            // Track all h2 and h3 in content
-            const contentSections = document.querySelectorAll('.xanhworld-article-article-content h2, .xanhworld-article-article-content h3');
+            // Tối ưu IntersectionObserver với debounce
+            let activeId = null;
+            const observer = new IntersectionObserver((entries) => {
+                // Tìm entry đầu tiên đang visible (từ trên xuống)
+                let currentEntry = null;
+                for (const entry of entries) {
+                    if (entry.isIntersecting && entry.intersectionRatio > 0) {
+                        if (!currentEntry || entry.boundingClientRect.top < currentEntry.boundingClientRect.top) {
+                            currentEntry = entry;
+                        }
+                    }
+                }
+
+                // Nếu không có entry nào visible, tìm entry gần nhất phía trên
+                if (!currentEntry) {
+                    const viewportTop = window.scrollY + 100; // Offset cho header
+                    for (const entry of entries) {
+                        const rect = entry.boundingClientRect;
+                        const elementTop = rect.top + window.scrollY;
+                        if (elementTop <= viewportTop) {
+                            if (!currentEntry || elementTop > (currentEntry.boundingClientRect.top + window.scrollY)) {
+                                currentEntry = entry;
+                            }
+                        }
+                    }
+                }
+
+                if (currentEntry) {
+                    const id = currentEntry.target.getAttribute('id');
+                    if (id && id !== activeId) {
+                        activeId = id;
+                        
+                        // Remove active từ tất cả links
+                        tocContainer.querySelectorAll('a').forEach(link => {
+                            link.classList.remove('active');
+                        });
+                        
+                        // Add active cho link hiện tại
+                        const tocLink = tocLinks.get(id);
+                        if (tocLink) {
+                            tocLink.classList.add('active');
+                            
+                            // Scroll TOC container để hiển thị active link (nếu cần)
+                            if (tocContainer.scrollHeight > tocContainer.clientHeight) {
+                                const linkTop = tocLink.offsetTop;
+                                const linkHeight = tocLink.offsetHeight;
+                                const containerHeight = tocContainer.clientHeight;
+                                const scrollTop = tocContainer.scrollTop;
+                                
+                                if (linkTop < scrollTop) {
+                                    tocContainer.scrollTop = linkTop - 20;
+                                } else if (linkTop + linkHeight > scrollTop + containerHeight) {
+                                    tocContainer.scrollTop = linkTop - containerHeight + linkHeight + 20;
+                                }
+                            }
+                        }
+                    }
+                }
+            }, {
+                rootMargin: '-100px 0px -60% 0px', // Tối ưu vùng trigger
+                threshold: [0, 0.1, 0.5, 1] // Nhiều threshold để chính xác hơn
+            });
+
+            // Observe tất cả sections một lần
             contentSections.forEach((section) => {
                 observer.observe(section);
             });
             
-            // Lazy load images
-            document.querySelectorAll('.xanhworld-article-article-content img').forEach(img => {
-                if (!img.hasAttribute('loading')) {
-                    img.setAttribute('loading', 'lazy');
-                }
+            // Lazy load images - chỉ chạy một lần
+            const images = document.querySelectorAll('.xanhworld-article-article-content img:not([loading])');
+            images.forEach(img => {
+                img.setAttribute('loading', 'lazy');
             });
 
-            // Smooth scroll for TOC links
-            tocContainer.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const targetId = link.getAttribute('href').substring(1);
-                    const target = document.getElementById(targetId);
-                    if (target) {
-                        const offset = 70;
-                        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
-                        window.scrollTo({
-                            top: targetPosition,
-                            behavior: 'smooth'
-                        });
-                    }
-                });
+            // Smooth scroll for TOC links - dùng event delegation
+            tocContainer.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (!link || !link.hash) return;
+                
+                e.preventDefault();
+                const targetId = link.hash.substring(1);
+                const target = document.getElementById(targetId);
+                if (target) {
+                    const offset = 100; // Offset cho fixed header
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Update active sau khi scroll (delay nhỏ)
+                    setTimeout(() => {
+                        const id = target.getAttribute('id');
+                        if (id) {
+                            tocContainer.querySelectorAll('a').forEach(l => l.classList.remove('active'));
+                            const tocLink = tocLinks.get(id);
+                            if (tocLink) {
+                                tocLink.classList.add('active');
+                            }
+                        }
+                    }, 500);
+                }
             });
         });
     </script>
