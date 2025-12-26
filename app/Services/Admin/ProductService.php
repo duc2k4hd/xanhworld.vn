@@ -1031,13 +1031,54 @@ class ProductService
             try {
                 $image = InterventionImage::make($originalPath);
 
-                // Đảm bảo đúng kích thước WxH, không méo, không phóng to quá mức
-                $image->fit($width, $height, function ($constraint) {
-                    $constraint->upsize();
-                });
+                // Lấy kích thước gốc
+                $originalWidth = $image->width();
+                $originalHeight = $image->height();
 
-                // Ghi đè nếu file đã tồn tại
-                $image->save($targetPath);
+                // Chỉ resize nếu ảnh gốc lớn hơn kích thước đích
+                // Nếu ảnh nhỏ hơn thì không resize (upsize = false)
+                if ($originalWidth > $width || $originalHeight > $height) {
+                    // Resize với giữ nguyên tỷ lệ khung hình, không phóng to
+                    $image->resize($width, $height, function ($constraint) {
+                        $constraint->aspectRatio(); // Giữ tỷ lệ khung hình
+                        $constraint->upsize(); // Không phóng to nếu nhỏ hơn
+                    });
+
+                    // Sau khi resize, nếu cần crop để đạt đúng kích thước (ví dụ: 800x600)
+                    // fit() sẽ crop từ center để đạt đúng kích thước
+                    $image->fit($width, $height, function ($constraint) {
+                        $constraint->upsize();
+                    });
+                } else {
+                    // Ảnh gốc nhỏ hơn hoặc bằng kích thước đích
+                    // Chỉ crop nếu cần để đạt đúng tỷ lệ khung hình
+                    if ($originalWidth !== $width || $originalHeight !== $height) {
+                        $image->fit($width, $height, function ($constraint) {
+                            $constraint->upsize();
+                        });
+                    }
+                }
+
+                // Làm nét ảnh sau khi resize để giảm độ mờ (sharpen từ 0-100)
+                $image->sharpen(15);
+
+                // Xác định quality dựa trên extension để giữ chất lượng cao
+                $quality = 95; // Mặc định 95% chất lượng cao
+                if (in_array(strtolower($extension), ['jpg', 'jpeg'])) {
+                    $quality = 95; // JPEG chất lượng rất cao
+                } elseif (strtolower($extension) === 'webp') {
+                    $quality = 95; // WebP chất lượng rất cao
+                } elseif (strtolower($extension) === 'png') {
+                    // PNG không có quality parameter, nhưng có thể optimize
+                    $quality = null;
+                }
+
+                // Lưu với quality cao để giữ chất lượng tốt nhất
+                if ($quality !== null) {
+                    $image->save($targetPath, $quality);
+                } else {
+                    $image->save($targetPath);
+                }
             } catch (\Throwable $e) {
                 Log::error('generateResizedImagesForSingle failed', [
                     'source' => $relativePath,
