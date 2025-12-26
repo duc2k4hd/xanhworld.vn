@@ -104,7 +104,7 @@ class ProductController extends Controller
         return view('admins.products.show', compact('product'));
     }
 
-    public function edit(Product $product): View
+    public function edit(Product $product): RedirectResponse|View
     {
         if ($response = $this->handleEditingLock($product, true)) {
             return $response;

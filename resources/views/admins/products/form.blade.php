@@ -99,6 +99,111 @@
 
 @push('styles')
     <style>
+        .product-form-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+            align-items: start;
+        }
+        
+        .product-form-main {
+            min-width: 0; /* Prevent grid overflow */
+        }
+        
+        .product-form-sidebar {
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        
+        .sidebar-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .sidebar-card h4 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .sidebar-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .sidebar-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .sidebar-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .sidebar-info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .sidebar-info-label {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .sidebar-info-value {
+            font-size: 13px;
+            color: #1f2937;
+            font-weight: 600;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+        
+        .sidebar-status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .sidebar-status-badge.active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        
+        .sidebar-status-badge.inactive {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        @media (max-width: 1200px) {
+            .product-form-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .product-form-sidebar {
+                position: relative;
+                top: 0;
+                max-height: none;
+            }
+        }
+    </style>
+    <style>
         .card {
             background: #fff;
             border-radius: 10px;
@@ -929,27 +1034,24 @@
 @endpush
 
 @section('content')
-    <form id="product-form" data-dirty-guard="true"
-          action="{{ $isEdit ? route('admin.products.update', $product) : route('admin.products.store') }}"
-          method="POST" enctype="multipart/form-data">
-        @csrf
-        @if($isEdit)
-            @method('PUT')
-        @endif
+    <div class="product-form-layout">
+        <div class="product-form-main">
+            <form id="product-form" data-dirty-guard="true"
+                  action="{{ $isEdit ? route('admin.products.update', $product) : route('admin.products.store') }}"
+                  method="POST" enctype="multipart/form-data">
+                @csrf
+                @if($isEdit)
+                    @method('PUT')
+                @endif
 
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:20px;">
-            <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">↩️ Quay lại danh sách</a>
-            <button type="submit" class="btn btn-primary">💾 Lưu sản phẩm</button>
-        </div>
+                @if($isEdit && $product->locked_by === auth('web')->id())
+                    <div style="margin-bottom:15px;padding:12px 14px;border-radius:8px;background:#e0f2fe;color:#0f172a;">
+                        <strong>🔒 Đang chỉnh sửa:</strong>
+                        Bạn đang khóa sản phẩm này để chỉnh sửa. Hệ thống sẽ tự động mở khóa khi bạn lưu hoặc sau {{ config('app.editor_lock_minutes', 15) }} phút không hoạt động.
+                    </div>
+                @endif
 
-        @if($isEdit && $product->locked_by === auth('web')->id())
-            <div style="margin-bottom:15px;padding:12px 14px;border-radius:8px;background:#e0f2fe;color:#0f172a;">
-                <strong>🔒 Đang chỉnh sửa:</strong>
-                Bạn đang khóa sản phẩm này để chỉnh sửa. Hệ thống sẽ tự động mở khóa khi bạn lưu hoặc sau {{ config('app.editor_lock_minutes', 15) }} phút không hoạt động.
-            </div>
-        @endif
-
-        <div class="card">
+                <div class="card">
             <h3>Thông tin cơ bản</h3>
             <div class="grid-3">
                 <div>
@@ -1368,11 +1470,83 @@
             </div>
         </div>
 
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:20px;">
-            <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">↩️ Quay lại danh sách</a>
-            <button type="submit" class="btn btn-primary">💾 Lưu sản phẩm</button>
+            </form>
         </div>
-    </form>
+
+        <!-- Sidebar -->
+        <div class="product-form-sidebar">
+            <!-- Actions Card -->
+            <div class="sidebar-card">
+                <h4>Thao tác</h4>
+                <div class="sidebar-actions">
+                    <button type="submit" form="product-form" class="btn btn-primary">💾 Lưu sản phẩm</button>
+                    <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">↩️ Quay lại danh sách</a>
+                    @if($isEdit)
+                        <a href="{{ route('client.product.detail', $product) }}" class="btn btn-outline-secondary" target="_blank">👁️ Xem chi tiết</a>
+                        <a href="{{ route('admin.products.inventory', $product) }}" class="btn btn-outline-secondary">📦 Quản lý kho</a>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Quick Info Card -->
+            @if($isEdit)
+            <div class="sidebar-card">
+                <h4>Thông tin nhanh</h4>
+                <div class="sidebar-info-item">
+                    <span class="sidebar-info-label">SKU:</span>
+                    <span class="sidebar-info-value">{{ $product->sku ?? '-' }}</span>
+                </div>
+                <div class="sidebar-info-item">
+                    <span class="sidebar-info-label">Trạng thái:</span>
+                    <span class="sidebar-info-value">
+                        <span class="sidebar-status-badge {{ $product->is_active ? 'active' : 'inactive' }}">
+                            {{ $product->is_active ? 'Đang bán' : 'Tạm ẩn' }}
+                        </span>
+                    </span>
+                </div>
+                <div class="sidebar-info-item">
+                    <span class="sidebar-info-label">Giá bán:</span>
+                    <span class="sidebar-info-value">{{ number_format($product->price ?? 0) }}₫</span>
+                </div>
+                @if($product->sale_price)
+                <div class="sidebar-info-item">
+                    <span class="sidebar-info-label">Giá KM:</span>
+                    <span class="sidebar-info-value">{{ number_format($product->sale_price) }}₫</span>
+                </div>
+                @endif
+                <div class="sidebar-info-item">
+                    <span class="sidebar-info-label">Tồn kho:</span>
+                    <span class="sidebar-info-value">{{ $product->stock_quantity ?? 0 }}</span>
+                </div>
+                <div class="sidebar-info-item">
+                    <span class="sidebar-info-label">Danh mục:</span>
+                    <span class="sidebar-info-value">{{ $product->primaryCategory->name ?? '-' }}</span>
+                </div>
+                <div class="sidebar-info-item">
+                    <span class="sidebar-info-label">Ngày tạo:</span>
+                    <span class="sidebar-info-value">{{ $product->created_at ? $product->created_at->format('d/m/Y') : '-' }}</span>
+                </div>
+                <div class="sidebar-info-item">
+                    <span class="sidebar-info-label">Cập nhật:</span>
+                    <span class="sidebar-info-value">{{ $product->updated_at ? $product->updated_at->format('d/m/Y') : '-' }}</span>
+                </div>
+            </div>
+            @endif
+
+            <!-- Quick Links Card -->
+            @if($isEdit)
+            <div class="sidebar-card">
+                <h4>Liên kết nhanh</h4>
+                <div class="sidebar-actions">
+                    @php
+                        $frontendUrl = route('client.product.detail', $product->slug);
+                    @endphp
+                    <a href="{{ $frontendUrl }}" class="btn btn-outline-primary" target="_blank">🔗 Xem trang sản phẩm</a>
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
 
     <template id="image-template">
         <div class="repeater-item">
