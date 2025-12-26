@@ -46,7 +46,7 @@ Disallow: /*?sort=
 Disallow: /*&sort=
 
 # Cho phép index danh mục, sản phẩm, blog
-Allow: /tin-tuc/
+Allow: /kinh-nghiem/
 Allow: /san-pham/
 Allow: /cua-hang/
 Allow: /flash-sale/

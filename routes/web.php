@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Route;
 // Trang chủ
 Route::get('/', [ClientHomeController::class, 'index'])->name('client.home.index');
 Route::post('/newsletter/subscription', [\App\Http\Controllers\Clients\NewsletterController::class, 'subscription'])->name('client.newsletter.subscription');
-Route::prefix('tin-tuc')->name('client.blog.')->group(function () {
+Route::prefix('/kinh-nghiem')->name('client.blog.')->group(function () {
     Route::get('/', [ClientBlogController::class, 'index'])->name('index');
     Route::get('/{post:slug}', [ClientBlogController::class, 'show'])->name('show');
 });

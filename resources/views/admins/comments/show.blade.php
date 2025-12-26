@@ -144,7 +144,7 @@
                         <li class="mb-2">
                             <strong>Đối tượng:</strong><br>
                             @if($comment->commentable)
-                                <a href="{{ '/tin-tuc/'. $comment->commentable->slug ?? '#' }}" target="_blank">
+                                <a href="{{ '/kinh-nghiem/'. $comment->commentable->slug ?? '#' }}" target="_blank">
                                     {{ $comment->commentable->name ?? $comment->commentable->title ?? 'N/A' }}
                                 </a>
                             @else

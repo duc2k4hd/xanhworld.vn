@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Comment;
 use App\Models\Post;
+use App\Models\Setting;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -410,7 +411,7 @@ class BlogController extends Controller
         if ($post->meta_canonical) {
             $canonical = $siteUrl.'/'.ltrim($post->meta_canonical, '/');
         } else {
-            $canonical = $siteUrl.'/tin-tuc/'.$post->slug;
+            $canonical = $siteUrl.'/kinh-nghiem/'.$post->slug;
         }
         $coverPath = $post->coverImagePath();
         $cover = $coverPath ? asset($coverPath) : asset('clients/assets/img/posts/no-image.webp');
@@ -450,7 +451,7 @@ class BlogController extends Controller
         $siteName = $settings->site_name ?? config('app.name') ?? 'THẾ GIỚI CÂY XANH XWORLD';
         $canonicalUrl = $post->meta_canonical
             ? $siteUrl.'/'.ltrim($post->meta_canonical, '/')
-            : $siteUrl.'/tin-tuc/'.$post->slug;
+            : $siteUrl.'/kinh-nghiem/'.$post->slug;
         $postUrl = route('client.blog.show', $post);
         $blogIndexUrl = route('client.blog.index');
 
@@ -524,7 +525,7 @@ class BlogController extends Controller
                 'url' => route('client.home.index'),
             ],
             [
-                'name' => 'Tin tức',
+                'name' => 'Kinh nghiệm hay',
                 'url' => $blogIndexUrl,
             ],
             [
@@ -615,6 +616,7 @@ class BlogController extends Controller
             'author' => [
                 '@type' => 'Person',
                 '@id' => $authorId,
+                'url' => Setting::getValue('facebook_link') ?? 'https://www.facebook.com/ducnobi2004',
                 'name' => $authorName,
             ],
             'publisher' => [

@@ -362,7 +362,7 @@ class SitemapService
 
             $urls = [];
             foreach ($tags as $tag) {
-                $loc = url('/tin-tuc?tags='.$tag->slug);
+                $loc = url('/kinh-nghiem?tags='.$tag->slug);
                 if ($this->isUrlExcluded($loc)) {
                     continue;
                 }
