@@ -953,12 +953,9 @@ class ProductService
 
             // Kích thước cho ảnh chính
             $mainSizes = [
-                [400, 400],
-                [85, 85],
-                [230, 230],
-                [215, 215],
-                [175, 175],
-                [155, 155],
+                [500, 500],
+                [150, 150],
+                [300, 300]
             ];
 
             $this->generateResizedImagesForSingle($primaryImage->url, $mainSizes);
@@ -972,7 +969,7 @@ class ProductService
                 return;
             }
 
-            $gallerySize = [[85, 85]];
+            $gallerySize = [[150, 150]];
             foreach ($galleryImages as $galleryImage) {
                 $this->generateResizedImagesForSingle($galleryImage->url, $gallerySize);
             }
@@ -1035,17 +1032,42 @@ class ProductService
                 $originalWidth = $image->width();
                 $originalHeight = $image->height();
 
+                // Tính tỷ lệ resize
+                $ratio = min($width / $originalWidth, $height / $originalHeight);
+
                 // Chỉ resize nếu ảnh gốc lớn hơn kích thước đích
-                // Nếu ảnh nhỏ hơn thì không resize (upsize = false)
                 if ($originalWidth > $width || $originalHeight > $height) {
-                    // Resize với giữ nguyên tỷ lệ khung hình, không phóng to
+                    // Progressive resize: resize từng bước để giảm artifacts
+                    // Đặc biệt hiệu quả khi downscale lớn (ví dụ: 4000px -> 85px)
+                    $currentWidth = $originalWidth;
+                    $currentHeight = $originalHeight;
+                    $targetRatio = $ratio;
+
+                    // Nếu tỷ lệ resize < 0.5 (giảm hơn 50%), resize từng bước
+                    if ($targetRatio < 0.5) {
+                        // Resize từng bước: giảm tối đa 50% mỗi lần
+                        while ($currentWidth > $width * 1.1 || $currentHeight > $height * 1.1) {
+                            $stepRatio = max(0.5, min($width / $currentWidth, $height / $currentHeight));
+                            $newWidth = (int) ($currentWidth * $stepRatio);
+                            $newHeight = (int) ($currentHeight * $stepRatio);
+
+                            $image->resize($newWidth, $newHeight, function ($constraint) {
+                                $constraint->aspectRatio();
+                                $constraint->upsize();
+                            });
+
+                            $currentWidth = $newWidth;
+                            $currentHeight = $newHeight;
+                        }
+                    }
+
+                    // Resize cuối cùng về đúng kích thước đích với tỷ lệ khung hình
                     $image->resize($width, $height, function ($constraint) {
-                        $constraint->aspectRatio(); // Giữ tỷ lệ khung hình
-                        $constraint->upsize(); // Không phóng to nếu nhỏ hơn
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
                     });
 
-                    // Sau khi resize, nếu cần crop để đạt đúng kích thước (ví dụ: 800x600)
-                    // fit() sẽ crop từ center để đạt đúng kích thước
+                    // Crop để đạt đúng kích thước nếu cần (ví dụ: 800x600)
                     $image->fit($width, $height, function ($constraint) {
                         $constraint->upsize();
                     });
@@ -1072,19 +1094,32 @@ class ProductService
                 // --- Giảm halo cho thumbnail nhỏ ---
                 // Blur vi mô và giảm gamma để triệt ánh sáng gắt
                 if ($width <= 120) {
-                    $image->blur(0.08);     // 👈 đủ triệt halo, KHÔNG làm mềm ảnh
-                    $image->gamma(0.97);    // 👈 giảm lóa rất nhẹ, giữ màu trung thực
+                    $image->blur(0.08);     // Đủ triệt halo, không làm mềm ảnh
+                    $image->gamma(0.97);    // Giảm lóa rất nhẹ, giữ màu trung thực
                 }
 
-                // Xác định quality dựa trên extension để giữ chất lượng cao
-                $quality = 95; // Mặc định 95% chất lượng cao
+                // Xác định quality theo kích thước và extension
+                // Ảnh nhỏ không cần quality quá cao → giảm dung lượng file
+                // Ảnh lớn cần quality cao → giữ chi tiết tốt
+                $baseQuality = match (true) {
+                    $width <= 100 => 85,    // Thumbnail rất nhỏ: 85% (đủ nét, file nhỏ)
+                    $width <= 200 => 88,    // Thumbnail nhỏ: 88%
+                    $width <= 400 => 90,    // Ảnh trung bình: 90%
+                    $width <= 800 => 92,    // Ảnh lớn: 92%
+                    default => 95,          // Ảnh rất lớn: 95%
+                };
+
+                // Điều chỉnh theo định dạng file
                 if (in_array(strtolower($extension), ['jpg', 'jpeg'])) {
-                    $quality = 95; // JPEG chất lượng rất cao
+                    $quality = $baseQuality;
                 } elseif (strtolower($extension) === 'webp') {
-                    $quality = 95; // WebP chất lượng rất cao
+                    // WebP có thể giữ chất lượng tốt với quality thấp hơn một chút
+                    $quality = max(80, $baseQuality - 2);
                 } elseif (strtolower($extension) === 'png') {
                     // PNG không có quality parameter, nhưng có thể optimize
                     $quality = null;
+                } else {
+                    $quality = $baseQuality;
                 }
 
                 // Lưu với quality cao để giữ chất lượng tốt nhất

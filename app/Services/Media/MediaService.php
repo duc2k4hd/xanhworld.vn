@@ -137,18 +137,18 @@ class MediaService
         $slugName = Str::slug($originalName);
         $finalExtension = $extension;
         $finalName = $slugName.'.'.$extension;
-        $finalPath = $targetPath.DIRECTORY_SEPARATOR.$finalName;
+            $finalPath = $targetPath.DIRECTORY_SEPARATOR.$finalName;
 
         // Nếu trùng tên, replace: xóa file cũ
         if (File::exists($finalPath)) {
             File::delete($finalPath);
-        }
+            }
 
         // Lưu trực tiếp file gốc (không tạo thumbnail)
-        $file->move($targetPath, $finalName);
+            $file->move($targetPath, $finalName);
 
-        if (! File::exists($finalPath)) {
-            throw new \Exception('Failed to move uploaded file');
+            if (! File::exists($finalPath)) {
+                throw new \Exception('Failed to move uploaded file');
         }
 
         // Verify file exists before getting info

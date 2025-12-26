@@ -355,14 +355,14 @@ class BlogController extends Controller
     protected function resolveIndexMeta(?Category $category, ?Tag $tag, ?string $searchTerm): array
     {
         $siteName = config('app.name');
-        $title = 'Tin tức & Blog cây xanh | '.$siteName;
+        $title = 'Blog chia sẻ những kinh nghiệm hay về cây xanh | '.$siteName;
         $description = 'Khám phá mẹo chăm sóc, gợi ý trang trí và câu chuyện thương hiệu '.$siteName.'.';
-        $heading = 'Chuyên mục tin tức từ '.$siteName;
-        $subheading = 'Tổng hợp kiến thức chăm cây, decor xanh và xu hướng sống bền vững.';
+        $heading = 'Blog chia sẻ những kinh nghiệm hay về cây xanh từ '.$siteName;
+        $subheading = 'Chia sẻ kinh nghiệm chăm sóc cây, gợi ý decor không gian xanh và câu chuyện thương hiệu '.$siteName.'.';
         $contextLabel = null;
 
         if ($category) {
-            $title = $category->name.' | Tin tức '.$siteName;
+            $title = $category->name.' | Blog chia sẻ những kinh nghiệm hay về cây xanh '.$siteName;
             $description = 'Tin tức và cảm hứng xoay quanh '.$category->name.' – cập nhật bởi '.$siteName.'.';
             $heading = 'Chuyên mục: '.$category->name;
             $subheading = 'Những bài viết liên quan đến '.$category->name.' được cập nhật thường xuyên.';
@@ -382,8 +382,10 @@ class BlogController extends Controller
         }
 
         $keywords = implode(', ', array_filter([
-            'tin tức cây xanh',
-            'kinh nghiệm chăm cây',
+            'blog chia sẻ những kinh nghiệm hay về cây xanh',
+            'kinh nghiệm chăm sóc cây',
+            'gợi ý decor không gian xanh',
+            'câu chuyện thương hiệu '.$siteName,
             $category?->name,
             $tag?->name,
             $searchTerm,

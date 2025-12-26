@@ -23,7 +23,7 @@
     <section class="xworld-hero">
         <div class="xworld-hero__content">
             <p class="eyebrow">{{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} Ecosystem</p>
-            <h1>Giải pháp cây xanh toàn diện cho mọi không gian</h1>
+            <h1>{{ ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD') . ' - Cây cảnh & giải pháp cây xanh' }}</h1>
             <p>
                 Từ cây phong thủy văn phòng, tiểu cảnh sân vườn đến dịch vụ chăm sóc định kỳ, {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} đồng hành cùng
                 doanh nghiệp và gia đình kiến tạo môi trường sống giàu năng lượng.

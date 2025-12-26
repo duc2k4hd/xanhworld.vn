@@ -466,7 +466,7 @@
                 </div>
             @endforeach
             <div class="xanhworld_header_main_nav_links_item">
-                <h3 class="xanhworld_header_main_nav_links_item_title"><a href="{{ route('client.blog.index') }}">TIN TỨC</a>
+                <h3 class="xanhworld_header_main_nav_links_item_title"><a href="{{ route('client.blog.index') }}">KINH NGHIỆM HAY</a>
                 </h3>
             </div>
         </div>

@@ -654,9 +654,9 @@
                     <div class="row g-2 mb-2">
                         <div class="col-md-8">
                             <div class="input-group input-group-sm">
-                                <span class="input-group-text">🔍</span>
-                                <input type="text" class="form-control" placeholder="Tìm ảnh theo tên..." data-media-search>
-                            </div>
+                        <span class="input-group-text">🔍</span>
+                        <input type="text" class="form-control" placeholder="Tìm ảnh theo tên..." data-media-search>
+                    </div>
                         </div>
                         <div class="col-md-4 text-end">
                             <button type="button" class="btn btn-sm btn-outline-secondary" data-media-refresh>↻ Làm mới</button>

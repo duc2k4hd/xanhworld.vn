@@ -7,7 +7,7 @@
     @if ($product?->primaryImage?->url)
         <link rel="preload"
             as="image"
-            href="{{ asset('clients/assets/img/clothes/resize/400x400/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}"
+            href="{{ asset('clients/assets/img/clothes/resize/500x500/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}"
             fetchpriority="high">
     @else
         <link rel="preload" as="image" href="{{ asset('clients/assets/img/clothes/no-image.webp') }}"
@@ -113,10 +113,10 @@
                     <div class="xanhworld_single_info_images_main">
                         <img loading="eager" fetchpriority="high" width="400" height="400" decoding="async"
                             srcset="
-                                {{ asset('clients/assets/img/clothes/resize/400x400/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }} 400w
+                                {{ asset('clients/assets/img/clothes/resize/500x500/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }} 400w
                             "
                             sizes="(max-width: 1050px) 400px, 400px"
-                            src="{{ asset('clients/assets/img/clothes/resize/400x400/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}"
+                            src="{{ asset('clients/assets/img/clothes/resize/500x500/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}"
                             alt="{{ $product?->primaryImage?->alt ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}"
                             title="{{ $product?->primaryImage?->title ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}"
                             class="xanhworld_single_info_images_main_image"
@@ -169,10 +169,10 @@
                                     onerror="this.onerror=null;this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                                     width="80" height="80"
                                     decoding="async"
-                                    src="{{ asset('clients/assets/img/clothes/resize/85x85/' . ($img->url ?? 'no-image.webp')) }}"
+                                    src="{{ asset('clients/assets/img/clothes/resize/150x150/' . ($img->url ?? 'no-image.webp')) }}"
                             
                                     srcset="
-                                        {{ asset('clients/assets/img/clothes/resize/85x85/' . ($img->url ?? 'no-image.webp')) }} 85w
+                                        {{ asset('clients/assets/img/clothes/resize/150x150/' . ($img->url ?? 'no-image.webp')) }} 85w
                                     "
                             
                                     sizes="(max-width: 1050px) 85px, 85px"
@@ -181,7 +181,7 @@
                                     title="{{ $img->title ?? ($product->name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}"
                                     class="xanhworld_single_info_images_gallery_image {{ $img->is_primary ? 'xanhworld_single_info_images_gallery_image_active' : '' }}">
                                 @php
-                                    $listImg[] = asset('clients/assets/img/clothes/resize/85x85/' . ($img->url ?? 'no-image.webp'));
+                                    $listImg[] = asset('clients/assets/img/clothes/resize/150x150/' . ($img->url ?? 'no-image.webp'));
                                 @endphp
                             @endforeach
                         @endif
@@ -485,7 +485,7 @@
                                                 @endphp
                                                 <div class="xanhworld_single_accessories_item">
                                                     <a href="{{ url('/san-pham/' . ($accessory->slug ?? '')) }}" class="xanhworld_single_accessories_item_thumb">
-                                                        <img src="{{ asset('clients/assets/img/clothes/resize/175x175/' . ($accessory?->primaryImage?->url ?? 'no-image.webp')) }}"
+                                                        <img src="{{ asset('clients/assets/img/clothes/resize/300x300/' . ($accessory?->primaryImage?->url ?? 'no-image.webp')) }}"
                                                             alt="{{ $accessory->name ?? '' }}">
                                                     </a>
                                                     <div class="xanhworld_single_accessories_item_name">{{ $accessory->name }}</div>

@@ -14,8 +14,8 @@
                         <a href="/san-pham/{{ $new->slug ?? 'san-pham-moi' }}">
                             <img loading="lazy" decoding="async" src="{{ asset('clients/assets/img/clothes/resize/230x230/' . ($new->primaryImage->url ?? 'no-image.webp')) }}"
                                 srcset="
-                                    {{ asset('clients/assets/img/clothes/resize/230x230/' . ($new->primaryImage->url ?? 'no-image.webp')) }} 1050w,
-                                    {{ asset('clients/assets/img/clothes/resize/155x155/' . ($new->primaryImage->url ?? 'no-image.webp')) }} 155w
+                                    {{ asset('clients/assets/img/clothes/resize/300x300/' . ($new->primaryImage->url ?? 'no-image.webp')) }} 1050w,
+                                    {{ asset('clients/assets/img/clothes/resize/300x300/' . ($new->primaryImage->url ?? 'no-image.webp')) }} 155w
                                 "
                                 sizes="(max-width: 1050px) 155px, 230px"
                                 alt="Áo Thun Nam Basic">

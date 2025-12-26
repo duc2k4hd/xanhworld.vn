@@ -1,9 +1,9 @@
 @extends('clients.layouts.master')
 
 @php
-    $resolvedTitle = $pageTitle ?? ('Tin tức & Blog cây xanh | ' . config('app.name'));
+    $resolvedTitle = $pageTitle ?? ('Blog chia sẻ những kinh nghiệm hay về cây xanh | ' . config('app.name'));
     $resolvedDescription = $pageDescription ?? 'Chia sẻ kinh nghiệm chăm sóc cây, gợi ý decor không gian xanh và câu chuyện thương hiệu.';
-    $resolvedKeywords = $pageKeywords ?? 'tin tức, blog cây xanh, chăm sóc cây, decor xanh';
+    $resolvedKeywords = $pageKeywords ?? 'kinh nghiệm hay, blog cây xanh, chăm sóc cây, decor xanh';
     $canonicalUrl = route('client.blog.index');
     $pageImage = asset('clients/assets/img/business/' . ($settings->site_logo ?? 'logo.png'));
 @endphp
@@ -163,7 +163,7 @@
                                 </a>
                             </h3>
 
-                            <p class="blog-card-excerpt">{{ $post->excerpt ?? $settings->site_name ?? config('app.name') }}</p>
+                            <p class="blog-card-excerpt">{{ $post->excerpt ?? $post->meta_description ?? $settings->site_name ?? config('app.name') }}</p>
 
                             <div class="blog-card-footer">
                                 <span>{{ number_format($post->views) }} xem</span>
