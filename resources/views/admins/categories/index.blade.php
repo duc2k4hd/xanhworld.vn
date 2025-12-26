@@ -10,27 +10,37 @@
 @push('styles')
     <style>
         .category-container {
-            display: flex;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 16px;
+            align-items: start;
         }
         
         .category-sidebar {
-            width: 280px;
-            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
             background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            max-height: calc(100vh - 200px);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            max-height: calc(100vh - 40px);
             overflow-y: auto;
         }
         
+        .category-sidebar h3 {
+            margin: 0 0 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
         .category-main {
-            flex: 1;
             background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
         .category-tree {
@@ -40,14 +50,15 @@
         }
         
         .tree-item {
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: 6px 8px;
+            border-radius: 4px;
             cursor: pointer;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: background 0.2s;
+            gap: 6px;
+            transition: background 0.15s;
+            font-size: 13px;
         }
         
         .tree-item:hover {
@@ -61,14 +72,16 @@
         }
         
         .tree-toggle {
-            width: 20px;
+            width: 16px;
             text-align: center;
             cursor: pointer;
+            font-size: 10px;
+            color: #64748b;
         }
         
         .tree-children {
-            margin-left: 24px;
-            margin-top: 4px;
+            margin-left: 20px;
+            margin-top: 2px;
             display: none;
         }
         
@@ -80,13 +93,13 @@
             width: 100%;
             border-collapse: collapse;
             background: #fff;
+            font-size: 12px;
         }
         
         .category-table th, .category-table td {
-            padding: 12px 16px;
+            padding: 8px 10px;
             border-bottom: 1px solid #eef2f7;
             text-align: left;
-            font-size: 13px;
         }
         
         .category-table th {
@@ -95,42 +108,60 @@
             letter-spacing: 0.05em;
             color: #475569;
             font-weight: 600;
+            font-size: 11px;
+            white-space: nowrap;
         }
         
         .category-table tr:hover td {
-            background: #f1f5f9;
+            background: #f9fafb;
         }
         
         .category-image {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             object-fit: cover;
-            border-radius: 6px;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
         }
         
         .filter-bar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            padding: 16px;
+            display: grid;
+            grid-template-columns: 1fr auto auto auto auto auto auto;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 12px;
             background: #f8fafc;
-            border-radius: 8px;
+            border-radius: 6px;
+            align-items: center;
         }
         
-        .filter-bar input,
-        .filter-bar select {
-            padding: 8px 12px;
+        .filter-bar input {
+            padding: 6px 10px;
             border: 1px solid #cbd5f5;
-            border-radius: 6px;
-            font-size: 13px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .filter-bar select {
+            padding: 6px 8px;
+            border: 1px solid #cbd5f5;
+            border-radius: 4px;
+            font-size: 12px;
+            min-width: 120px;
+        }
+        
+        .filter-bar .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            white-space: nowrap;
         }
         
         .badge {
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
             font-weight: 600;
+            display: inline-block;
         }
         
         .badge-success {
@@ -143,14 +174,78 @@
             color: #b91c1c;
         }
         
+        .badge-info {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+        
         .actions {
             display: flex;
-            gap: 6px;
+            gap: 4px;
         }
         
         .btn-sm {
-            padding: 4px 10px;
-            font-size: 12px;
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .page-header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .page-header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .slug-code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+        }
+        
+        .parent-select {
+            min-width: 160px;
+            font-size: 11px;
+            padding: 4px 6px;
+        }
+        
+        @media (max-width: 1400px) {
+            .category-container {
+                grid-template-columns: 200px 1fr;
+            }
+            
+            .filter-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .category-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .category-sidebar {
+                position: relative;
+                top: 0;
+                max-height: 300px;
+            }
         }
     </style>
 @endpush
@@ -159,7 +254,7 @@
     <div class="category-container">
         <!-- Sidebar - Tree View -->
         <div class="category-sidebar">
-            <h3 style="margin:0 0 16px;font-size:16px;font-weight:600;">📁 Cây danh mục</h3>
+            <h3>📁 Cây danh mục</h3>
             <ul class="category-tree" id="categoryTree">
                 @foreach($tree ?? [] as $item)
                     @include('admins.categories.partials.tree-item', ['item' => $item, 'level' => 0])
@@ -169,42 +264,40 @@
 
         <!-- Main Content -->
         <div class="category-main">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                <h2 style="margin:0;">Danh sách danh mục</h2>
-                @if($parentId)
-                    <div style="display:flex;gap:10px;">
-                        <a href="{{ route('admin.categories.edit', $parentId) }}" class="btn btn-info">➕ Sửa danh mục cha</a>
-                    </div>
-                @endif
-
-                <div style="display:flex;gap:10px;">
-                    <a href="{{ route('admin.categories.create') }}" class="btn btn-primary">➕ Thêm danh mục</a>
+            <div class="page-header">
+                <h2>Danh sách danh mục</h2>
+                <div class="page-header-actions">
+                    @if($parentId)
+                        <a href="{{ route('admin.categories.edit', $parentId) }}" class="btn btn-info btn-sm">✏️ Sửa cha</a>
+                    @endif
+                    <a href="{{ route('admin.categories.create') }}" class="btn btn-primary btn-sm">➕ Thêm mới</a>
                 </div>
             </div>
 
             <form class="filter-bar" method="GET">
-                <input type="text" name="keyword" placeholder="🔍 Tìm tên hoặc slug..."
-                       value="{{ request('keyword') }}" style="flex:1;min-width:200px;">
+                <input type="text" name="keyword" placeholder="🔍 Tìm tên hoặc slug..." value="{{ request('keyword') }}">
                 <select name="status">
-                    <option value="">-- Trạng thái --</option>
+                    <option value="">Trạng thái</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Đang hiển thị</option>
                     <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Tạm ẩn</option>
                 </select>
                 <select name="only_root">
-                    <option value="">-- Tất cả --</option>
-                    <option value="1" {{ request('only_root') === '1' ? 'selected' : '' }}>Chỉ danh mục gốc</option>
+                    <option value="">Loại</option>
+                    <option value="1" {{ request('only_root') === '1' ? 'selected' : '' }}>Chỉ gốc</option>
                 </select>
                 <select name="sort_by">
-                    <option value="order" {{ request('sort_by') === 'order' ? 'selected' : '' }}>Sắp xếp theo thứ tự</option>
-                    <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Sắp xếp theo tên</option>
-                    <option value="created_at" {{ request('sort_by') === 'created_at' ? 'selected' : '' }}>Sắp xếp theo ngày tạo</option>
+                    <option value="order" {{ request('sort_by') === 'order' ? 'selected' : '' }}>Sắp xếp</option>
+                    <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Theo tên</option>
+                    <option value="created_at" {{ request('sort_by') === 'created_at' ? 'selected' : '' }}>Theo ngày</option>
                 </select>
                 <select name="per_page">
                     <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50/trang</option>
                     <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100/trang</option>
                 </select>
                 <button type="submit" class="btn btn-primary">Lọc</button>
-                <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">Xóa bộ lọc</a>
+                @if(request()->anyFilled(['keyword', 'status', 'only_root', 'sort_by', 'per_page', 'parent_id']))
+                    <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">Xóa</a>
+                @endif
             </form>
 
             <form id="category-bulk-form" action="{{ route('admin.categories.bulk-action') }}" method="POST">
@@ -213,19 +306,19 @@
                     <table class="category-table">
                         <thead>
                         <tr>
-                            <th style="width:40px;">
+                            <th style="width:30px;">
                                 <input type="checkbox" id="select-all-categories">
                             </th>
-                            <th style="width:60px;">ID</th>
-                            <th style="width:80px;">Ảnh</th>
+                            <th style="width:50px;">ID</th>
+                            <th style="width:50px;">Ảnh</th>
                             <th>Tên</th>
-                            <th>Slug</th>
-                            <th>Danh mục cha</th>
-                            <th style="width:80px;">Thứ tự</th>
-                            <th style="width:100px;">Số lượng con</th>
-                            <th style="width:100px;">Trạng thái</th>
-                            <th style="width:120px;">Ngày tạo</th>
-                            <th style="width:150px;">Thao tác</th>
+                            <th style="width:140px;">Slug</th>
+                            <th style="width:160px;">Danh mục cha</th>
+                            <th style="width:60px;text-align:center;">TT</th>
+                            <th style="width:70px;text-align:center;">Con</th>
+                            <th style="width:80px;">Trạng thái</th>
+                            <th style="width:100px;">Ngày tạo</th>
+                            <th style="width:120px;">Thao tác</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -240,30 +333,32 @@
                                 </td>
                                 <td>{{ $category->id }}</td>
                                 <td>
-                                    @if($category->image)
-                                        <img src="{{ asset('clients/assets/img/categories/' . $category->image) }}" 
-                                             alt="{{ $category->name }}" 
-                                             class="category-image"
-                                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'50\' height=\'50\'%3E%3Crect width=\'50\' height=\'50\' fill=\'%23ddd\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' font-size=\'10\'%3ENo Image%3C/text%3E%3C/svg%3E';">
-                                    @else
-                                        <div style="width:50px;height:50px;background:#f1f5f9;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;">📁</div>
-                                    @endif
+                                    @php
+                                        $imagePath = 'clients/assets/img/categories/' . $category->image;
+                                        $imageUrl = $category->image && file_exists(public_path($imagePath)) 
+                                            ? asset($imagePath) 
+                                            : asset('clients/assets/img/categories/no-image.webp');
+                                    @endphp
+                                    <img src="{{ $imageUrl }}" 
+                                         alt="{{ $category->name }}" 
+                                         class="category-image"
+                                         onerror="this.src='{{ asset('clients/assets/img/categories/no-image.webp') }}';">
                                 </td>
                                 <td>
-                                    <strong>{{ $category->name }}</strong>
+                                    <strong style="font-size:13px;">{{ $category->name }}</strong>
                                 </td>
                                 <td>
-                                    <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:11px;">{{ $category->slug }}</code>
+                                    <span class="slug-code" title="{{ $category->slug }}">{{ $category->slug }}</span>
                                 </td>
                                 <td>
                                     @if($category->id === 1)
-                                        <span style="color:#94a3b8;">Root (Mặc định)</span>
+                                        <span style="color:#94a3b8;font-size:11px;">Root</span>
                                     @else
                                         <form action="{{ route('admin.categories.update-parent', $category) }}" method="POST" style="display:inline;" class="parent-change-form">
                                             @csrf
                                             @method('PATCH')
-                                            <select name="parent_id" class="form-control form-control-sm" style="min-width:200px;display:inline-block;font-size:13px;" onchange="this.form.submit()">
-                                                <option value="" {{ !$category->parent_id ? 'selected' : '' }}>🏠 Root (Không có)</option>
+                                            <select name="parent_id" class="form-control parent-select" onchange="this.form.submit()">
+                                                <option value="" {{ !$category->parent_id ? 'selected' : '' }}>🏠 Root</option>
                                                 @foreach(\App\Helpers\CategoryHelper::getDropdownOptions($category->id) as $option)
                                                     <option value="{{ $option['value'] }}" {{ $category->parent_id == $option['value'] ? 'selected' : '' }}>
                                                         {{ $option['label'] }}
@@ -273,9 +368,9 @@
                                         </form>
                                     @endif
                                 </td>
-                                <td style="text-align:center;">{{ $category->order }}</td>
+                                <td style="text-align:center;font-size:11px;">{{ $category->order }}</td>
                                 <td style="text-align:center;">
-                                    <span class="badge" style="background:#e0e7ff;color:#4338ca;">
+                                    <span class="badge badge-info">
                                         {{ $category->children()->count() }}
                                     </span>
                                 </td>
@@ -287,21 +382,21 @@
                                     @endif
                                 </td>
                                 <td style="font-size:11px;color:#64748b;">
-                                    {{ $category->created_at?->format('d/m/Y H:i') ?? '-' }}
+                                    {{ $category->created_at?->format('d/m/Y') ?? '-' }}
                                 </td>
                                 <td>
                                     <div class="actions">
-                                        <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-secondary btn-sm">✏️ Sửa</a>
+                                        <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-secondary btn-sm" title="Sửa">✏️</a>
                                         @if($category->id === 1)
                                             <button type="button" class="btn btn-danger btn-sm" disabled 
-                                                    title="Không thể xóa danh mục mặc định (ID: 1)" 
-                                                    style="opacity:0.5;cursor:not-allowed;">🗑️ Xóa</button>
+                                                    title="Không thể xóa" 
+                                                    style="opacity:0.5;cursor:not-allowed;">🗑️</button>
                                         @else
                                             <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" style="display:inline;" 
-                                                  onsubmit="return confirm('Bạn có chắc muốn xóa danh mục này?');">
+                                                  onsubmit="return confirm('Xóa danh mục này?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm">🗑️ Xóa</button>
+                                                <button type="submit" class="btn btn-danger btn-sm" title="Xóa">🗑️</button>
                                             </form>
                                         @endif
                                     </div>
@@ -309,9 +404,9 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="11" style="text-align:center;padding:40px;color:#94a3b8;">
-                                    <div style="font-size:48px;margin-bottom:16px;">📁</div>
-                                    <div>Chưa có danh mục nào</div>
+                                <td colspan="11" style="text-align:center;padding:30px;color:#94a3b8;">
+                                    <div style="font-size:36px;margin-bottom:12px;">📁</div>
+                                    <div style="font-size:13px;">Chưa có danh mục nào</div>
                                 </td>
                             </tr>
                         @endforelse
@@ -319,17 +414,17 @@
                     </table>
                 </div>
 
-                <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+                <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                     <button type="submit" class="btn btn-secondary btn-sm" name="bulk_action" value="hide">Ẩn đã chọn</button>
                     <button type="submit" class="btn btn-primary btn-sm" name="bulk_action" value="show">Hiển thị đã chọn</button>
                     @can('deleteAny', \App\Models\Category::class)
                         <button type="submit" class="btn btn-danger btn-sm" name="bulk_action" value="delete" 
-                                onclick="return confirm('Bạn có chắc muốn xóa các danh mục đã chọn?');">Xóa đã chọn</button>
+                                onclick="return confirm('Xóa các danh mục đã chọn?');">Xóa đã chọn</button>
                     @endcan
                 </div>
             </form>
 
-            <div style="margin-top:20px;">
+            <div style="margin-top:16px;">
                 {{ $categories->links() }}
             </div>
         </div>
