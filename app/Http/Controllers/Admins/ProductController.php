@@ -48,6 +48,9 @@ class ProductController extends Controller
             ->paginate(20)
             ->appends($request->query());
 
+        // Preload images để tránh N+1 query
+        Product::preloadImages($products->items());
+
         return view('admins.products.index', compact('products'));
     }
 

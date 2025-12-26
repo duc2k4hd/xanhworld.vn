@@ -75,6 +75,16 @@
             display: flex;
             gap: 8px;
         }
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        .product-image-cell {
+            width: 80px;
+        }
     </style>
 @endpush
 
@@ -138,6 +148,7 @@
                     <th style="width:40px;">
                         <input type="checkbox" id="select-all-products">
                     </th>
+                    <th class="product-image-cell">Ảnh</th>
                     <th>SKU</th>
                     <th>Tên</th>
                     <th>Danh mục</th>
@@ -152,6 +163,29 @@
                     <tr>
                         <td>
                             <input type="checkbox" name="selected[]" value="{{ $product->id }}" class="product-checkbox" form="bulk-action-form">
+                        </td>
+                        <td class="product-image-cell">
+                            @php
+                                $imageUrl = null;
+                                $imagePath = null;
+                                
+                                // Lấy ảnh đầu tiên từ product
+                                if ($product->primaryImage && $product->primaryImage->url) {
+                                    $imagePath = 'clients/assets/img/clothes/' . $product->primaryImage->url;
+                                    $fullPath = public_path($imagePath);
+                                    
+                                    // Kiểm tra file tồn tại
+                                    if (file_exists($fullPath)) {
+                                        $imageUrl = asset($imagePath);
+                                    }
+                                }
+                                
+                                // Fallback về no-image.webp nếu không có ảnh hoặc file không tồn tại
+                                if (!$imageUrl) {
+                                    $imageUrl = asset('clients/assets/img/clothes/no-image.webp');
+                                }
+                            @endphp
+                            <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="product-image" loading="lazy">
                         </td>
                         <td>{{ $product->sku }}</td>
                         <td>
@@ -202,7 +236,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" style="text-align:center;padding:40px;color:#94a3b8;">Chưa có sản phẩm nào</td>
+                        <td colspan="8" style="text-align:center;padding:40px;color:#94a3b8;">Chưa có sản phẩm nào</td>
                     </tr>
                 @endforelse
                 </tbody>
