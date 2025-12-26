@@ -45,7 +45,9 @@
             margin-bottom: 16px;
         }
         
-        .form-control, textarea, select {
+        .form-control,
+        textarea,
+        select {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid #cbd5e1;
@@ -54,7 +56,9 @@
             transition: all 0.2s;
         }
         
-        .form-control:focus, textarea:focus, select:focus {
+        .form-control:focus,
+        textarea:focus,
+        select:focus {
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -117,6 +121,108 @@
         .breadcrumb-separator {
             color: #cbd5e1;
         }
+        
+        .category-form-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        
+        .category-form-main {
+            min-width: 0;
+        }
+        
+        .category-form-sidebar {
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        
+        .sidebar-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .sidebar-card h4 {
+            margin: 0 0 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f2937;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .sidebar-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .sidebar-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .sidebar-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 13px;
+        }
+        
+        .sidebar-info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .sidebar-info-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .sidebar-info-value {
+            color: #111827;
+            font-weight: 600;
+            max-width: 60%;
+            text-align: right;
+            word-break: break-word;
+        }
+        
+        .sidebar-status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .sidebar-status-badge.active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        
+        .sidebar-status-badge.inactive {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        @media (max-width: 1200px) {
+            .category-form-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .category-form-sidebar {
+                position: static;
+                max-height: none;
+            }
+        }
     </style>
 @endpush
 
@@ -141,12 +247,10 @@
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
             <h2 style="margin:0;">{{ $pageTitle }}</h2>
-            <div style="display:flex;gap:10px;">
-                <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">↩️ Quay lại</a>
-                <button type="submit" class="btn btn-primary">💾 Lưu danh mục</button>
-            </div>
         </div>
 
+        <div class="category-form-layout">
+            <div class="category-form-main">
         <div class="card">
             <h3>Thông tin cơ bản</h3>
             
@@ -325,11 +429,61 @@
                 <div class="form-help">Mô tả SEO (tối đa 500 ký tự)</div>
             </div>
         </div>
+            </div> {{-- /.category-form-main --}}
 
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
-            <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">↩️ Quay lại</a>
-            <button type="submit" class="btn btn-primary">💾 Lưu danh mục</button>
-        </div>
+            <div class="category-form-sidebar">
+                <div class="sidebar-card">
+                    <h4>Thao tác</h4>
+                    <div class="sidebar-actions">
+                        <button type="submit" form="categoryForm" class="btn btn-primary">💾 Lưu danh mục</button>
+                        <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">↩️ Quay lại danh sách</a>
+                        @if($isEdit)
+                            <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-outline-secondary">✏️ Mở lại form</a>
+                        @endif
+                    </div>
+                </div>
+
+                @if($isEdit)
+                    <div class="sidebar-card">
+                        <h4>Thông tin nhanh</h4>
+                        <div class="sidebar-info-item">
+                            <span class="sidebar-info-label">ID:</span>
+                            <span class="sidebar-info-value">{{ $category->id }}</span>
+                        </div>
+                        <div class="sidebar-info-item">
+                            <span class="sidebar-info-label">Slug:</span>
+                            <span class="sidebar-info-value">{{ $category->slug }}</span>
+                        </div>
+                        <div class="sidebar-info-item">
+                            <span class="sidebar-info-label">Trạng thái:</span>
+                            <span class="sidebar-info-value">
+                                <span class="sidebar-status-badge {{ $category->is_active ? 'active' : 'inactive' }}">
+                                    {{ $category->is_active ? 'Hiển thị' : 'Tạm ẩn' }}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="sidebar-info-item">
+                            <span class="sidebar-info-label">Danh mục cha:</span>
+                            <span class="sidebar-info-value">
+                                {{ $category->parent?->name ?? 'Root' }}
+                            </span>
+                        </div>
+                        <div class="sidebar-info-item">
+                            <span class="sidebar-info-label">Ngày tạo:</span>
+                            <span class="sidebar-info-value">
+                                {{ $category->created_at?->format('d/m/Y') ?? '-' }}
+                            </span>
+                        </div>
+                        <div class="sidebar-info-item">
+                            <span class="sidebar-info-label">Cập nhật:</span>
+                            <span class="sidebar-info-value">
+                                {{ $category->updated_at?->format('d/m/Y') ?? '-' }}
+                            </span>
+                        </div>
+                    </div>
+                @endif
+            </div> {{-- /.category-form-sidebar --}}
+        </div> {{-- /.category-form-layout --}}
     </form>
 @endsection
 
