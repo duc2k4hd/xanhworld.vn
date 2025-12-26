@@ -1059,8 +1059,22 @@ class ProductService
                     }
                 }
 
-                // Làm nét ảnh sau khi resize để giảm độ mờ (sharpen từ 0-100)
-                $image->sharpen(15);
+                // --- Sharpen thông minh theo kích thước ---
+                // Ảnh nhỏ cần sharpen nhẹ hơn để tránh "lóa/gắt"
+                $sharpen = match (true) {
+                    $width <= 100 => 4,     // thumbnail rất nhỏ (85x85)
+                    $width <= 200 => 6,     // thumbnail nhỏ (155x155)
+                    $width <= 300 => 8,     // thumbnail trung bình
+                    default => 10,          // ảnh lớn
+                };
+                $image->sharpen($sharpen);
+
+                // --- Giảm halo cho thumbnail nhỏ ---
+                // Blur vi mô và giảm gamma để triệt ánh sáng gắt
+                if ($width <= 120) {
+                    $image->blur(0.08);     // 👈 đủ triệt halo, KHÔNG làm mềm ảnh
+                    $image->gamma(0.97);    // 👈 giảm lóa rất nhẹ, giữ màu trung thực
+                }
 
                 // Xác định quality dựa trên extension để giữ chất lượng cao
                 $quality = 95; // Mặc định 95% chất lượng cao
