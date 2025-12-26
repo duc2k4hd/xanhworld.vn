@@ -185,7 +185,7 @@ class ProductController extends Controller
                                         })
                                         ->with('variants')
                                         ->inRandomOrder()
-                                        ->limit(10)
+                                        ->limit(3)
                                         ->get();
 
                                     if ($products->isEmpty()) {
