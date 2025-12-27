@@ -267,9 +267,9 @@
             <div class="page-header">
                 <h2>Danh sách danh mục</h2>
                 <div class="page-header-actions">
-                    @if($parentId)
+                @if($parentId)
                         <a href="{{ route('admin.categories.edit', $parentId) }}" class="btn btn-info btn-sm">✏️ Sửa cha</a>
-                    @endif
+                @endif
                     <a href="{{ route('admin.categories.create') }}" class="btn btn-primary btn-sm">➕ Thêm mới</a>
                 </div>
             </div>
@@ -340,8 +340,8 @@
                                             : asset('clients/assets/img/categories/no-image.webp');
                                     @endphp
                                     <img src="{{ $imageUrl }}" 
-                                         alt="{{ $category->name }}" 
-                                         class="category-image"
+                                             alt="{{ $category->name }}" 
+                                             class="category-image"
                                          onerror="this.src='{{ asset('clients/assets/img/categories/no-image.webp') }}';">
                                 </td>
                                 <td>

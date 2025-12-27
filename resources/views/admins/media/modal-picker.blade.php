@@ -76,12 +76,12 @@
                                 </div>
                             </div>
                             <div class="media-picker-toolbar d-flex align-items-center gap-2 flex-wrap">
-                                <button class="btn btn-primary btn-sm" id="mediaPickerUploadBtn">📤 Upload</button>
-                                <button class="btn btn-outline-secondary btn-sm" id="mediaPickerRefreshBtn">🔄 Reload</button>
+                            <button class="btn btn-primary btn-sm" id="mediaPickerUploadBtn">📤 Upload</button>
+                            <button class="btn btn-outline-secondary btn-sm" id="mediaPickerRefreshBtn">🔄 Reload</button>
                                 <button class="btn btn-danger btn-sm d-none" id="mediaPickerBulkDeleteBtn">🗑️ Xóa đã chọn (<span id="mediaPickerSelectedCount">0</span>)</button>
-                                <input type="text" class="form-control form-control-sm" style="max-width: 320px;" id="mediaPickerSearch" placeholder="Tìm kiếm theo tên/alt/title...">
-                                <div class="ms-auto d-flex align-items-center gap-2">
-                                    <span class="small text-muted" id="mediaPickerCount"></span>
+                            <input type="text" class="form-control form-control-sm" style="max-width: 320px;" id="mediaPickerSearch" placeholder="Tìm kiếm theo tên/alt/title...">
+                            <div class="ms-auto d-flex align-items-center gap-2">
+                                <span class="small text-muted" id="mediaPickerCount"></span>
                                 </div>
                             </div>
                         </div>
@@ -610,7 +610,7 @@
                 }).then(r => r.json()).then(() => {
                     state.selected.delete(pathToDelete);
                     if (state.current && (state.current.path === pathToDelete || state.current.url === pathToDelete)) {
-                        state.current = null;
+                    state.current = null;
                         previewEmpty.classList.remove('d-none');
                         previewWrap.classList.add('d-none');
                     }

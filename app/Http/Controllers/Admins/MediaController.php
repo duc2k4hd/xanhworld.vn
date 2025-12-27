@@ -176,7 +176,7 @@ class MediaController extends Controller
                     $file['__matched'] = $score > 0;
 
                     return $file;
-                })
+            })
                 ->filter(fn ($file) => $file['__matched'] ?? false);
         }
 

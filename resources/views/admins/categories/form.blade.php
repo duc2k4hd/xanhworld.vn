@@ -440,8 +440,8 @@
                         @if($isEdit)
                             <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-outline-secondary">✏️ Mở lại form</a>
                         @endif
-                    </div>
-                </div>
+            </div>
+        </div>
 
                 @if($isEdit)
                     <div class="sidebar-card">
@@ -480,7 +480,7 @@
                                 {{ $category->updated_at?->format('d/m/Y') ?? '-' }}
                             </span>
                         </div>
-                    </div>
+        </div>
                 @endif
             </div> {{-- /.category-form-sidebar --}}
         </div> {{-- /.category-form-layout --}}

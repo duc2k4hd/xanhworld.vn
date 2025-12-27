@@ -596,9 +596,10 @@ body {
 .xanhworld-article-content-wrapper {
     display: grid;
     grid-template-columns: 3fr 1fr;
-    gap: 40px;
-    margin: 20px 0;
+    gap: 10px;
+    margin: 20px auto;
     position: relative;
+    max-width: 1200px;
 }
 
 .xanhworld-article-sidebar {
@@ -675,7 +676,6 @@ body {
     background: linear-gradient(135deg, #a8ffc2 0%, #8ccc97 100%);
     /* padding: 40px 20px; */
     border-radius: 12px;
-    margin: 0 20px 20px 20px;
     position: relative;
     overflow: hidden;
     width: 100%;
@@ -738,9 +738,7 @@ body {
 
 /* Main Content */
 .xanhworld-article-container {
-    width: 95%;
     margin: 0 auto;
-    padding: 0 20px;
 }
 
 .xanhworld-article-content {
@@ -750,7 +748,7 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     margin-top: -60px;
     position: relative;
-    width: 95%;
+    width: 96%;
     margin: -60px auto 0 auto;
     z-index: 10;
     border: 0.1px solid #e0e0e0;
