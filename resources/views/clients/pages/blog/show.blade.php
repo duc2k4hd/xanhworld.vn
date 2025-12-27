@@ -99,18 +99,18 @@
             <span>»</span>
             <span>{{ str()->limit($post->title, 60) }}</span>
         </div>
-
-        @if($tags->isNotEmpty())
-            <div class="xanhworld-article-header-top">
-                <div class="xanhworld-article-header-top-label">
-                    <strong>Từ khóa:</strong>
-                            </div>
-                @foreach($tags as $tag)
-                    <a href="{{ route('client.blog.index', ['tags' => $tag->slug]) }}" class="xanhworld-article-tag"># {{ $tag->name }}</a>
-                @endforeach
-            </div>
-        @endif
-
+        @desktop
+            @if($tags->isNotEmpty())
+                <div class="xanhworld-article-header-top">
+                    <div class="xanhworld-article-header-top-label">
+                        <strong>Từ khóa:</strong>
+                                </div>
+                    @foreach($tags as $tag)
+                        <a href="{{ route('client.blog.index', ['tags' => $tag->slug]) }}" class="xanhworld-article-tag"># {{ $tag->name }}</a>
+                    @endforeach
+                </div>
+            @endif
+        @enddesktop
         <div class="xanhworld-article-content-wrapper">
             <div class="xanhworld-article-content-inner">
                 <!-- Hero Section -->
@@ -299,6 +299,18 @@
                         @endif
                     </div>
                 </div>
+                @mobile
+                    @if($tags->isNotEmpty())
+                        <div class="xanhworld-article-header-top">
+                            <div class="xanhworld-article-header-top-label">
+                                <strong>Từ khóa:</strong>
+                                        </div>
+                            @foreach($tags as $tag)
+                                <a href="{{ route('client.blog.index', ['tags' => $tag->slug]) }}" class="xanhworld-article-tag"># {{ $tag->name }}</a>
+                            @endforeach
+                        </div>
+                    @endif
+                @endmobile
             </div>
 
             <div class="xanhworld-article-sidebar">
