@@ -253,7 +253,7 @@
                         </div>
 
                         <!-- Tags Section -->
-                        @if($tags->isNotEmpty())
+                        {{-- @if($tags->isNotEmpty())
                             <div class="xanhworld-article-tags-footer">
                                 <div class="xanhworld-article-tags-footer-label">
                                     <strong>Thẻ:</strong>
@@ -267,7 +267,7 @@
                                     @endforeach
                                 </div>
                             </div>
-                        @endif
+                        @endif --}}
 
                         <!-- Bài viết liên quan -->
                         @if($relatedPosts->isNotEmpty())
