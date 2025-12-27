@@ -124,24 +124,12 @@
                 const allButtons = document.querySelectorAll('button');
                 allButtons.forEach(function(btn, idx) {
                     if (btn.textContent && btn.textContent.includes('Thêm vào giỏ')) {
-                        console.log('[Variant Modal] Found add-to-cart button', idx, ':', {
-                            classes: btn.className,
-                            hasDataProductId: !!btn.dataset.productId,
-                            hasDataVariants: !!btn.dataset.variants
-                        });
+                        
                     }
                 });
             }
             
             openModalBtns.forEach(function(btn, index) {
-                console.log('[Variant Modal] Button', index, ':', {
-                    hasProductId: !!btn.dataset.productId,
-                    hasProductName: !!btn.dataset.productName,
-                    hasVariants: !!btn.dataset.variants,
-                    variantsLength: btn.dataset.variants ? btn.dataset.variants.length : 0,
-                    buttonElement: btn
-                });
-                
                 // Test click immediately
                 
                 btn.addEventListener('click', function(e) {
@@ -843,8 +831,6 @@
                 </div>
             </div>
         </section>
-
-        @include('clients.templates.chat')
     </main>
 
     @include('clients.templates.call')

@@ -1864,8 +1864,8 @@ input:disabled {
     }
 
     .xanhworld_chat_panel {
-        height: 70vh;
-        max-height: 520px;
+        height: 100% !important;
+        max-height: 100% !important;
     }
 
     .xanhworld_chat_form {
