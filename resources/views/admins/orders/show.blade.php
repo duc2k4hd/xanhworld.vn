@@ -9,6 +9,102 @@
 
 @push('styles')
     <style>
+        .order-detail-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+            align-items: start;
+        }
+        
+        .order-detail-main {
+            min-width: 0;
+        }
+        
+        .order-detail-sidebar {
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        
+        .sidebar-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .sidebar-card h4 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .sidebar-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .sidebar-actions .btn {
+            width: 100%;
+            justify-content: center;
+            font-size: 13px;
+            padding: 8px 12px;
+        }
+        
+        .sidebar-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .sidebar-info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .sidebar-info-label {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .sidebar-info-value {
+            font-size: 13px;
+            color: #1f2937;
+            font-weight: 600;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+        
+        .sidebar-status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 1200px) {
+            .order-detail-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .order-detail-sidebar {
+                position: relative;
+                top: 0;
+                max-height: none;
+            }
+        }
+        
         .card {
             background:#fff;
             border-radius:10px;
@@ -165,51 +261,14 @@
 
 @section('content')
     <div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
             <h2 style="margin:0;">Đơn hàng: {{ $order->code }}</h2>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">↩️ Quay lại</a>
-                @if($order->status === 'completed' && $order->delivery_status === 'delivered' && $order->payment_status === 'paid')
-                    <a href="{{ route('admin.orders.invoice', $order) }}" target="_blank" class="btn btn-info">🧾 In hóa đơn</a>
-                    <a href="{{ route('admin.orders.invoice.pdf', $order) }}" class="btn btn-success">⬇️ PDF hóa đơn</a>
-                @endif
-                @if($order->shipping_partner === 'ghn' && $order->shipping_tracking_code)
-                    <a href="{{ route('admin.orders.track', ['tracking_code' => $order->shipping_tracking_code]) }}" class="btn btn-outline-primary">🔍 Tra cứu GHN</a>
-                @endif
-                @if(!in_array($order->status, ['completed', 'cancelled']))
-                    <a href="{{ route('admin.orders.edit', $order) }}" class="btn btn-primary">✏️ Sửa</a>
-                @endif
-                @if($order->canCancel())
-                    <form action="{{ route('admin.orders.cancel', $order) }}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này?');">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="btn btn-danger">❌ Hủy đơn</button>
-                    </form>
-                @elseif($order->status === 'completed')
-                    <a style="pointer-events: none" disabled href="javascript:void(0)" class="btn btn-success">✅ Đã hoàn thành</a>
-                @else
-                    <a style="pointer-events: none" disabled href="javascript:void(0)" class="btn btn-danger">❌ Đã hủy</a>
-                @endif
-                @if($order->status === 'pending')
-                    <form action="{{ route('admin.orders.update-status', $order) }}" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn chấp nhận đơn hàng này?');">
-                        @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="status" value="processing">
-                        <button type="submit" class="btn btn-success">✅ Chấp nhận đơn hàng</button>
-                    </form>
-                @endif
-                @if($order->status === 'processing' && $order->delivery_status === 'delivered')
-                    <form action="{{ route('admin.orders.complete', $order) }}" method="POST" style="display:inline;">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="btn btn-success">✅ Hoàn thành</button>
-                    </form>
-                @endif
-                @if($order->canCreateGhnShipment())
-                <button type="button" onclick="showGhnModal()" class="btn btn-info">🚚 Lên đơn GHN</button>
-                @endif
-            </div>
+            <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">↩️ Quay lại</a>
         </div>
+
+        <div class="order-detail-layout">
+            <!-- Cột trái: Nội dung chính -->
+            <div class="order-detail-main">
 
         @php
             $shippingRaw = $order->shipping_raw_response ?? [];
@@ -406,8 +465,8 @@
             </div>
         </div>
 
-        <div class="card">
-            <h3>Thông tin người nhận</h3>
+                <div class="card">
+                    <h3>Thông tin người nhận</h3>
             <div class="info-grid">
                 <div class="info-item">
                     <div class="info-label">Họ tên</div>
@@ -449,8 +508,8 @@
             </div>
         </div>
 
-        <div class="card">
-            <h3>Thanh toán & Vận chuyển</h3>
+                <div class="card">
+                    <h3>Thanh toán & Vận chuyển</h3>
             <div class="info-grid">
                 <div class="info-item">
                     <div class="info-label">Phương thức</div>
@@ -500,8 +559,8 @@
             </div>
         </div>
 
-        @if ($order->shipping_partner === 'ghn' && $order->shipping_tracking_code && $order->status !== 'cancelled' && $order->delivery_status !== 'cancelled')
-            <div class="card">
+                @if ($order->shipping_partner === 'ghn' && $order->shipping_tracking_code && $order->status !== 'cancelled' && $order->delivery_status !== 'cancelled')
+                    <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
                     <h3>Trạng thái giao hàng (GHN)</h3>
                     <div style="display:flex;gap:8px;align-items:center;">
@@ -896,8 +955,8 @@
             </div>
         @endif
 
-        <div class="card">
-            <h3>Sản phẩm trong đơn ({{ $order->items->count() }})</h3>
+                <div class="card">
+                    <h3>Sản phẩm trong đơn ({{ $order->items->count() }})</h3>
             <div class="table-responsive">
                 <table class="items-table">
                     <thead>
@@ -955,8 +1014,8 @@
             </div>
         </div>
 
-        <div class="card">
-            <h3>Tổng tiền</h3>
+                <div class="card">
+                    <h3>Tổng tiền</h3>
             <div>
                 <div class="summary-item">
                     <span>Tổng tiền sản phẩm:</span>
@@ -987,23 +1046,127 @@
             </div>
         </div>
 
-        @if($order->customer_note || $order->admin_note)
-        <div class="card">
-            <h3>Ghi chú</h3>
-            @if($order->customer_note)
-            <div style="margin-bottom:12px;">
-                <div class="info-label">Ghi chú khách hàng:</div>
-                <div style="padding:8px;background:#f8fafc;border-radius:6px;font-size:13px;">{{ $order->customer_note }}</div>
+                @if($order->customer_note || $order->admin_note)
+                    <div class="card">
+                        <h3>Ghi chú</h3>
+                        @if($order->customer_note)
+                        <div style="margin-bottom:12px;">
+                            <div class="info-label">Ghi chú khách hàng:</div>
+                            <div style="padding:8px;background:#f8fafc;border-radius:6px;font-size:13px;">{{ $order->customer_note }}</div>
+                        </div>
+                        @endif
+                        @if($order->admin_note)
+                        <div>
+                            <div class="info-label">Ghi chú nội bộ:</div>
+                            <div style="padding:8px;background:#fef3c7;border-radius:6px;font-size:13px;">{{ $order->admin_note }}</div>
+                        </div>
+                        @endif
+                    </div>
+                @endif
             </div>
-            @endif
-            @if($order->admin_note)
-            <div>
-                <div class="info-label">Ghi chú nội bộ:</div>
-                <div style="padding:8px;background:#fef3c7;border-radius:6px;font-size:13px;">{{ $order->admin_note }}</div>
+
+            <!-- Cột phải: Sidebar với actions và quick info -->
+            <div class="order-detail-sidebar">
+                <!-- Quick Info -->
+                <div class="sidebar-card">
+                    <h4>Thông tin nhanh</h4>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Mã đơn:</span>
+                        <span class="sidebar-info-value">{{ $order->code }}</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Trạng thái:</span>
+                        <span class="sidebar-info-value">
+                            <span class="badge badge-{{ $order->status }}">
+                                @if($order->status === 'pending') Chờ xử lý
+                                @elseif($order->status === 'processing') Đang xử lý
+                                @elseif($order->status === 'completed') Hoàn thành
+                                @else Đã hủy
+                                @endif
+                            </span>
+                        </span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Thanh toán:</span>
+                        <span class="sidebar-info-value">
+                            <span class="badge badge-{{ $order->payment_status }}">
+                                @if($order->payment_status === 'pending') Chờ thanh toán
+                                @elseif($order->payment_status === 'paid') Đã thanh toán
+                                @else Thất bại
+                                @endif
+                            </span>
+                        </span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Vận chuyển:</span>
+                        <span class="sidebar-info-value">
+                            @if($order->delivery_status === 'pending') Chờ giao
+                            @elseif($order->delivery_status === 'shipped') Đang giao
+                            @elseif($order->delivery_status === 'delivered') Đã giao
+                            @elseif($order->delivery_status === 'cancelled') Đã hủy
+                            @else Đã trả
+                            @endif
+                        </span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Tổng tiền:</span>
+                        <span class="sidebar-info-value" style="color:#15803d;font-size:14px;">
+                            <strong>{{ number_format($order->final_price) }} đ</strong>
+                        </span>
+                    </div>
+                    @if($order->shipping_tracking_code)
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Mã vận đơn:</span>
+                        <span class="sidebar-info-value" style="font-size:12px;color:#1d4ed8;">
+                            {{ $order->shipping_tracking_code }}
+                        </span>
+                    </div>
+                    @endif
+                </div>
+
+                <!-- Actions -->
+                <div class="sidebar-card">
+                    <h4>Thao tác</h4>
+                    <div class="sidebar-actions">
+                        @if(!in_array($order->status, ['completed', 'cancelled']))
+                            <a href="{{ route('admin.orders.edit', $order) }}" class="btn btn-primary">✏️ Sửa đơn hàng</a>
+                        @endif
+                        @if($order->status === 'pending')
+                            <form action="{{ route('admin.orders.update-status', $order) }}" method="POST" style="margin:0;" onsubmit="return confirm('Bạn có chắc muốn chấp nhận đơn hàng này?');">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="status" value="processing">
+                                <button type="submit" class="btn btn-success">✅ Chấp nhận đơn hàng</button>
+                            </form>
+                        @endif
+                        @if($order->status === 'processing' && $order->delivery_status === 'delivered')
+                            <form action="{{ route('admin.orders.complete', $order) }}" method="POST" style="margin:0;">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="btn btn-success">✅ Hoàn thành</button>
+                            </form>
+                        @endif
+                        @if($order->canCancel())
+                            <form action="{{ route('admin.orders.cancel', $order) }}" method="POST" style="margin:0;" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này?');">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="btn btn-danger">❌ Hủy đơn</button>
+                            </form>
+                        @endif
+                        @if($order->canCreateGhnShipment())
+                            <button type="button" onclick="showGhnModal()" class="btn btn-info">🚚 Lên đơn GHN</button>
+                        @endif
+                        @if($order->shipping_partner === 'ghn' && $order->shipping_tracking_code)
+                            <a href="{{ route('admin.orders.track', ['tracking_code' => $order->shipping_tracking_code]) }}" class="btn btn-outline-primary">🔍 Tra cứu GHN</a>
+                        @endif
+                        @if($order->status === 'completed' && $order->delivery_status === 'delivered' && $order->payment_status === 'paid')
+                            <a href="{{ route('admin.orders.invoice', $order) }}" target="_blank" class="btn btn-info">🧾 In hóa đơn</a>
+                            <a href="{{ route('admin.orders.invoice.pdf', $order) }}" class="btn btn-success">⬇️ PDF hóa đơn</a>
+                        @endif
+                    </div>
+                </div>
             </div>
-            @endif
         </div>
-        @endif
     </div>
 @endsection
 

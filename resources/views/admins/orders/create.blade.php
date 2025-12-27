@@ -113,13 +113,14 @@
             @method('PUT')
         @endif
 
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
             <h2 style="margin:0;">{{ $isEditing ? 'Chỉnh sửa đơn hàng' : 'Tạo đơn hàng mới' }}</h2>
-            <div style="display:flex;gap:10px;">
-                <a href="{{ $isEditing ? route('admin.orders.show', $order) : route('admin.orders.index') }}" class="btn btn-secondary">↩️ Quay lại</a>
-                <button type="submit" class="btn btn-primary">{{ $isEditing ? '💾 Lưu thay đổi' : '💾 Tạo đơn hàng' }}</button>
-            </div>
+            <a href="{{ $isEditing ? route('admin.orders.show', $order) : route('admin.orders.index') }}" class="btn btn-secondary">↩️ Quay lại</a>
         </div>
+
+        <div class="order-form-layout">
+            <!-- Cột trái: Form chính -->
+            <div class="order-form-main">
 
         @if($isEditing && $order)
             <div class="card">
@@ -388,9 +389,73 @@
             </div>
         </div>
 
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:16px;">
-            <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">↩️ Quay lại</a>
-            <button type="submit" class="btn btn-primary">{{ $isEditing ? '💾 Lưu thay đổi' : '💾 Tạo đơn hàng' }}</button>
+            </div>
+
+            <!-- Cột phải: Sidebar với actions và quick info -->
+            <div class="order-form-sidebar">
+                <!-- Quick Info -->
+                @if($isEditing && $order)
+                <div class="sidebar-card">
+                    <h4>Thông tin nhanh</h4>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Mã đơn:</span>
+                        <span class="sidebar-info-value">{{ $order->code }}</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Ngày tạo:</span>
+                        <span class="sidebar-info-value">{{ optional($order->created_at)->format('d/m/Y H:i') }}</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Trạng thái:</span>
+                        <span class="sidebar-info-value">{{ strtoupper($order->status) }}</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Thanh toán:</span>
+                        <span class="sidebar-info-value">{{ strtoupper($order->payment_status) }}</span>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Tóm tắt đơn hàng -->
+                <div class="sidebar-card">
+                    <h4>Tóm tắt</h4>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Tổng sản phẩm:</span>
+                        <span class="sidebar-info-value" id="sidebar-total-price">{{ number_format(old('total_price', $order->total_price ?? 0)) }} đ</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Phí vận chuyển:</span>
+                        <span class="sidebar-info-value" id="sidebar-shipping-fee">{{ number_format(old('shipping_fee', $order->shipping_fee ?? 0)) }} đ</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Thuế:</span>
+                        <span class="sidebar-info-value" id="sidebar-tax">{{ number_format($order->tax ?? 0) }} đ</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Giảm giá:</span>
+                        <span class="sidebar-info-value" id="sidebar-discount">{{ number_format(old('discount', $order->discount ?? 0)) }} đ</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Voucher:</span>
+                        <span class="sidebar-info-value" id="sidebar-voucher-discount">{{ number_format(old('voucher_discount', $order->voucher_discount ?? 0)) }} đ</span>
+                    </div>
+                    <div class="sidebar-info-item" style="border-top: 2px solid #e5e7eb; margin-top: 8px; padding-top: 12px;">
+                        <span class="sidebar-info-label" style="font-size: 14px; font-weight: 600;">Thành tiền:</span>
+                        <span class="sidebar-info-value" style="font-size: 16px; color: #15803d; font-weight: 700;" id="sidebar-final-price">{{ number_format(old('final_price', $order->final_price ?? 0)) }} đ</span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="sidebar-card">
+                    <h4>Thao tác</h4>
+                    <div class="sidebar-actions">
+                        <button type="submit" form="order-form" class="btn btn-primary">{{ $isEditing ? '💾 Lưu thay đổi' : '💾 Tạo đơn hàng' }}</button>
+                        @if($isEditing && $order)
+                            <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-outline-primary">👁️ Xem chi tiết</a>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </form>
 
@@ -731,6 +796,21 @@
             document.getElementById('discount-display').textContent = formatCurrency(discount);
             document.getElementById('voucher-discount-display').textContent = formatCurrency(voucherDiscount);
             document.getElementById('final-price-display').textContent = formatCurrency(totalsState.finalPrice);
+
+            // Cập nhật sidebar
+            const sidebarTotalPrice = document.getElementById('sidebar-total-price');
+            const sidebarShippingFee = document.getElementById('sidebar-shipping-fee');
+            const sidebarTax = document.getElementById('sidebar-tax');
+            const sidebarDiscount = document.getElementById('sidebar-discount');
+            const sidebarVoucherDiscount = document.getElementById('sidebar-voucher-discount');
+            const sidebarFinalPrice = document.getElementById('sidebar-final-price');
+            
+            if (sidebarTotalPrice) sidebarTotalPrice.textContent = formatCurrency(totalsState.totalPrice);
+            if (sidebarShippingFee) sidebarShippingFee.textContent = formatCurrency(totalsState.shippingFee);
+            if (sidebarTax) sidebarTax.textContent = formatCurrency(totalsState.tax);
+            if (sidebarDiscount) sidebarDiscount.textContent = formatCurrency(totalsState.discount);
+            if (sidebarVoucherDiscount) sidebarVoucherDiscount.textContent = formatCurrency(totalsState.voucherDiscount);
+            if (sidebarFinalPrice) sidebarFinalPrice.textContent = formatCurrency(totalsState.finalPrice);
 
             if (!suppressFeeRecalc) {
                 scheduleFeeRecalc();

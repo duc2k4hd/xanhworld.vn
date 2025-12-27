@@ -10,6 +10,94 @@
 
 @push('styles')
     <style>
+        .ghn-edit-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+            align-items: start;
+        }
+        
+        .ghn-edit-main {
+            min-width: 0;
+        }
+        
+        .ghn-edit-sidebar {
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        
+        .sidebar-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .sidebar-card h4 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .sidebar-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .sidebar-actions .btn {
+            width: 100%;
+            justify-content: center;
+            font-size: 13px;
+            padding: 8px 12px;
+        }
+        
+        .sidebar-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .sidebar-info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .sidebar-info-label {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .sidebar-info-value {
+            font-size: 13px;
+            color: #1f2937;
+            font-weight: 600;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+        
+        @media (max-width: 1200px) {
+            .ghn-edit-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .ghn-edit-sidebar {
+                position: relative;
+                top: 0;
+                max-height: none;
+            }
+        }
+        
         .ghn-card {
             background:#fff;
             border-radius:10px;
@@ -34,18 +122,21 @@
 @endpush
 
 @section('content')
-    <div class="ghn-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
             <div>
-                <h3 style="margin:0;">Đơn hàng: {{ $order->code }}</h3>
-                <p style="margin:4px 0 0;color:#64748b;">Mã vận đơn GHN: <strong>{{ $order->shipping_tracking_code }}</strong></p>
+                <h2 style="margin:0;">Cập nhật vận đơn GHN</h2>
+                <p style="margin:4px 0 0;color:#64748b;">Đơn hàng: <strong>{{ $order->code }}</strong> | Mã vận đơn: <strong>{{ $order->shipping_tracking_code }}</strong></p>
             </div>
             <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-secondary">↩️ Quay về chi tiết</a>
         </div>
 
-        <form action="{{ route('admin.orders.update-ghn', $order) }}" method="POST">
-            @csrf
-            @method('PUT')
+        <div class="ghn-edit-layout">
+            <!-- Cột trái: Form chính -->
+            <div class="ghn-edit-main">
+                <form action="{{ route('admin.orders.update-ghn', $order) }}" method="POST" id="ghn-update-form">
+                    @csrf
+                    @method('PUT')
 
             <div class="ghn-card">
                 <h4>Thông tin người nhận</h4>
@@ -149,11 +240,57 @@
                 </div>
             </div>
 
-            <div style="display:flex;justify-content:flex-end;gap:10px;">
-                <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-secondary">Hủy</a>
-                <button type="submit" class="btn btn-primary">💾 Cập nhật GHN</button>
+                </form>
             </div>
-        </form>
+
+            <!-- Cột phải: Sidebar với quick info và actions -->
+            <div class="ghn-edit-sidebar">
+                <!-- Quick Info -->
+                <div class="sidebar-card">
+                    <h4>Thông tin nhanh</h4>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Mã đơn:</span>
+                        <span class="sidebar-info-value">{{ $order->code }}</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Mã vận đơn:</span>
+                        <span class="sidebar-info-value" style="color:#1d4ed8;">{{ $order->shipping_tracking_code }}</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Người nhận:</span>
+                        <span class="sidebar-info-value">{{ $order->receiver_name }}</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Số điện thoại:</span>
+                        <span class="sidebar-info-value">{{ $order->receiver_phone }}</span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Phương thức:</span>
+                        <span class="sidebar-info-value">
+                            @if($order->payment_method === 'cod') COD
+                            @elseif($order->payment_method === 'bank_transfer') Chuyển khoản
+                            @else {{ $order->payment_method }}
+                            @endif
+                        </span>
+                    </div>
+                    <div class="sidebar-info-item">
+                        <span class="sidebar-info-label">Tổng tiền:</span>
+                        <span class="sidebar-info-value" style="color:#15803d;font-size:14px;">
+                            <strong>{{ number_format($order->final_price) }} đ</strong>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="sidebar-card">
+                    <h4>Thao tác</h4>
+                    <div class="sidebar-actions">
+                        <button type="submit" form="ghn-update-form" class="btn btn-primary">💾 Cập nhật GHN</button>
+                        <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-secondary">↩️ Quay về chi tiết</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
