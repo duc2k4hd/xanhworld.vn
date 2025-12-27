@@ -823,7 +823,7 @@ body {
     font-weight: 600;
     margin: 10px 0 6px 0;
     color: #2d3748;
-    line-height: 1.2;
+    line-height: 1.5 !important;
     scroll-margin-top: 100px;
 }
 
@@ -908,7 +908,7 @@ body {
     max-width: 100%;
     height: auto;
     border-radius: 12px;
-    margin: 24px 0;
+    margin: 12px 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: block;
 }
@@ -924,7 +924,7 @@ body {
 }
 
 .xanhworld-article-article-content a {
-    color: #2563eb;
+    color: red;
     text-decoration: underline;
     text-underline-offset: 2px;
     transition: color 0.2s ease;
@@ -1400,7 +1400,8 @@ body {
     }
 
     .xanhworld-article-article-content h2 {
-        font-size: 18px;
+        font-size: 25px;
+        line-height: 1.5 !important;
     }
 
     .xanhworld-article-article-content p {
