@@ -81,10 +81,10 @@ class BlogController extends Controller
 
                 if ($activeTag) {
                     $activeTags = collect([$activeTag]);
-                $postsQuery->where(function ($query) use ($activeTag) {
-                    $query->whereJsonContains('tag_ids', (int) $activeTag->id)
-                        ->orWhereJsonContains('tag_ids', (string) $activeTag->id);
-                });
+                    $postsQuery->where(function ($query) use ($activeTag) {
+                        $query->whereJsonContains('tag_ids', (int) $activeTag->id)
+                            ->orWhereJsonContains('tag_ids', (string) $activeTag->id);
+                    });
                 }
             }
         }
@@ -522,16 +522,16 @@ class BlogController extends Controller
 
         // 1. BreadcrumbList (giữ nguyên)
         $schemas[] = $this->buildBreadcrumbSchema([
-                [
-                    'name' => 'Trang chủ',
-                    'url' => route('client.home.index'),
-                ],
-                [
+            [
+                'name' => 'Trang chủ',
+                'url' => route('client.home.index'),
+            ],
+            [
                 'name' => 'Kinh nghiệm hay',
                 'url' => $blogIndexUrl,
-                ],
-                [
-                    'name' => $post->title,
+            ],
+            [
+                'name' => $post->title,
                 'url' => $postUrl,
             ],
         ]);
@@ -571,7 +571,7 @@ class BlogController extends Controller
             'isPartOf' => [
                 '@type' => 'WebSite',
                 '@id' => $siteUrl.'/#website',
-                ],
+            ],
         ];
 
         // 5. BlogPosting (quan trọng nhất - đầy đủ)
@@ -599,10 +599,10 @@ class BlogController extends Controller
         $logoHeight = max(1, (int) $logoHeight);
 
         $blogPostingSchema = [
-                '@context' => 'https://schema.org',
-                '@type' => 'BlogPosting',
+            '@context' => 'https://schema.org',
+            '@type' => 'BlogPosting',
             '@id' => $canonicalUrl.'#blogposting',
-                'headline' => $post->title,
+            'headline' => $post->title,
             'description' => $description,
             'inLanguage' => 'vi-VN',
             'mainEntityOfPage' => [
@@ -615,14 +615,14 @@ class BlogController extends Controller
                 'width' => $imageWidth,
                 'height' => $imageHeight,
             ],
-                'author' => [
-                    '@type' => 'Person',
+            'author' => [
+                '@type' => 'Person',
                 '@id' => $authorId,
                 'url' => Setting::getValue('facebook_link') ?? 'https://www.facebook.com/ducnobi2004',
                 'name' => $authorName,
-                ],
-                'publisher' => [
-                    '@type' => 'Organization',
+            ],
+            'publisher' => [
+                '@type' => 'Organization',
                 '@id' => $siteUrl.'/#organization',
                 'name' => $siteName,
                 'url' => $siteUrl,
@@ -631,7 +631,7 @@ class BlogController extends Controller
                     'url' => $logoUrl,
                     'width' => $logoWidth,
                     'height' => $logoHeight,
-            ],
+                ],
             ],
             'datePublished' => $datePublished->toIso8601String(),
             'dateModified' => $dateModified->toIso8601String(),
@@ -695,35 +695,35 @@ class BlogController extends Controller
             }
 
             $tag = $node->nodeName; // 'h2' hoặc 'h3'
-                $text = trim($node->textContent ?? '');
+            $text = trim($node->textContent ?? '');
 
-                if ($text === '') {
-                    continue;
-                }
+            if ($text === '') {
+                continue;
+            }
 
             // Tạo ID unique từ text
-                $baseId = Str::slug(Str::limit($text, 80, ''));
-                if ($baseId === '') {
-                    $baseId = 'section-'.(count($tocItems) + 1);
-                }
+            $baseId = Str::slug(Str::limit($text, 80, ''));
+            if ($baseId === '') {
+                $baseId = 'section-'.(count($tocItems) + 1);
+            }
 
             // Đảm bảo ID không trùng
-                $id = $baseId;
-                $suffix = 1;
-                while (in_array($id, $usedIds, true)) {
-                    $id = $baseId.'-'.$suffix;
-                    $suffix++;
-                }
+            $id = $baseId;
+            $suffix = 1;
+            while (in_array($id, $usedIds, true)) {
+                $id = $baseId.'-'.$suffix;
+                $suffix++;
+            }
 
-                $usedIds[] = $id;
-                $node->setAttribute('id', $id);
+            $usedIds[] = $id;
+            $node->setAttribute('id', $id);
 
             // Lưu theo thứ tự xuất hiện trong content
-                $tocItems[] = [
-                    'id' => $id,
-                    'label' => $text,
-                    'tag' => $tag,
-                ];
+            $tocItems[] = [
+                'id' => $id,
+                'label' => $text,
+                'tag' => $tag,
+            ];
         }
 
         return [
@@ -734,17 +734,38 @@ class BlogController extends Controller
 
     protected function resolveTags(Post $post): Collection
     {
-        $tagIds = collect($post->tag_ids ?? [])
+        $allTagIds = collect();
+
+        // Lấy tags từ relationship (bảng tags với entity_id và entity_type)
+        $tagsFromRelationship = Tag::query()
+            ->where('entity_id', $post->id)
+            ->where('entity_type', Post::class)
+            ->where('is_active', true)
+            ->get();
+
+        if ($tagsFromRelationship->isNotEmpty()) {
+            $allTagIds = $allTagIds->merge($tagsFromRelationship->pluck('id'));
+        }
+
+        // Lấy tags từ tag_ids (JSON column) nếu có
+        $tagIdsFromColumn = collect($post->tag_ids ?? [])
             ->filter()
             ->unique()
             ->values();
 
-        if ($tagIds->isEmpty()) {
+        if ($tagIdsFromColumn->isNotEmpty()) {
+            $allTagIds = $allTagIds->merge($tagIdsFromColumn);
+        }
+
+        // Loại bỏ trùng lặp và lấy tags
+        $uniqueTagIds = $allTagIds->unique()->values();
+
+        if ($uniqueTagIds->isEmpty()) {
             return collect();
         }
 
         return Tag::query()
-            ->whereIn('id', $tagIds)
+            ->whereIn('id', $uniqueTagIds)
             ->where('entity_type', Post::class)
             ->where('is_active', true)
             ->orderBy('name')

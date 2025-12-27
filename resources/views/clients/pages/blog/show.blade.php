@@ -89,21 +89,21 @@
     <div class="xanhworld-article-wrapper">
         <!-- Header Top -->
         @if($tags->isNotEmpty())
-        <div class="xanhworld-article-header-top">
-            <div class="xanhworld-article-header-top-label">
-                <strong>Từ khóa:</strong>
-                        </div>
-            @foreach($tags as $tag)
-                <a href="{{ route('client.blog.index', ['tags' => $tag->slug]) }}" class="xanhworld-article-tag"># {{ $tag->name }}</a>
-            @endforeach
-                    </div>
+            <div class="xanhworld-article-header-top">
+                <div class="xanhworld-article-header-top-label">
+                    <strong>Từ khóa:</strong>
+                            </div>
+                @foreach($tags as $tag)
+                    <a href="{{ route('client.blog.index', ['tags' => $tag->slug]) }}" class="xanhworld-article-tag"># {{ $tag->name }}</a>
+                @endforeach
+            </div>
         @endif
 
         <!-- Breadcrumb -->
         <div class="xanhworld-article-breadcrumb">
             <a href="{{ route('client.home.index') }}">🏠 Trang chủ</a>
             <span>»</span>
-            <a href="{{ route('client.blog.index') }}">Tin tức</a>
+            <a href="{{ route('client.blog.index') }}">Kinh nghiệm hay</a>
             @if($post->category)
                 <span>»</span>
                 <a href="{{ route('client.blog.index', ['category' => $post->category->slug]) }}">{{ $post->category->name }}</a>

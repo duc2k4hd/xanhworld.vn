@@ -227,10 +227,11 @@ class PostService
 
     /**
      * Sync tags với bảng tags
+     * Tái sử dụng tags đã có nếu cùng name, không tạo tag trùng lặp
      */
     protected function syncTags(Post $post, array $tagIds, ?string $tagNames = null): void
     {
-        // Xóa tất cả tags cũ của post này
+        // Xóa tất cả tags cũ của post này (chỉ xóa link, không xóa tag)
         Tag::where('entity_type', Post::class)
             ->where('entity_id', $post->id)
             ->delete();
@@ -266,45 +267,67 @@ class PostService
             }
         }
 
-        // Loại bỏ duplicate và tạo tags
+        // Loại bỏ duplicate và tìm hoặc tạo tags
         $allTagNames = array_unique(array_map('trim', $allTagNames));
-        $createdTagIds = [];
+        $finalTagIds = [];
 
         foreach ($allTagNames as $tagName) {
             if (empty($tagName)) {
                 continue;
             }
 
-            // Tìm tag template (có thể từ posts khác)
-            $templateTag = Tag::where('entity_type', Post::class)
+            // Tìm tag đã tồn tại với cùng name (không quan trọng entity_id)
+            $existingTag = Tag::where('entity_type', Post::class)
                 ->where('name', $tagName)
                 ->first();
 
-            // Tạo tag mới với entity_type và entity_id cho post này
-            $baseSlug = Str::slug($tagName);
-            $uniqueSlug = $baseSlug.'-post-'.$post->id;
+            if ($existingTag) {
+                // Tái sử dụng tag đã có - tạo link với post này
+                $finalTagIds[] = $existingTag->id;
 
-            // Đảm bảo slug unique
-            $counter = 1;
-            while (Tag::where('slug', $uniqueSlug)->exists()) {
-                $uniqueSlug = $baseSlug.'-post-'.$post->id.'-'.$counter;
-                $counter++;
+                // Tạo link giữa tag và post này (nếu chưa có)
+                if (! Tag::where('entity_type', Post::class)
+                    ->where('entity_id', $post->id)
+                    ->where('id', $existingTag->id)
+                    ->exists()) {
+                    // Tạo bản copy tag với entity_id = post.id để link với post này
+                    Tag::create([
+                        'name' => $existingTag->name,
+                        'slug' => $existingTag->slug,
+                        'description' => $existingTag->description,
+                        'is_active' => $existingTag->is_active,
+                        'usage_count' => $existingTag->usage_count,
+                        'entity_id' => $post->id,
+                        'entity_type' => Post::class,
+                    ]);
+                }
+            } else {
+                // Tạo tag mới với entity_id = post.id
+                $baseSlug = Str::slug($tagName);
+
+                // Đảm bảo slug unique
+                $uniqueSlug = $baseSlug;
+                $counter = 1;
+                while (Tag::where('slug', $uniqueSlug)->exists()) {
+                    $uniqueSlug = $baseSlug.'-'.$counter;
+                    $counter++;
+                }
+
+                $newTag = Tag::create([
+                    'name' => $tagName,
+                    'slug' => $uniqueSlug,
+                    'description' => null,
+                    'is_active' => true,
+                    'usage_count' => 0,
+                    'entity_id' => $post->id, // Bắt buộc phải có entity_id
+                    'entity_type' => Post::class,
+                ]);
+                $finalTagIds[] = $newTag->id;
             }
-
-            $newTag = Tag::create([
-                'name' => $tagName,
-                'slug' => $uniqueSlug,
-                'description' => $templateTag->description ?? null,
-                'is_active' => $templateTag->is_active ?? true,
-                'usage_count' => 0,
-                'entity_id' => $post->id,
-                'entity_type' => Post::class,
-            ]);
-            $createdTagIds[] = $newTag->id;
         }
 
-        // Cập nhật tag_ids trong post
-        $post->tag_ids = ! empty($createdTagIds) ? $createdTagIds : null;
+        // Cập nhật tag_ids trong post (loại bỏ duplicate)
+        $post->tag_ids = ! empty($finalTagIds) ? array_values(array_unique($finalTagIds)) : null;
         $post->saveQuietly();
     }
 
