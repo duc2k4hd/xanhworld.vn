@@ -1044,6 +1044,31 @@ document.addEventListener("DOMContentLoaded", () => {
     xanhworldOverlay.appendChild(xanhworldBtnNext);
     xanhworldOverlay.appendChild(xanhworldBtnClose);
 
+    // === LOCK/UNLOCK BODY SCROLL ===
+    let scrollPosition = 0;
+    
+    function lockBodyScroll() {
+        // Lưu vị trí scroll hiện tại
+        scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Lock scroll
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollPosition}px`;
+        document.body.style.width = '100%';
+    }
+
+    function unlockBodyScroll() {
+        // Unlock scroll
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollPosition);
+    }
+
     // === CLICK THUMBNAIL TO OPEN OVERLAY (TÍCH HỢP VÀO CODE CŨ) ===
     document
         .querySelectorAll(".xanhworld_single_info_images_main img")
@@ -1051,6 +1076,7 @@ document.addEventListener("DOMContentLoaded", () => {
             thumb.addEventListener("click", () => {
                 xanhworldCurrentIndex = index;
                 xanhworldOverlay.style.display = "flex";
+                lockBodyScroll(); // Lock scroll khi mở overlay
 
                 setTimeout(() => {
                     xanhworldOverlay.classList.add("xanhworld_show");
@@ -1068,6 +1094,7 @@ document.addEventListener("DOMContentLoaded", () => {
             xanhworldImg.addEventListener("click", () => {
                 xanhworldCurrentIndex = i;
                 xanhworldOverlay.style.display = "flex";
+                lockBodyScroll(); // Lock scroll khi mở overlay
                 setTimeout(
                     () => xanhworldOverlay.classList.add("xanhworld_show"),
                     10
@@ -1106,6 +1133,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function xanhworldCloseOverlay() {
         xanhworldOverlay.classList.remove("xanhworld_show");
+        unlockBodyScroll(); // Unlock scroll khi đóng overlay
         setTimeout(() => (xanhworldOverlay.style.display = "none"), 200);
     }
 
