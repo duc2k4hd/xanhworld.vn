@@ -315,7 +315,7 @@ function initMobileMenu() {
     }
 
     // Close khi click ra ngoài menu (nếu không có overlay)
-        if (!overlay) {
+    if (!overlay) {
         document.addEventListener("click", (e) => {
             if (menuMobile && menuMobile.classList && menuMobile.classList.contains("active")) {
                 // Nếu click không phải vào menu hoặc button mở menu
@@ -360,7 +360,7 @@ document
                 if (svg && svg.style) {
                     svg.style.transform = "rotate(0deg)";
                 }
-        } else {
+            } else {
                 subMenu.classList.add("show");
                 if (svg && svg.style) {
                     svg.style.transform = "rotate(180deg)";
@@ -372,14 +372,13 @@ document
 const backToTopBtn = document.querySelector(".xanhworld_back_to_top");
 
 if (backToTopBtn) {
-
     window.addEventListener("scroll", () => {
         if (window.scrollY > 300) {
             backToTopBtn.style.display = "flex";
 
             const orderSummary = document.querySelector(".xanhworld_order_summary");
             if (orderSummary) {
-                orderSummary.classList.add("shop_haiphonglife_order_summary_fixed");
+                orderSummary.classList.add("xanhworld_order_summary_fixed");
             }
 
         } else {
@@ -387,7 +386,7 @@ if (backToTopBtn) {
 
             const orderSummary = document.querySelector(".xanhworld_order_summary");
             if (orderSummary) {
-                orderSummary.classList.remove("shop_haiphonglife_order_summary_fixed");
+                orderSummary.classList.remove("xanhworld_order_summary_fixed");
             }
         }
     });
