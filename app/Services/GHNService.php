@@ -199,14 +199,74 @@ class GHNService
     public function createOrder(Order $order, array $options = []): array
     {
         try {
+            // Load shippingAddress nếu chưa load
+            $order->loadMissing('shippingAddress');
+
+            // Lấy thông tin từ shippingAddress (ưu tiên vì đã được validate từ GHN API) hoặc fallback từ order
+            $receiverName = $order->shippingAddress?->full_name ?? $order->receiver_name;
+            $receiverPhone = $order->shippingAddress?->phone_number ?? $order->receiver_phone;
+            $address = $order->shippingAddress?->detail_address ?? $order->shipping_address;
+            $districtId = $order->shippingAddress?->district_code ?? $order->shipping_district_id;
+            // Ưu tiên ward_code từ Address vì đó là mã đúng từ GHN API, không phải ID từ hệ thống khác
+            $wardId = $order->shippingAddress?->ward_code ?? $order->shipping_ward_id;
+
             // Validate order có đủ thông tin không
-            if (! $order->receiver_name || ! $order->receiver_phone || ! $order->shipping_address) {
+            if (! $receiverName || ! $receiverPhone || ! $address) {
                 throw new Exception('Đơn hàng thiếu thông tin người nhận.');
             }
 
-            if (! $order->shipping_district_id || ! $order->shipping_ward_id) {
+            if (! $districtId || ! $wardId) {
                 throw new Exception('Đơn hàng thiếu thông tin địa chỉ giao hàng (quận/huyện, phường/xã).');
             }
+
+            // Nếu không có shippingAddress, cần verify ward_code với GHN API
+            // Vì ward_id từ order có thể không phải là WardCode từ GHN
+            if (! $order->shippingAddress && $districtId && $wardId) {
+                try {
+                    $verifiedWardCode = $this->verifyWardCode((int) $districtId, (string) $wardId);
+                    if ($verifiedWardCode) {
+                        // Nếu tìm thấy ward code đúng (có thể khác format), dùng nó
+                        if ($verifiedWardCode !== (string) $wardId) {
+                            Log::info('Ward code verified and updated', [
+                                'order_id' => $order->id,
+                                'original_ward_id' => $wardId,
+                                'verified_ward_code' => $verifiedWardCode,
+                                'district_id' => $districtId,
+                            ]);
+                        }
+                        $wardId = $verifiedWardCode;
+                    } else {
+                        // Nếu không verify được, log warning nhưng vẫn tiếp tục
+                        // GHN sẽ báo lỗi rõ ràng nếu ward_code không hợp lệ
+                        Log::warning('Ward code could not be verified with GHN API', [
+                            'order_id' => $order->id,
+                            'district_id' => $districtId,
+                            'ward_id' => $wardId,
+                            'note' => 'GHN API will validate this. If invalid, GHN will return error.',
+                        ]);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to verify ward code with GHN API', [
+                        'order_id' => $order->id,
+                        'district_id' => $districtId,
+                        'ward_id' => $wardId,
+                        'error' => $e->getMessage(),
+                    ]);
+                    // Tiếp tục với ward_id hiện tại, GHN sẽ báo lỗi nếu không hợp lệ
+                }
+            }
+
+            Log::info('GHN order address info', [
+                'order_id' => $order->id,
+                'order_code' => $order->code,
+                'has_shipping_address' => $order->shippingAddress !== null,
+                'ward_code_source' => $order->shippingAddress ? 'shippingAddress->ward_code' : 'order->shipping_ward_id',
+                'ward_code' => $wardId,
+                'district_id' => $districtId,
+                'receiver_name' => $receiverName,
+                'receiver_phone' => $receiverPhone,
+                'address' => $address,
+            ]);
 
             // Kiểm tra xem đơn hàng đã có tracking code chưa
             if ($order->shipping_tracking_code) {
@@ -255,11 +315,11 @@ class GHNService
                 'return_district_id' => (int) config('services.ghn.return_district_id', 0),
                 'return_ward_code' => (string) config('services.ghn.return_ward_code', ''),
                 'client_order_code' => (string) $order->code, // Mã đơn hàng của hệ thống
-                'to_name' => (string) $order->receiver_name,
-                'to_phone' => (string) $order->receiver_phone,
-                'to_address' => (string) $order->shipping_address,
-                'to_ward_code' => (string) $order->shipping_ward_id,
-                'to_district_id' => (int) $order->shipping_district_id,
+                'to_name' => (string) ($receiverName ?? $order->receiver_name),
+                'to_phone' => (string) ($receiverPhone ?? $order->receiver_phone),
+                'to_address' => (string) ($address ?? $order->shipping_address),
+                'to_ward_code' => (string) ($wardId ?? $order->shipping_ward_id),
+                'to_district_id' => (int) ($districtId ?? $order->shipping_district_id),
                 'cod_amount' => $order->payment_method === 'cod' ? (int) round($finalPrice) : 0,
                 'content' => 'Đơn hàng '.$order->code,
                 'weight' => $weightValue,
@@ -663,17 +723,54 @@ class GHNService
 
             $endpoint = $this->baseUrl.'v2/shipping-order/update';
 
+            // Load shippingAddress nếu chưa load
+            $order->loadMissing('shippingAddress');
+
+            // Lấy thông tin từ shippingAddress (ưu tiên vì đã được validate từ GHN API) hoặc fallback từ order
+            $receiverName = $order->shippingAddress?->full_name ?? $order->receiver_name;
+            $receiverPhone = $order->shippingAddress?->phone_number ?? $order->receiver_phone;
+            $address = $order->shippingAddress?->detail_address ?? $order->shipping_address;
+            $districtId = $order->shippingAddress?->district_code ?? $order->shipping_district_id;
+            // Ưu tiên ward_code từ Address vì đó là mã đúng từ GHN API, không phải ID từ hệ thống khác
+            $wardId = $order->shippingAddress?->ward_code ?? $order->shipping_ward_id;
+
+            // Nếu không có shippingAddress, cần verify ward_code với GHN API
+            // Vì ward_id từ order có thể bị cast thành integer và mất số 0 ở đầu
+            if (! $order->shippingAddress && $districtId && $wardId) {
+                try {
+                    $verifiedWardCode = $this->verifyWardCode((int) $districtId, (string) $wardId);
+                    if ($verifiedWardCode) {
+                        if ($verifiedWardCode !== (string) $wardId) {
+                            Log::info('Ward code verified and updated (updateGhnOrder)', [
+                                'order_id' => $order->id,
+                                'original_ward_id' => $wardId,
+                                'verified_ward_code' => $verifiedWardCode,
+                                'district_id' => $districtId,
+                            ]);
+                        }
+                        $wardId = $verifiedWardCode;
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to verify ward code with GHN API (updateGhnOrder)', [
+                        'order_id' => $order->id,
+                        'district_id' => $districtId,
+                        'ward_id' => $wardId,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
             $defaults = [
                 'order_code' => $order->shipping_tracking_code,
                 'client_order_code' => $order->code,
                 'payment_type_id' => $order->payment_method === 'cod' ? 2 : 1,
                 'note' => $order->admin_note ?? '',
                 'required_note' => 'KHONGCHOXEMHANG',
-                'to_name' => $order->receiver_name,
-                'to_phone' => $order->receiver_phone,
-                'to_address' => $order->shipping_address,
-                'to_ward_code' => (string) $order->shipping_ward_id,
-                'to_district_id' => (int) $order->shipping_district_id,
+                'to_name' => (string) $receiverName,
+                'to_phone' => (string) $receiverPhone,
+                'to_address' => (string) $address,
+                'to_ward_code' => (string) $wardId,
+                'to_district_id' => (int) $districtId,
                 'cod_amount' => $order->payment_method === 'cod' ? (int) $order->final_price : 0,
                 'content' => 'Đơn hàng '.$order->code,
                 'weight' => $this->calculateWeight($order),
@@ -1364,8 +1461,8 @@ class GHNService
             return 'Đơn hàng không tồn tại.';
         }
 
-        if (str_contains($normalized, 'ward') || str_contains($normalized, 'phường')) {
-            return 'GHN: Mã phường/xã hoặc quận/huyện không tồn tại trong hệ thống.';
+        if (str_contains($normalized, 'ward') || str_contains($normalized, 'phường') || str_contains($normalized, 'xã')) {
+            return 'GHN: Mã phường/xã không tồn tại trong hệ thống GHN. Vui lòng kiểm tra lại mã phường/xã (WardCode) từ GHN API. Nếu đơn hàng được tạo từ admin panel, hãy đảm bảo mã phường/xã là WardCode từ GHN, không phải ID từ hệ thống khác.';
         }
 
         if (str_contains($normalized, 'unmarshal type error')) {
@@ -1384,5 +1481,75 @@ class GHNService
         }
 
         return 'GHN: '.$message;
+    }
+
+    /**
+     * Verify và lấy WardCode đúng từ GHN API dựa trên district_id và ward_id
+     * Trả về WardCode nếu tìm thấy, null nếu không tìm thấy
+     */
+    protected function verifyWardCode(int $districtId, string $wardId): ?string
+    {
+        try {
+            $response = Http::withHeaders([
+                'token' => $this->token,
+                'Content-Type' => 'application/json',
+            ])->timeout(5)->post($this->baseUrl.'master-data/ward', [
+                'district_id' => $districtId,
+            ]);
+
+            if ($response->successful()) {
+                $wards = $response->json('data', []);
+
+                // Tìm ward có WardCode trùng với wardId (exact match)
+                $ward = collect($wards)->first(function ($item) use ($wardId) {
+                    return (string) ($item['WardCode'] ?? '') === (string) $wardId;
+                });
+
+                if ($ward) {
+                    return (string) ($ward['WardCode'] ?? null);
+                }
+
+                // Nếu không tìm thấy exact match, thử tìm theo số (vì ward_id có thể bị cast thành integer)
+                // Ví dụ: wardId = 30712 (integer) nhưng GHN cần "030712" (string với số 0)
+                $wardIdInt = (int) $wardId;
+                $ward = collect($wards)->first(function ($item) use ($wardIdInt) {
+                    $wardCode = (string) ($item['WardCode'] ?? '');
+
+                    // So sánh số: "030712" -> 30712
+                    return (int) $wardCode === $wardIdInt;
+                });
+
+                if ($ward) {
+                    $correctWardCode = (string) ($ward['WardCode'] ?? null);
+                    Log::info('Ward code found after integer comparison', [
+                        'district_id' => $districtId,
+                        'input_ward_id' => $wardId,
+                        'found_ward_code' => $correctWardCode,
+                        'ward_name' => $ward['WardName'] ?? null,
+                    ]);
+
+                    return $correctWardCode;
+                }
+
+                // Nếu vẫn không tìm thấy, log để debug và hỗ trợ admin
+                $availableWardCodes = collect($wards)->pluck('WardCode', 'WardName')->toArray();
+                Log::warning('Ward code not found in GHN API response', [
+                    'district_id' => $districtId,
+                    'ward_id' => $wardId,
+                    'ward_id_type' => gettype($wardId),
+                    'available_wards_count' => count($wards),
+                    'available_ward_codes' => $availableWardCodes,
+                    'message' => 'Ward code không tồn tại trong GHN. Vui lòng kiểm tra lại mã phường/xã từ GHN API.',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Failed to verify ward code', [
+                'district_id' => $districtId,
+                'ward_id' => $wardId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return null;
     }
 }

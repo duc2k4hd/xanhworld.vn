@@ -3,8 +3,12 @@
 
     $shipping = $order->shippingAddress;
     $items = $order->items ?? collect();
-    $maskedPhone = $shipping?->phone_number ? Str::mask($shipping->phone_number, '*', 4, 3) : null;
-    $maskedEmail = $order->account?->email ? Str::mask($order->account->email, '*', 3, 5) : null;
+    $maskedPhone = $shipping?->phone_number 
+        ? Str::mask($shipping->phone_number, '*', 4, 3) 
+        : ($order->receiver_phone ? Str::mask($order->receiver_phone, '*', 4, 3) : null);
+    $maskedEmail = $order->receiver_email 
+        ? Str::mask($order->receiver_email, '*', 3, 5) 
+        : ($order->account?->email ? Str::mask($order->account->email, '*', 3, 5) : null);
 @endphp
 
 @extends('clients.layouts.master')
@@ -287,22 +291,39 @@
                     <div class="shipping-info-card">
                         <h4>Người nhận</h4>
                         <p>
-                            <strong>{{ $shipping?->full_name ?? 'Chưa cập nhật' }}</strong><br>
-                            {{ $maskedPhone ?? '***' }}<br>
-                            {{ $maskedEmail ?? '***' }}
+                            <strong>{{ $shipping?->full_name ?? $order->receiver_name ?? 'Chưa cập nhật' }}</strong><br>
+                            {{ $maskedPhone ?? ($order->receiver_phone ? Str::mask($order->receiver_phone, '*', 4, 3) : '***') }}<br>
+                            {{ $maskedEmail ?? ($order->receiver_email ? Str::mask($order->receiver_email, '*', 3, 5) : '***') }}
                         </p>
                     </div>
                     <div class="shipping-info-card">
                         <h4>Địa chỉ giao hàng</h4>
                         <p>
-                            {{ $shipping?->detail_address }}<br>
-                            {{ $shipping?->ward }}, {{ $shipping?->district }}, {{ $shipping?->province }}<br>
-                            {{ $shipping?->country }}
+                            @if($shipping)
+                                {{ $shipping->detail_address }}<br>
+                                {{ $shipping->ward }}, {{ $shipping->district }}, {{ $shipping->province }}<br>
+                                {{ $shipping->country ?? 'Việt Nam' }}
+                            @elseif($order->shipping_address)
+                                {{ $order->shipping_address }}<br>
+                                @php
+                                    $addressParts = array_filter([
+                                        $addressNames['ward'] ?? null,
+                                        $addressNames['district'] ?? null,
+                                        $addressNames['province'] ?? null,
+                                    ]);
+                                @endphp
+                                @if(!empty($addressParts))
+                                    {{ implode(', ', $addressParts) }}<br>
+                                @endif
+                                Việt Nam
+                            @else
+                                Chưa có địa chỉ giao hàng
+                            @endif
                         </p>
                     </div>
                     <div class="shipping-info-card">
                         <h4>Ghi chú cho chuyên viên</h4>
-                        <p>{{ $order->note ?? 'Không có ghi chú.' }}</p>
+                        <p>{{ $order->customer_note ?? $order->note ?? 'Không có ghi chú.' }}</p>
                     </div>
                 </div>
             </div>

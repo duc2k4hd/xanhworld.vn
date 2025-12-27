@@ -20,6 +20,7 @@ use App\Services\VoucherService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -108,7 +109,7 @@ class OrderController extends Controller
 
     public function create()
     {
-        $accounts = Account::where('is_active', 1)->orderBy('name')->get();
+        $accounts = Account::where('status', 'active')->orderBy('name')->get();
 
         return view('admins.orders.create', compact('accounts'));
     }
@@ -167,6 +168,7 @@ class OrderController extends Controller
             'items.product',
             'items.variant',
             'voucher',
+            'shippingAddress',
         ]);
 
         $shippingStatuses = config('ghn.shipping_statuses', []);
@@ -197,10 +199,18 @@ class OrderController extends Controller
             }
         }
 
+        // Lấy tên địa chỉ từ ID nếu không có shippingAddress
+        $addressNames = $this->getAddressNamesFromIds(
+            $order->shipping_province_id,
+            $order->shipping_district_id,
+            $order->shipping_ward_id
+        );
+
         return view('admins.orders.show', [
             'order' => $order,
             'shippingStatuses' => $shippingStatuses,
             'ticketsFromGhn' => $ticketsFromGhn,
+            'addressNames' => $addressNames,
         ]);
     }
 
@@ -214,7 +224,7 @@ class OrderController extends Controller
         }
 
         $order->load(['items.product', 'items.variant']);
-        $accounts = Account::where('is_active', 1)->orderBy('name')->get();
+        $accounts = Account::where('status', 'active')->orderBy('name')->get();
 
         return view('admins.orders.create', [
             'order' => $order,
@@ -391,26 +401,47 @@ class OrderController extends Controller
                 return back()->with('error', 'Không thể tạo vận đơn GHN cho đơn hàng này. Vui lòng kiểm tra: đơn hàng chưa hủy/hoàn thành, đã có đầy đủ thông tin địa chỉ và người nhận.');
             }
 
+            // Load shippingAddress nếu chưa load
+            $order->loadMissing('shippingAddress');
+
+            // Lấy ID từ order hoặc fallback từ shippingAddress
+            $provinceId = $order->shipping_province_id ?? $order->shippingAddress?->province_code;
+            $districtId = $order->shipping_district_id ?? $order->shippingAddress?->district_code;
+            $wardId = $order->shipping_ward_id ?? $order->shippingAddress?->ward_code;
+            $address = $order->shipping_address ?? $order->shippingAddress?->detail_address;
+            $receiverName = $order->receiver_name ?? $order->shippingAddress?->full_name;
+            $receiverPhone = $order->receiver_phone ?? $order->shippingAddress?->phone_number;
+
             // Kiểm tra đầy đủ thông tin địa chỉ
-            if (! $order->shipping_province_id) {
+            if (! $provinceId) {
                 return back()->with('error', 'Đơn hàng thiếu thông tin tỉnh/thành phố.');
             }
-            if (! $order->shipping_district_id) {
+            if (! $districtId) {
                 return back()->with('error', 'Đơn hàng thiếu thông tin quận/huyện.');
             }
-            if (! $order->shipping_ward_id) {
+            if (! $wardId) {
                 return back()->with('error', 'Đơn hàng thiếu thông tin phường/xã.');
             }
 
             // Kiểm tra thông tin người nhận
-            if (! $order->receiver_name) {
+            if (! $receiverName) {
                 return back()->with('error', 'Đơn hàng thiếu tên người nhận.');
             }
-            if (! $order->receiver_phone) {
+            if (! $receiverPhone) {
                 return back()->with('error', 'Đơn hàng thiếu số điện thoại người nhận.');
             }
-            if (! $order->shipping_address) {
+            if (! $address) {
                 return back()->with('error', 'Đơn hàng thiếu địa chỉ giao hàng.');
+            }
+
+            // Sync các giá trị vào order nếu chưa có (để đảm bảo GHNService có thể dùng)
+            if (! $order->shipping_province_id || ! $order->shipping_district_id || ! $order->shipping_ward_id) {
+                $order->update([
+                    'shipping_province_id' => $provinceId,
+                    'shipping_district_id' => $districtId,
+                    'shipping_ward_id' => $wardId,
+                ]);
+                $order->refresh();
             }
 
             // Validate pick_shift_id
@@ -568,12 +599,21 @@ class OrderController extends Controller
             'items.product',
             'items.variant',
             'voucher',
+            'shippingAddress',
         ]);
+
+        // Lấy tên địa chỉ từ ID nếu không có shippingAddress
+        $addressNames = $this->getAddressNamesFromIds(
+            $order->shipping_province_id,
+            $order->shipping_district_id,
+            $order->shipping_ward_id
+        );
 
         return view('admins.orders.invoice', [
             'order' => $order,
             'invoiceNumber' => $this->invoiceNumber($order),
             'printMode' => true,
+            'addressNames' => $addressNames,
         ]);
     }
 
@@ -588,18 +628,27 @@ class OrderController extends Controller
             'items.product',
             'items.variant',
             'voucher',
+            'shippingAddress',
         ]);
+
+        // Lấy tên địa chỉ từ ID nếu không có shippingAddress
+        $addressNames = $this->getAddressNamesFromIds(
+            $order->shipping_province_id,
+            $order->shipping_district_id,
+            $order->shipping_ward_id
+        );
 
         $pdf = Pdf::loadView('admins.orders.invoice', [
             'order' => $order,
             'invoiceNumber' => $this->invoiceNumber($order),
             'printMode' => false,
+            'addressNames' => $addressNames,
         ])->setPaper('a4');
 
         return $pdf->download('invoice-'.$order->code.'.pdf');
     }
 
-    public function trackForm(Request $request)
+    public function track(Request $request)
     {
         $trackingCode = $request->get('tracking_code');
         $result = $request->session()->get('tracking_result');
@@ -607,7 +656,7 @@ class OrderController extends Controller
         return view('admins.orders.track', compact('trackingCode', 'result'));
     }
 
-    public function trackLookup(Request $request)
+    public function trackPost(Request $request)
     {
         $data = $request->validate([
             'tracking_code' => ['required', 'string', 'max:50'],
@@ -618,6 +667,22 @@ class OrderController extends Controller
         return redirect()
             ->route('admin.orders.track', ['tracking_code' => $data['tracking_code']])
             ->with('tracking_result', $result);
+    }
+
+    /**
+     * @deprecated Use track() instead
+     */
+    public function trackForm(Request $request)
+    {
+        return $this->track($request);
+    }
+
+    /**
+     * @deprecated Use trackPost() instead
+     */
+    public function trackLookup(Request $request)
+    {
+        return $this->trackPost($request);
     }
 
     /**
@@ -1082,5 +1147,101 @@ class OrderController extends Controller
         $writer->save($fullPath);
 
         return response()->download($fullPath, $fileName)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Lấy tên địa chỉ từ ID bằng cách gọi GHN API.
+     */
+    protected function getAddressNamesFromIds(?int $provinceId, ?int $districtId, ?string $wardId): array
+    {
+        $result = [
+            'province' => null,
+            'district' => null,
+            'ward' => null,
+        ];
+
+        if (! $provinceId && ! $districtId && ! $wardId) {
+            return $result;
+        }
+
+        $baseUrl = config('services.ghn.base_url');
+        $token = config('services.ghn.token');
+
+        if (! $baseUrl || ! $token) {
+            return $result;
+        }
+
+        try {
+            // Lấy tên tỉnh/thành
+            if ($provinceId) {
+                $provinceResponse = Http::withHeaders([
+                    'Token' => $token,
+                    'Content-Type' => 'application/json',
+                ])->timeout(3)->get($baseUrl.'master-data/province');
+
+                if ($provinceResponse->successful()) {
+                    $provinces = $provinceResponse->json('data', []);
+                    $province = collect($provinces)->firstWhere('ProvinceID', $provinceId);
+                    $result['province'] = $province['ProvinceName'] ?? null;
+                }
+            }
+
+            // Lấy tên quận/huyện
+            if ($districtId && $provinceId) {
+                $districtResponse = Http::withHeaders([
+                    'token' => $token,
+                    'Content-Type' => 'application/json',
+                ])->timeout(3)->post($baseUrl.'master-data/district', [
+                    'province_id' => $provinceId,
+                ]);
+
+                if ($districtResponse->successful()) {
+                    $districts = $districtResponse->json('data', []);
+                    $district = collect($districts)->firstWhere('DistrictID', $districtId);
+                    $result['district'] = $district['DistrictName'] ?? null;
+                }
+            }
+
+            // Lấy tên phường/xã
+            if ($wardId && $districtId) {
+                $wardResponse = Http::withHeaders([
+                    'token' => $token,
+                    'Content-Type' => 'application/json',
+                ])->timeout(3)->post($baseUrl.'master-data/ward', [
+                    'district_id' => $districtId,
+                ]);
+
+                if ($wardResponse->successful()) {
+                    $wards = $wardResponse->json('data', []);
+
+                    // Tìm ward có WardCode trùng với wardId (exact match)
+                    $ward = collect($wards)->firstWhere('WardCode', (string) $wardId);
+
+                    // Nếu không tìm thấy exact match, thử tìm theo số (vì ward_id có thể bị cast thành integer)
+                    // Ví dụ: wardId = 30712 (integer) nhưng GHN cần "030712" (string với số 0)
+                    if (! $ward) {
+                        $wardIdInt = (int) $wardId;
+                        $ward = collect($wards)->first(function ($item) use ($wardIdInt) {
+                            $wardCode = (string) ($item['WardCode'] ?? '');
+
+                            // So sánh số: "030712" -> 30712
+                            return (int) $wardCode === $wardIdInt;
+                        });
+                    }
+
+                    $result['ward'] = $ward['WardName'] ?? null;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Log lỗi nhưng không throw để không làm gián đoạn flow
+            Log::warning('Failed to get address names from GHN API', [
+                'province_id' => $provinceId,
+                'district_id' => $districtId,
+                'ward_id' => $wardId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return $result;
     }
 }

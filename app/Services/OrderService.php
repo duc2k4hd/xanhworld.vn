@@ -250,6 +250,7 @@ class OrderService
                 'receiver_name' => $data['receiver_name'] ?? $sourceCart?->account?->name,
                 'receiver_phone' => $data['receiver_phone'] ?? null,
                 'receiver_email' => $data['receiver_email'] ?? null,
+                'shipping_address_id' => $data['shipping_address_id'] ?? null,
                 'shipping_address' => $data['shipping_address'] ?? null,
                 'shipping_province_id' => $data['shipping_province_id'] ?? null,
                 'shipping_district_id' => $data['shipping_district_id'] ?? null,

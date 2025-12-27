@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class OrderController extends Controller
@@ -64,18 +66,47 @@ class OrderController extends Controller
             $currentStatusIndex = $normalizedStatus === 'cancelled' ? -1 : 0;
         }
 
+        // Lấy tên địa chỉ từ ID nếu không có shippingAddress
+        $addressNames = $this->getAddressNamesFromIds(
+            $order->shipping_province_id,
+            $order->shipping_district_id,
+            $order->shipping_ward_id
+        );
+
+        // Lấy checkout_url từ Payment nếu thanh toán bằng bank_transfer và chưa thanh toán
+        $checkoutUrl = null;
+        if ($order->payment_method === 'bank_transfer' && $order->payment_status === 'pending') {
+            $payment = $order->payments()
+                ->where('method', 'payos')
+                ->where('status', 'pending')
+                ->latest()
+                ->first();
+
+            if ($payment && $payment->raw_response) {
+                $rawResponse = is_array($payment->raw_response)
+                    ? $payment->raw_response
+                    : (is_string($payment->raw_response) ? json_decode($payment->raw_response, true) : []);
+
+                if (is_array($rawResponse)) {
+                    $checkoutUrl = $rawResponse['data']['checkoutUrl'] ?? $rawResponse['checkout_url'] ?? null;
+                }
+            }
+        }
+
         return view('clients.pages.order.detail', [
             'order' => $order,
             'statusFlow' => $statusFlow,
             'currentStatusIndex' => $currentStatusIndex,
             'normalizedStatus' => $normalizedStatus,
+            'addressNames' => $addressNames,
+            'checkoutUrl' => $checkoutUrl,
         ]);
     }
 
     /**
      * Hiển thị danh sách đơn hàng của khách hàng.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $accountId = auth('web')->id();
 
@@ -169,7 +200,7 @@ class OrderController extends Controller
             if ($item->product && $item->product->active) {
                 $cartRequest = new Request([
                     'product_id' => $item->product_id,
-                    'variant_id' => $item->variant_id,
+                    'product_variant_id' => $item->product_variant_id,
                     'quantity' => $item->quantity,
                 ]);
                 $cartRequest->setUserResolver(fn () => auth('web')->user());
@@ -177,8 +208,9 @@ class OrderController extends Controller
                 try {
                     $cartController->store($cartRequest);
                 } catch (\Exception $e) {
-                    \Log::warning('Reorder: Failed to add product to cart', [
+                    Log::warning('Reorder: Failed to add product to cart', [
                         'product_id' => $item->product_id,
+                        'product_variant_id' => $item->product_variant_id,
                         'error' => $e->getMessage(),
                     ]);
                 }
@@ -227,6 +259,97 @@ class OrderController extends Controller
             $order->items->pluck('product')->filter()
         );
 
-        return view('clients.pages.order.invoice', compact('order'));
+        // Lấy tên địa chỉ từ ID nếu không có shippingAddress
+        $addressNames = $this->getAddressNamesFromIds(
+            $order->shipping_province_id,
+            $order->shipping_district_id,
+            $order->shipping_ward_id
+        );
+
+        return view('clients.pages.order.invoice', [
+            'order' => $order,
+            'addressNames' => $addressNames,
+        ]);
+    }
+
+    /**
+     * Lấy tên địa chỉ từ ID bằng cách gọi GHN API.
+     */
+    protected function getAddressNamesFromIds(?int $provinceId, ?int $districtId, ?string $wardId): array
+    {
+        $result = [
+            'province' => null,
+            'district' => null,
+            'ward' => null,
+        ];
+
+        if (! $provinceId && ! $districtId && ! $wardId) {
+            return $result;
+        }
+
+        $baseUrl = config('services.ghn.base_url');
+        $token = config('services.ghn.token');
+
+        if (! $baseUrl || ! $token) {
+            return $result;
+        }
+
+        try {
+            // Lấy tên tỉnh/thành
+            if ($provinceId) {
+                $provinceResponse = Http::withHeaders([
+                    'Token' => $token,
+                    'Content-Type' => 'application/json',
+                ])->timeout(3)->get($baseUrl.'master-data/province');
+
+                if ($provinceResponse->successful()) {
+                    $provinces = $provinceResponse->json('data', []);
+                    $province = collect($provinces)->firstWhere('ProvinceID', $provinceId);
+                    $result['province'] = $province['ProvinceName'] ?? null;
+                }
+            }
+
+            // Lấy tên quận/huyện
+            if ($districtId && $provinceId) {
+                $districtResponse = Http::withHeaders([
+                    'token' => $token,
+                    'Content-Type' => 'application/json',
+                ])->timeout(3)->post($baseUrl.'master-data/district', [
+                    'province_id' => $provinceId,
+                ]);
+
+                if ($districtResponse->successful()) {
+                    $districts = $districtResponse->json('data', []);
+                    $district = collect($districts)->firstWhere('DistrictID', $districtId);
+                    $result['district'] = $district['DistrictName'] ?? null;
+                }
+            }
+
+            // Lấy tên phường/xã
+            if ($wardId && $districtId) {
+                $wardResponse = Http::withHeaders([
+                    'token' => $token,
+                    'Content-Type' => 'application/json',
+                ])->timeout(3)->post($baseUrl.'master-data/ward', [
+                    'district_id' => $districtId,
+                ]);
+
+                if ($wardResponse->successful()) {
+                    $wards = $wardResponse->json('data', []);
+                    $ward = collect($wards)->firstWhere('WardCode', (string) $wardId);
+                    $result['ward'] = $ward['WardName'] ?? null;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Log lỗi nhưng không throw để không làm gián đoạn flow
+            Log::warning('Failed to get address names from GHN API', [
+                'province_id' => $provinceId,
+                'district_id' => $districtId,
+                'ward_id' => $wardId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return $result;
     }
 }

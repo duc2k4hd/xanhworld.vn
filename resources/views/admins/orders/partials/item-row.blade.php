@@ -24,12 +24,18 @@
                 <option value="">-- Không có biến thể --</option>
                 @if(isset($item['product_id']))
                     @php
-                        $variants = \App\Models\ProductVariant::where('product_id', $item['product_id'])->where('status', 1)->get();
+                        $variants = \App\Models\ProductVariant::where('product_id', $item['product_id'])->where('is_active', 1)->get();
                     @endphp
                     @foreach($variants as $variant)
                         @php
-                            $attrs = is_string($variant->attributes) ? json_decode($variant->attributes, true) : $variant->attributes;
-                            $attrText = is_array($attrs) ? implode(', ', array_map(fn($k, $v) => ucfirst($k) . ': ' . $v, array_keys($attrs), $attrs)) : '';
+                            if (is_array($variant->attributes)) {
+                                $attrs = $variant->attributes;
+                            } elseif (is_string($variant->attributes)) {
+                                $attrs = json_decode($variant->attributes, true) ?: [];
+                            } else {
+                                $attrs = [];
+                            }
+                            $attrText = is_array($attrs) && !empty($attrs) ? implode(', ', array_map(fn($k, $v) => ucfirst($k) . ': ' . $v, array_keys($attrs), $attrs)) : '';
                         @endphp
                         <option value="{{ $variant->id }}" data-price="{{ $variant->price ?? $variant->sale_price ?? $variant->compare_at_price ?? '' }}" {{ (isset($item['product_variant_id']) && $item['product_variant_id'] == $variant->id) ? 'selected' : '' }}>
                             {{ $attrText ?: 'Biến thể #' . $variant->id }}

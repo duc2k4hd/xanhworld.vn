@@ -10,7 +10,7 @@
 @section('content')
     <div class="card mb-4">
         <h3>Tra cứu vận đơn GHN</h3>
-        <form action="{{ route('admin.orders.track.lookup') }}" method="POST" class="row g-3">
+        <form action="{{ route('admin.orders.track.post') }}" method="POST" class="row g-3">
             @csrf
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Mã vận đơn GHN <span class="text-danger">*</span></label>

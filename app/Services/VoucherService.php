@@ -211,4 +211,9 @@ class VoucherService
             ];
         }
     }
+
+    public function checkVoucherEligibility(string $voucherCode, array $orderData, int $userId = null): array
+    {
+        return $this->validateAndApplyVoucher($voucherCode, $orderData, $userId);
+    }
 }

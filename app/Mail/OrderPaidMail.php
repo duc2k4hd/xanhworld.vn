@@ -10,13 +10,12 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class OrderCreatedMail extends Mailable
+class OrderPaidMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public function __construct(
-        public Order $order,
-        public ?string $checkoutUrl = null
+        public Order $order
     ) {}
 
     public function envelope(): Envelope
@@ -77,7 +76,7 @@ class OrderCreatedMail extends Mailable
         return new Envelope(
             from: new Address($fromAddress, $fromName),
             to: [$toName ? new Address($toEmail, $toName) : new Address($toEmail)],
-            subject: "Đơn hàng #{$this->order->code} đã được tạo - {$siteName}",
+            subject: "Thanh toán thành công - Đơn hàng #{$this->order->code} - {$siteName}",
         );
     }
 
@@ -87,12 +86,11 @@ class OrderCreatedMail extends Mailable
         $siteUrl = config('app.url');
 
         return new Content(
-            view: 'emails.orders.created',
+            view: 'emails.orders.paid',
             with: [
                 'order' => $this->order,
                 'siteName' => $siteName,
                 'siteUrl' => $siteUrl,
-                'checkoutUrl' => $this->checkoutUrl,
             ],
         );
     }

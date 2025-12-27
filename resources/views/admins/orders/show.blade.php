@@ -423,19 +423,28 @@
                 </div>
                 <div class="info-item">
                     <div class="info-label">Địa chỉ</div>
-                    <div class="info-value">{{ $order->shipping_address }}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Tỉnh/TP</div>
-                    <div class="info-value">ID: {{ $order->shipping_province_id }}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Quận/Huyện</div>
-                    <div class="info-value">ID: {{ $order->shipping_district_id }}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Phường/Xã</div>
-                    <div class="info-value">ID: {{ $order->shipping_ward_id }}</div>
+                    <div class="info-value">
+                        @if($order->shippingAddress)
+                            {{ $order->shippingAddress->detail_address }}<br>
+                            {{ $order->shippingAddress->ward }}, {{ $order->shippingAddress->district }}, {{ $order->shippingAddress->province }}
+                        @elseif($order->shipping_address)
+                            {{ $order->shipping_address }}<br>
+                            @php
+                                $addressParts = array_filter([
+                                    $addressNames['ward'] ?? null,
+                                    $addressNames['district'] ?? null,
+                                    $addressNames['province'] ?? null,
+                                ]);
+                            @endphp
+                            @if(!empty($addressParts))
+                                {{ implode(', ', $addressParts) }}
+                            @else
+                                <span style="color:#94a3b8;font-size:12px;">(ID: {{ $order->shipping_ward_id ?? '' }}{{ $order->shipping_ward_id && ($order->shipping_district_id || $order->shipping_province_id) ? ', ' : '' }}{{ $order->shipping_district_id ?? '' }}{{ $order->shipping_district_id && $order->shipping_province_id ? ', ' : '' }}{{ $order->shipping_province_id ?? '' }})</span>
+                            @endif
+                        @else
+                            Chưa có địa chỉ giao hàng
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

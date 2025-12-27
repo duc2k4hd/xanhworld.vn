@@ -151,12 +151,18 @@ class Order extends Model
             return false;
         }
 
+        // Lấy ID từ order hoặc fallback từ shippingAddress
+        $provinceId = $this->shipping_province_id ?? $this->shippingAddress?->province_code;
+        $districtId = $this->shipping_district_id ?? $this->shippingAddress?->district_code;
+        $wardId = $this->shipping_ward_id ?? $this->shippingAddress?->ward_code;
+        $address = $this->shipping_address ?? $this->shippingAddress?->detail_address;
+
         $hasAddress = $this->receiver_name
             && $this->receiver_phone
-            && $this->shipping_address
-            && $this->shipping_province_id
-            && $this->shipping_district_id
-            && $this->shipping_ward_id;
+            && $address
+            && $provinceId
+            && $districtId
+            && $wardId;
 
         return (bool) $hasAddress;
     }

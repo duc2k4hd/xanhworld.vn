@@ -362,17 +362,52 @@
             <div class="order-info-grid">
                 <div class="info-card">
                     <h3>Thông tin giao hàng</h3>
-                    <p><strong>{{ $order->shippingAddress->full_name ?? $order->account?->name ?? 'Không xác định' }}</strong></p>
-                    <p>Số điện thoại: {{ $order->shippingAddress->phone_number ?? $order->account?->phone ?? '—' }}</p>
-                    <p>{{ $formatAddress($order->shippingAddress) ?? 'Chưa có địa chỉ giao hàng' }}</p>
-                    @if ($order->note)
-                        <p>Ghi chú: {{ $order->note }}</p>
+                    <p><strong>{{ $order->shippingAddress->full_name ?? $order->receiver_name ?? $order->account?->name ?? 'Không xác định' }}</strong></p>
+                    <p>Số điện thoại: {{ $order->shippingAddress->phone_number ?? $order->receiver_phone ?? $order->account?->phone ?? '—' }}</p>
+                    <p>
+                        @if($order->shippingAddress)
+                            {{ $formatAddress($order->shippingAddress) }}
+                        @elseif($order->shipping_address)
+                            {{ $order->shipping_address }}
+                            @php
+                                $addressParts = array_filter([
+                                    $addressNames['ward'] ?? null,
+                                    $addressNames['district'] ?? null,
+                                    $addressNames['province'] ?? null,
+                                ]);
+                            @endphp
+                            @if(!empty($addressParts))
+                                <br>{{ implode(', ', $addressParts) }}
+                            @endif
+                        @else
+                            Chưa có địa chỉ giao hàng
+                        @endif
+                    </p>
+                    @if ($order->receiver_email)
+                        <p>Email: {{ $order->receiver_email }}</p>
+                    @endif
+                    @if ($order->customer_note || $order->note)
+                        <p>Ghi chú: {{ $order->customer_note ?? $order->note }}</p>
                     @endif
                 </div>
 
                 <div class="info-card">
                     <h3>Thông tin thanh toán</h3>
                     <p>Phương thức: {{ $order->payment_method ? strtoupper($order->payment_method) : 'Không xác định' }}</p>
+                    <p>Trạng thái: 
+                        <span class="status-badge {{ $order->payment_status === 'paid' ? 'confirmed' : 'pending' }}">
+                            {{ $order->payment_status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán' }}
+                        </span>
+                    </p>
+                    @if($checkoutUrl && $order->payment_method === 'bank_transfer' && $order->payment_status === 'pending')
+                        <div style="margin-top: 16px; padding: 16px; background: #e7f3ff; border-radius: 12px; border-left: 4px solid #007bff;">
+                            <p style="margin: 0 0 12px; font-weight: 600; color: #0056b3;">💳 Thanh toán đơn hàng</p>
+                            <p style="margin: 0 0 16px; color: #374151; font-size: 14px;">Vui lòng hoàn tất thanh toán để đơn hàng được xử lý nhanh chóng.</p>
+                            <a href="{{ $checkoutUrl }}" target="_blank" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; transition: transform 0.2s;">
+                                Thanh toán ngay →
+                            </a>
+                        </div>
+                    @endif
                     <p>Vận chuyển: {{ $order->shipping_partner ? strtoupper($order->shipping_partner) : 'Chưa chọn' }}</p>
                     <div class="summary-row">
                         <span>Tạm tính</span>

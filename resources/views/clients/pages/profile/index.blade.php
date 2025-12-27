@@ -7,6 +7,10 @@
     <meta name="robots" content="noindex, nofollow">
 @endsection
 
+@push('js_page')
+    <script src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
+
 @section('content')
     <!-- Breadcrumb -->
     <section>
@@ -259,7 +263,7 @@
                                                 <td style="padding: 16px 0; font-weight: 600;">#{{ $order->code }}</td>
                                                 <td>{{ optional($order->created_at)->format('d/m/Y H:i') ?? '—' }}</td>
                                                 <td>{{ $order->items_count }} sản phẩm</td>
-                                                <td style="font-weight: 600; color: #0f5132;">{{ number_format((float) $order->total, 0, ',', '.') }}₫</td>
+                                                <td style="font-weight: 600; color: #0f5132;">{{ number_format((float) $order->final_price, 0, ',', '.') }}₫</td>
                                                 <td>
                                                     <span style="display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: {{ $badge['color'] }}; background: {{ $badge['bg'] }};">
                                                         {{ $badge['label'] }}

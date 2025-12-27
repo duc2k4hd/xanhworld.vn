@@ -273,11 +273,30 @@
                 <h3>Thông tin khách hàng</h3>
                 <div class="meta-group">
                     {{-- Thông tin Khách hàng được định dạng key: value --}}
-                    <div class="meta-item"><span>Khách hàng:</span> <strong>Minh Đức Nguyễn</strong></div>
-                    <div class="meta-item"><span>Điện thoại:</span> 0827786198</div>
-                    <div class="meta-item"><span>Email:</span> nguyenminhduc552004@gmail.com</div>
+                    <div class="meta-item"><span>Khách hàng:</span> <strong>{{ $order->account?->name ?? $order->receiver_name ?? 'Khách vãng lai' }}</strong></div>
+                    <div class="meta-item"><span>Điện thoại:</span> {{ $order->receiver_phone ?? $order->account?->phone ?? '—' }}</div>
+                    <div class="meta-item"><span>Email:</span> {{ $order->receiver_email ?? $order->account?->email ?? '—' }}</div>
                     {{-- Gộp Địa chỉ thành một dòng dài hơn nếu cần --}}
-                    <div class="meta-item"><span>Địa chỉ:</span> Hải Phòng, Việt Nam</div> 
+                    <div class="meta-item">
+                        <span>Địa chỉ:</span>
+                        @if($order->shippingAddress)
+                            {{ $order->shippingAddress->detail_address }}, {{ $order->shippingAddress->ward }}, {{ $order->shippingAddress->district }}, {{ $order->shippingAddress->province }}
+                        @elseif($order->shipping_address)
+                            {{ $order->shipping_address }}
+                            @php
+                                $addressParts = array_filter([
+                                    $addressNames['ward'] ?? null,
+                                    $addressNames['district'] ?? null,
+                                    $addressNames['province'] ?? null,
+                                ]);
+                            @endphp
+                            @if(!empty($addressParts))
+                                , {{ implode(', ', $addressParts) }}
+                            @endif
+                        @else
+                            Chưa có địa chỉ
+                        @endif
+                    </div> 
                 </div>
             </div>
             <div>

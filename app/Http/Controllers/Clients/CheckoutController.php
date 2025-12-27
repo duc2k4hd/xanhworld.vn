@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Clients;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OrderCreatedMail;
 use App\Models\Address;
 use App\Models\Cart;
 use App\Models\Order;
@@ -16,6 +17,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -39,7 +41,7 @@ class CheckoutController extends Controller
         $cartItems = $cart->items;
 
         $cartItems->each->syncPrice();
-        $cartItems->loadMissing('product');
+        $cartItems->loadMissing(['product', 'variant']);
 
         Product::preloadImages(
             $cartItems->pluck('product')->filter()
@@ -108,7 +110,7 @@ class CheckoutController extends Controller
         ]);
 
         $totalGross = 0;
-        $cart->loadMissing(['items.product']);
+        $cart->loadMissing(['items.product', 'items.variant']);
 
         $cart->items->each(function ($item) use (&$totalGross) {
             $item->syncPrice();
@@ -184,6 +186,7 @@ class CheckoutController extends Controller
                 'code' => $this->generateOrderCode(),
                 'account_id' => $account?->id,
                 'session_id' => $account ? null : $request->session()->getId(),
+                'shipping_address_id' => $shippingAddress->id,
                 'total_price' => $subtotal,
                 'shipping_fee' => $shippingFee,
                 'tax' => 0,
@@ -263,7 +266,8 @@ class CheckoutController extends Controller
                 (float) $total
             );
 
-            // Nếu thanh toán bằng chuyển khoản, tạo link PayOS và trả về JSON
+            // Nếu thanh toán bằng chuyển khoản, tạo link PayOS trước khi gửi email
+            $checkoutUrl = null;
             if ($data['payment'] === 'bank_transfer') {
                 if ((float) $total < 1) {
                     return response()->json([
@@ -275,11 +279,7 @@ class CheckoutController extends Controller
                 $paymentResult = $this->payOSService->createPaymentLink($order);
 
                 if ($paymentResult['success']) {
-                    return response()->json([
-                        'success' => true,
-                        'payment_method' => 'bank_transfer',
-                        'checkout_url' => $paymentResult['checkout_url'],
-                    ]);
+                    $checkoutUrl = $paymentResult['checkout_url'];
                 } else {
                     // Nếu tạo link thất bại, rollback và báo lỗi
                     DB::rollBack(); // Rollback transaction vì không thể thanh toán
@@ -290,6 +290,30 @@ class CheckoutController extends Controller
                         'error' => $paymentResult['error'] ?? 'Unknown error',
                     ], 500);
                 }
+            }
+
+            // Gửi email xác nhận đơn hàng cho khách hàng (có kèm link thanh toán nếu là bank_transfer)
+            try {
+                if ($order->receiver_email || $order->account?->email) {
+                    Mail::to($order->receiver_email ?? $order->account->email)
+                        ->send(new OrderCreatedMail($order->fresh(['items.product', 'items.variant']), $checkoutUrl));
+                }
+            } catch (\Throwable $e) {
+                // Log lỗi nhưng không làm gián đoạn flow
+                Log::warning('Failed to send order created email', [
+                    'order_id' => $order->id,
+                    'email' => $order->receiver_email ?? $order->account?->email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            // Nếu thanh toán bằng chuyển khoản, trả về JSON với checkout_url
+            if ($data['payment'] === 'bank_transfer') {
+                return response()->json([
+                    'success' => true,
+                    'payment_method' => 'bank_transfer',
+                    'checkout_url' => $checkoutUrl,
+                ]);
             }
 
             // Nếu là COD, chuyển hướng như cũ
@@ -332,6 +356,7 @@ class CheckoutController extends Controller
         if ($withItems) {
             $query->with([
                 'items.product',
+                'items.variant',
             ]);
         }
 

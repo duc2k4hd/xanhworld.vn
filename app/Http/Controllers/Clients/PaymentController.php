@@ -3,12 +3,21 @@
 namespace App\Http\Controllers\Clients;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OrderPaidMail;
 use App\Models\Payment;
+use App\Services\OrderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PaymentController extends Controller
 {
+    public function __construct(
+        private OrderService $orderService
+    ) {}
+
     /**
      * Hiển thị trang thanh toán thành công.
      */
@@ -65,7 +74,8 @@ class PaymentController extends Controller
             }
 
             // Cập nhật đơn hàng nếu chưa đánh dấu đã thanh toán
-            if ($order->payment_status !== 'paid') {
+            $wasPaid = $order->payment_status === 'paid';
+            if (! $wasPaid) {
                 // Khi thanh toán thành công, luôn set status = 'processing'
                 // Đảm bảo logic đồng nhất với PayOSService->handlePaymentSuccess()
                 // (PayOSService luôn set status = 'processing' khi thanh toán thành công)
@@ -76,6 +86,23 @@ class PaymentController extends Controller
             }
 
             $order->refresh();
+
+            // Gửi email xác nhận thanh toán cho khách hàng (chỉ gửi 1 lần khi thanh toán thành công)
+            if (! $wasPaid) {
+                try {
+                    if ($order->receiver_email || $order->account?->email) {
+                        Mail::to($order->receiver_email ?? $order->account->email)
+                            ->send(new OrderPaidMail($order->fresh(['items.product', 'items.variant'])));
+                    }
+                } catch (\Throwable $e) {
+                    // Log lỗi nhưng không làm gián đoạn flow
+                    Log::warning('Failed to send order paid email', [
+                        'order_id' => $order->id,
+                        'email' => $order->receiver_email ?? $order->account?->email,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
         } catch (\Throwable $e) {
             Log::error('Failed to sync order/payment status on PayOS return', [
                 'order_id' => $order->id,
@@ -84,15 +111,24 @@ class PaymentController extends Controller
             ]);
         }
 
+        // Lấy tên địa chỉ từ ID nếu không có shippingAddress
+        $addressNames = $this->getAddressNamesFromIds(
+            $order->shipping_province_id,
+            $order->shipping_district_id,
+            $order->shipping_ward_id
+        );
+
         return view('clients.pages.payment.success', [
             'order' => $order,
             'payment' => $payment,
             'message' => $message ?? 'Thanh toán thành công! Đơn hàng của bạn đang được xử lý.',
+            'addressNames' => $addressNames,
         ]);
     }
 
     /**
      * Trang hủy thanh toán.
+     * Khi hủy thanh toán, sẽ hủy luôn đơn hàng và payment để tránh rác dữ liệu.
      */
     public function cancel(Request $request)
     {
@@ -106,9 +142,152 @@ class PaymentController extends Controller
             ->where('method', 'payos')
             ->first();
 
+        $order = $payment?->order;
+        $orderCodeDisplay = $order?->code ?? $orderCode;
+
+        // Nếu có đơn hàng và chưa hủy, hủy đơn hàng và payment
+        if ($order && $order->status !== 'cancelled') {
+            try {
+                DB::beginTransaction();
+
+                // Hủy đơn hàng (sẽ restore stock nếu cần)
+                $this->orderService->cancelOrder(
+                    $order,
+                    'Khách hàng hủy thanh toán',
+                    restoreStock: true
+                );
+
+                // Cập nhật tất cả payment liên quan thành cancelled
+                $cancelNote = "\nHủy bởi khách hàng: ".now()->format('Y-m-d H:i:s');
+                $order->payments()
+                    ->where('status', '!=', 'success')
+                    ->get()
+                    ->each(function ($payment) use ($cancelNote) {
+                        $payment->update([
+                            'status' => 'cancelled',
+                            'notes' => ($payment->notes ?? '').$cancelNote,
+                        ]);
+                    });
+
+                DB::commit();
+
+                Log::info('Order and payment cancelled after payment cancel', [
+                    'order_id' => $order->id,
+                    'order_code' => $order->code,
+                    'payment_id' => $payment?->id,
+                ]);
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::error('Failed to cancel order and payment after payment cancel', [
+                    'order_id' => $order->id,
+                    'payment_id' => $payment?->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        } elseif ($payment && $payment->status !== 'cancelled' && $payment->status !== 'success') {
+            // Nếu không có đơn hàng nhưng có payment, chỉ hủy payment
+            try {
+                $payment->update([
+                    'status' => 'cancelled',
+                    'notes' => ($payment->notes ?? '')."\nHủy bởi khách hàng: ".now()->format('Y-m-d H:i:s'),
+                ]);
+
+                Log::info('Payment cancelled after payment cancel', [
+                    'payment_id' => $payment->id,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Failed to cancel payment after payment cancel', [
+                    'payment_id' => $payment->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         return view('clients.pages.payment.cancel', [
-            'orderCode' => optional($payment?->order)->code ?? $orderCode,
-            'message' => $message ?? 'Bạn đã hủy thanh toán. Đơn hàng tạm thời chưa được xử lý.',
+            'orderCode' => $orderCodeDisplay,
+            'message' => $message ?? 'Bạn đã hủy thanh toán. Đơn hàng đã được hủy.',
+            'order' => $order,
         ]);
+    }
+
+    /**
+     * Lấy tên địa chỉ từ ID bằng cách gọi GHN API.
+     */
+    protected function getAddressNamesFromIds(?int $provinceId, ?int $districtId, ?string $wardId): array
+    {
+        $result = [
+            'province' => null,
+            'district' => null,
+            'ward' => null,
+        ];
+
+        if (! $provinceId && ! $districtId && ! $wardId) {
+            return $result;
+        }
+
+        $baseUrl = config('services.ghn.base_url');
+        $token = config('services.ghn.token');
+
+        if (! $baseUrl || ! $token) {
+            return $result;
+        }
+
+        try {
+            // Lấy tên tỉnh/thành
+            if ($provinceId) {
+                $provinceResponse = Http::withHeaders([
+                    'Token' => $token,
+                    'Content-Type' => 'application/json',
+                ])->timeout(3)->get($baseUrl.'master-data/province');
+
+                if ($provinceResponse->successful()) {
+                    $provinces = $provinceResponse->json('data', []);
+                    $province = collect($provinces)->firstWhere('ProvinceID', $provinceId);
+                    $result['province'] = $province['ProvinceName'] ?? null;
+                }
+            }
+
+            // Lấy tên quận/huyện
+            if ($districtId && $provinceId) {
+                $districtResponse = Http::withHeaders([
+                    'token' => $token,
+                    'Content-Type' => 'application/json',
+                ])->timeout(3)->post($baseUrl.'master-data/district', [
+                    'province_id' => $provinceId,
+                ]);
+
+                if ($districtResponse->successful()) {
+                    $districts = $districtResponse->json('data', []);
+                    $district = collect($districts)->firstWhere('DistrictID', $districtId);
+                    $result['district'] = $district['DistrictName'] ?? null;
+                }
+            }
+
+            // Lấy tên phường/xã
+            if ($wardId && $districtId) {
+                $wardResponse = Http::withHeaders([
+                    'token' => $token,
+                    'Content-Type' => 'application/json',
+                ])->timeout(3)->post($baseUrl.'master-data/ward', [
+                    'district_id' => $districtId,
+                ]);
+
+                if ($wardResponse->successful()) {
+                    $wards = $wardResponse->json('data', []);
+                    $ward = collect($wards)->firstWhere('WardCode', (string) $wardId);
+                    $result['ward'] = $ward['WardName'] ?? null;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Log lỗi nhưng không throw để không làm gián đoạn flow
+            Log::warning('Failed to get address names from GHN API', [
+                'province_id' => $provinceId,
+                'district_id' => $districtId,
+                'ward_id' => $wardId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return $result;
     }
 }

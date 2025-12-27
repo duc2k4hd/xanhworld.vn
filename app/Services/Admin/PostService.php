@@ -303,25 +303,25 @@ class PostService
                 }
             } else {
                 // Tạo tag mới với entity_id = post.id
-                $baseSlug = Str::slug($tagName);
+            $baseSlug = Str::slug($tagName);
 
-                // Đảm bảo slug unique
+            // Đảm bảo slug unique
                 $uniqueSlug = $baseSlug;
-                $counter = 1;
-                while (Tag::where('slug', $uniqueSlug)->exists()) {
+            $counter = 1;
+            while (Tag::where('slug', $uniqueSlug)->exists()) {
                     $uniqueSlug = $baseSlug.'-'.$counter;
-                    $counter++;
-                }
+                $counter++;
+            }
 
-                $newTag = Tag::create([
-                    'name' => $tagName,
-                    'slug' => $uniqueSlug,
+            $newTag = Tag::create([
+                'name' => $tagName,
+                'slug' => $uniqueSlug,
                     'description' => null,
                     'is_active' => true,
-                    'usage_count' => 0,
+                'usage_count' => 0,
                     'entity_id' => $post->id, // Bắt buộc phải có entity_id
-                    'entity_type' => Post::class,
-                ]);
+                'entity_type' => Post::class,
+            ]);
                 $finalTagIds[] = $newTag->id;
             }
         }
