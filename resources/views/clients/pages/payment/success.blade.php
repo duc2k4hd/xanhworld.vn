@@ -15,6 +15,10 @@
 
 @section('title', 'Thanh toán thành công - ' . ($settings->site_name ?? 'XWorld Garden'))
 
+@push('js_page')
+    <script src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
+
 @section('head')
     <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">
     <style>

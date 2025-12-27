@@ -11,6 +11,9 @@
     <meta name="robots" content="follow, noindex"/>
 @endsection
 
+@push('js_page')
+    <script src="{{ asset('clients/assets/js/main.js') }}"></script>
+@endpush
 
 
 @section('content')
