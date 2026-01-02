@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPad Pro M5: Hiệu năng AI bứt phá, màn hình Ultra Retina XDR và iPadOS 26 thế hệ mới - TECHONE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/font-awesome.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.8;
+            color: #444;
+            background: #f5f5f5;
+        }
+
+        /* Top Header - Blue Bar */
+        .xanhworld_blog_top-header {
+            background: #1d9cd7;
+            color: #fff;
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .xanhworld_blog_header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .xanhworld_blog_logo {
+            flex-shrink: 0;
+        }
+
+        .xanhworld_blog_logo img {
+            height: 35px;
+        }
+
+        .xanhworld_blog_menu-toggle {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .xanhworld_blog_menu-toggle:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .xanhworld_blog_search-box {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .xanhworld_blog_search-box input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .xanhworld_blog_search-box .fa-search {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .xanhworld_blog_header-actions {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .xanhworld_blog_header-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .xanhworld_blog_header-action i {
+            font-size: 18px;
+        }
+
+        .xanhworld_blog_header-action .xanhworld_blog_number {
+            background: #fff;
+            color: #1d9cd7;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Main Layout */
+        .xanhworld_blog_main-wrapper {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #fff;
+            min-height: calc(100vh - 60px);
+        }
+
+        /* Left Sidebar */
+        .xanhworld_blog_left-sidebar {
+            width: 280px;
+            background: #fff;
+            border-right: 1px solid #e5e5e5;
+            flex-shrink: 0;
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
+        .xanhworld_blog_sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .xanhworld_blog_menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 25px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .xanhworld_blog_menu-item:hover {
+            background: #f8f8f8;
+            color: #1d9cd7;
+        }
+
+        .xanhworld_blog_menu-item i {
+            font-size: 18px;
+            width: 24px;
+        }
+
+        .xanhworld_blog_submenu {
+            padding-left: 60px;
+        }
+
+        .xanhworld_blog_submenu .xanhworld_blog_menu-item {
+            padding: 8px 25px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        /* Social Sidebar Icons */
+        .xanhworld_blog_social-icons {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .xanhworld_blog_social-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 22px;
+            text-decoration: none;
+            transition: transform 0.3s;
+        }
+
+        .xanhworld_blog_social-icon:hover {
+            transform: translateX(5px);
+        }
+
+        .xanhworld_blog_social-icon.xanhworld_blog_zalo { background: #00a8ff; }
+        .xanhworld_blog_social-icon.xanhworld_blog_messenger { background: #0084ff; }
+        .xanhworld_blog_social-icon.xanhworld_blog_chat { background: #9b59b6; }
+        .xanhworld_blog_social-icon.xanhworld_blog_phone { background: #27ae60; }
+        .xanhworld_blog_social-icon.xanhworld_blog_location { background: #f39c12; }
+        .xanhworld_blog_social-icon.xanhworld_blog_facebook { background: #3b5998; }
+
+        /* Content Area */
+        .xanhworld_blog_content-area {
+            flex: 1;
+            padding: 0;
+            background: #fff;
+        }
+
+        /* Breadcrumb */
+        .xanhworld_blog_breadcrumb {
+            padding: 15px 30px;
+            background: #fff;
+            border-bottom: 1px solid #e5e5e5;
+            font-size: 13px;
+            color: #999;
+        }
+
+        .xanhworld_blog_breadcrumb a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        .xanhworld_blog_breadcrumb a:hover {
+            color: #1d9cd7;
+        }
+
+        /* Featured Image Section */
+        .xanhworld_blog_featured-section {
+            position: relative;
+            background: #000;
+            border-radius: 15px;
+            margin: 20px 30px;
+            overflow: hidden;
+        }
+
+        .xanhworld_blog_featured-image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .xanhworld_blog_featured-overlay {
+            position: absolute;
+            left: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fff;
+            max-width: 500px;
+        }
+
+        .xanhworld_blog_featured-overlay h2 {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 10px;
+        }
+
+        .xanhworld_blog_featured-overlay h2 span {
+            color: #999;
+        }
+
+        .xanhworld_blog_featured-overlay p {
+            font-size: 24px;
+            color: #ccc;
+            line-height: 1.4;
+        }
+
+        /* Article Header */
+        .xanhworld_blog_article-header {
+            padding: 30px 30px 20px;
+            background: #fff;
+        }
+
+        .xanhworld_blog_article-category {
+            display: inline-block;
+            background: #e74c3c;
+            color: #fff;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .xanhworld_blog_article-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .xanhworld_blog_article-date {
+            color: #999;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .xanhworld_blog_article-date i {
+            margin-right: 5px;
+        }
+
+        /* Article Content */
+        .xanhworld_blog_article-content {
+            padding: 0 30px 40px;
+            font-size: 16px;
+            line-height: 1.9;
+            color: #444;
+        }
+
+        .xanhworld_blog_article-content p {
+            margin-bottom: 20px;
+        }
+
+        .xanhworld_blog_article-content strong {
+            font-weight: 600;
+            color: #222;
+        }
+
+        .xanhworld_blog_article-content h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #222;
+            margin: 40px 0 20px;
+            line-height: 1.3;
+        }
+
+        .xanhworld_blog_article-content ul,
+        .xanhworld_blog_article-content ol {
+            margin: 20px 0 20px 30px;
+        }
+
+        .xanhworld_blog_article-content li {
+            margin-bottom: 12px;
+        }
+
+        .xanhworld_blog_article-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background: #fff;
+            border: 1px solid #e5e5e5;
+        }
+
+        table th,
+        table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        table th {
+            background: #f8f8f8;
+            font-weight: 600;
+            color: #333;
+            width: 35%;
+        }
+
+        table td {
+            color: #666;
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Chat Bubble */
+        .xanhworld_blog_chat-bubble {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #00bfa5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 998;
+        }
+
+        .xanhworld_blog_chat-bubble:hover {
+            transform: scale(1.1);
+        }
+
+        /* Support Button */
+        .xanhworld_blog_support-button {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            background: #00c853;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 999;
+        }
+
+        .xanhworld_blog_support-button i {
+            font-size: 18px;
+        }
+
+        .xanhworld_blog_support-button:hover {
+            background: #00b248;
+        }
+
+        /* Right Sidebar Icons */
+        .xanhworld_blog_right-icons {
+            position: fixed;
+            right: 20px;
+            bottom: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 997;
+        }
+
+        .xanhworld_blog_right-icon {
+            width: 45px;
+            height: 45px;
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .xanhworld_blog_right-icon:hover {
+            background: #f8f8f8;
+            transform: translateY(-2px);
+        }
+
+        /* reCAPTCHA Badge */
+        .xanhworld_blog_recaptcha-badge {
+            position: fixed;
+            bottom: 14px;
+            right: 180px;
+            z-index: 996;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .xanhworld_blog_left-sidebar {
+                position: fixed;
+                left: -280px;
+                transition: left 0.3s;
+                z-index: 1001;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+
+            .xanhworld_blog_left-sidebar.xanhworld_blog_active {
+                left: 0;
+            }
+
+            .xanhworld_blog_main-wrapper {
+                padding-left: 0;
+            }
+
+            .xanhworld_blog_social-icons {
+                display: none;
+            }
+
+            .xanhworld_blog_featured-overlay h2 {
+                font-size: 32px;
+            }
+
+            .xanhworld_blog_featured-overlay p {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .xanhworld_blog_header-actions {
+                gap: 15px;
+            }
+
+            .xanhworld_blog_header-action span {
+                display: none;
+            }
+
+            .xanhworld_blog_article-title {
+                font-size: 22px;
+            }
+
+            .xanhworld_blog_article-content {
+                padding: 0 20px 30px;
+            }
+
+            .xanhworld_blog_featured-overlay {
+                left: 20px;
+                right: 20px;
+            }
+
+            .xanhworld_blog_featured-overlay h2 {
+                font-size: 24px;
+            }
+
+            .xanhworld_blog_featured-overlay p {
+                font-size: 14px;
+            }
+
+            .xanhworld_blog_right-icons,
+            .xanhworld_blog_chat-bubble {
+                display: none;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header Blue Bar -->
+    <header class="xanhworld_blog_top-header">
+        <div class="xanhworld_blog_header-container">
+            <div class="xanhworld_blog_logo">
+                <a href="https://www.techone.vn">
+                    <img src="https://www.techone.vn/wp-content/uploads/2020/03/logo-techone.png" alt="TECHONE">
+                </a>
+            </div>
+
+            <button class="xanhworld_blog_menu-toggle" onclick="toggleSidebar()">
+                <i class="xanhworld_blog_fa fa-bars"></i>
+                <span>Danh mục</span>
+            </button>
+
+            <div class="xanhworld_blog_search-box">
+                <input type="text" placeholder="Bạn cần tìm gì?">
+                <i class="xanhworld_blog_fa fa-search"></i>
+            </div>
+
+            <div class="xanhworld_blog_header-actions">
+                <a href="tel:19006026" class="xanhworld_blog_header-action">
+                    <i class="xanhworld_blog_fa fa-phone"></i>
+                    <div>
+                        <div style="font-size: 11px;">Gọi mua hàng/ Bảo Hành</div>
+                        <div style="font-weight: bold;">1900.6026</div>
+                    </div>
+                </a>
+
+                <a href="#" class="xanhworld_blog_header-action">
+                    <i class="xanhworld_blog_fa fa-map-marker-alt"></i>
+                    <div>
+                        <div style="font-size: 11px;">Cửa hàng</div>
+                        <div style="font-weight: bold;">gần bạn</div>
+                    </div>
+                </a>
+
+                <a href="#" class="xanhworld_blog_header-action">
+                    <i class="xanhworld_blog_fa fa-truck"></i>
+                    <div>
+                        <div style="font-size: 11px;">Hướng dẫn</div>
+                        <div style="font-weight: bold;">đặt hàng</div>
+                    </div>
+                </a>
+
+                <a href="#" class="xanhworld_blog_header-action">
+                    <i class="xanhworld_blog_fa fa-shopping-cart"></i>
+                    <div>
+                        <div style="font-size: 11px;">Giỏ</div>
+                        <div style="font-weight: bold;">hàng</div>
+                    </div>
+                    <span class="xanhworld_blog_number">0</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Social Icons Sidebar (Left) -->
+    <div class="xanhworld_blog_social-icons">
+        <a href="#" class="xanhworld_blog_social-icon zalo">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='24' height='24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/%3E%3C/svg%3E" alt="Zalo" style="width: 24px;">
+        </a>
+        <a href="#" class="xanhworld_blog_social-icon messenger">
+            <i class="xanhworld_blog_fab fa-facebook-messenger"></i>
+        </a>
+        <a href="#" class="xanhworld_blog_social-icon chat">
+            <i class="xanhworld_blog_fa fa-comments"></i>
+        </a>
+        <a href="tel:19006026" class="xanhworld_blog_social-icon phone">
+            <i class="xanhworld_blog_fa fa-phone"></i>
+        </a>
+        <a href="#" class="xanhworld_blog_social-icon location">
+            <i class="xanhworld_blog_fa fa-map-marker-alt"></i>
+        </a>
+        <a href="#" class="xanhworld_blog_social-icon facebook">
+            <i class="xanhworld_blog_fab fa-facebook-f"></i>
+        </a>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="xanhworld_blog_main-wrapper">
+        <!-- Left Sidebar Menu -->
+        <aside class="xanhworld_blog_left-sidebar" id="xanhworld_blog_leftSidebar">
+            <nav class="xanhworld_blog_sidebar-menu">
+                <a href="https://www.techone.vn/" class="xanhworld_blog_menu-item">
+                    <i class="xanhworld_blog_fa fa-home"></i>
+                    <span>Trang chủ</span>
+                </a>
+
+                <a href="#" class="xanhworld_blog_menu-item">
+                    <i class="xanhworld_blog_fa fa-newspaper"></i>
+                    <span>Tin tức</span>
+                </a>
+
+                <div class="xanhworld_blog_submenu">
+                    <a href="#" class="xanhworld_blog_menu-item">Tin tức công nghệ</a>
+                    <a href="#" class="xanhworld_blog_menu-item">Sản phẩm mới</a>
+                    <a href="#" class="xanhworld_blog_menu-item">Tin khuyến mại</a>
+                </div>
+
+                <a href="#" class="xanhworld_blog_menu-item">
+                    <i class="xanhworld_blog_fa fa-star"></i>
+                    <span>Đánh giá sản phẩm</span>
+                </a>
+
+                <a href="#" class="xanhworld_blog_menu-item">
+                    <i class="xanhworld_blog_fa fa-lightbulb"></i>
+                    <span>Thủ thuật Smartphone</span>
+                </a>
+
+                <a href="#" class="xanhworld_blog_menu-item">
+                    <i class="xanhworld_blog_fa fa-building"></i>
+                    <span>Báo chí & TechOne</span>
+                </a>
+
+                <a href="#" class="xanhworld_blog_menu-item">
+                    <i class="xanhworld_blog_fa fa-graduation-cap"></i>
+                    <span>Kiến Thức Điện Tử</span>
+                </a>
+
+                <a href="#" class="xanhworld_blog_menu-item">
+                    <i class="xanhworld_blog_fa fa-users"></i>
+                    <span>Tuyển Dụng</span>
+                </a>
+
+                <a href="#" class="xanhworld_blog_menu-item">
+                    <i class="xanhworld_blog_fa fa-cog"></i>
+                    <span>Dịch vụ</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="xanhworld_blog_content-area">
+            <!-- Breadcrumb -->
+            <div class="xanhworld_blog_breadcrumb">
+                <i class="xanhworld_blog_fa fa-home"></i>
+                <a href="https://www.techone.vn/">Trang chủ</a>
+            </div>
+
+            <!-- Featured Image Banner -->
+            <div class="xanhworld_blog_featured-section">
+                <img src="https://www.techone.vn/wp-content/uploads/2025/01/ipad-pro-m5-hero.jpg" alt="iPad Pro M5" class="xanhworld_blog_featured-image">
+                <div class="xanhworld_blog_featured-overlay">
+                    <h2>Chip M5. <span>Nhanh kính khủng.</span></h2>
+                    <p>Một bước tiến mới vĩ đại<br>về AI trên iPad.</p>
+                </div>
+            </div>
+
+            <!-- Article Content -->
+            <article>
+                <div class="xanhworld_blog_article-header">
+                    <span class="xanhworld_blog_article-category">Tin tức</span>
+                    <h1 class="xanhworld_blog_article-title">iPad Pro M5: Hiệu năng AI bứt phá, màn hình Ultra Retina XDR và iPadOS 26 thế hệ mới</h1>
+                    <div class="xanhworld_blog_article-date">
+                        <i class="xanhworld_blog_fa fa-calendar"></i> 16/10/2025
+                    </div>
+                </div>
+
+                <div class="xanhworld_blog_article-content">
+                    <p>Apple vừa chính thức ra mắt <strong>iPad Pro M5</strong>, chiếc iPad mạnh nhất từ trước đến nay với <strong>chip Apple M5</strong> hoàn toàn mới. Sản phẩm đánh dấu <strong>bước nhảy vọt của iPad trong kỷ nguyên trí tuệ nhân tạo (AI)</strong>, mang đến hiệu năng vượt trội, đồ họa chuyên nghiệp và khả năng xử lý AI trên thiết bị nhanh hơn gấp nhiều lần.</p>
+
+                    <p>iPad Pro M5 có <strong>hai kích thước</strong>: <strong>11 inch</strong> và <strong>13 inch</strong>, cùng hai màu sắc <strong>Space Black (Đen Không Gian)</strong> và <strong>Silver (Bạc)</strong>.</p>
+
+                    <h2>Chip M5 – bước nhảy vọt về hiệu năng và trí tuệ nhân tạo</h2>
+
+                    <p>Chip <strong>Apple M5</strong> mang lại bước tiến lớn về sức mạnh xử lý và AI. GPU thế hệ mới tích hợp <strong>Neural Accelerator</strong> trong từng lõi, giúp <strong>hiệu suất AI nhanh hơn 3.5 lần so với M4</strong> và <strong>5.6 lần so với M1</strong>.</p>
+
+                    <img src="https://www.techone.vn/wp-content/uploads/2025/01/chip-ipad-pro-m5.jpg" alt="Chip iPad Pro M5">
+
+                    <p>Nhờ <strong>Neural Engine 16 lõi</strong>, iPad Pro M5 có thể chạy mượt các tác vụ như <strong>sinh ảnh bằng AI</strong> trong Draw Things, <strong>tăng độ phân giải video bằng AI</strong> trong DaVinci Resolve, hay <strong>xử lý mô hình học máy</strong> trực tiếp trên thiết bị.</p>
+
+                    <p>Với <strong>băng thông bộ nhớ hơn 150GB/s</strong> và <strong>CPU 10 lõi</strong>, M5 giúp iPad Pro xử lý nhanh hơn, mát hơn và tiết kiệm năng lượng hơn – trở thành công cụ lý tưởng cho designer, nhà làm phim, kỹ sư AI hay sinh viên sáng tạo nội dung.</p>
+
+                    <h2>Hiệu năng đồ họa vượt trội, sẵn sàng cho 3D và game nặng</h2>
+
+                    <p>Hiệu suất dựng 3D nhanh hơn <strong>1.5 lần</strong> so với iPad Pro M4 và <strong>6.7 lần</strong> so với M1.</p>
+                    
+                    <p>Tốc độ xử lý video nhanh hơn <strong>6 lần</strong> trong Final Cut Pro for iPad.</p>
+                    
+                    <p>AI image generation nhanh hơn <strong>4 lần</strong> trong Draw Things.</p>
+
+                    <p>Những cải tiến này giúp <strong>iPad Pro M5</strong> không chỉ là máy tính bảng, mà là một <strong>thiết bị sáng tạo chuyên nghiệp di động</strong>.</p>
+
+                    <h2>Bộ nhớ và kết nối: nhanh hơn, mạnh hơn, thông minh hơn</h2>
+
+                    <p>iPad Pro M5 được nâng cấp về tốc độ bộ nhớ và lưu trữ:</p>
+
+                    <p><strong>Tốc độ SSD nhanh gấp đôi</strong> thế hệ trước.</p>
+                    
+                    <p>Các bản 256GB và 512GB có <strong>RAM 12GB</strong>, tăng 50% so với M4.</p>
+                    
+                    <p><strong>Sạc nhanh 50%</strong> trong 30 phút qua adapter USB-C 40W hoặc cao hơn.</p>
+
+                    <p>Chip <strong>N1 Wireless</strong> hỗ trợ <strong>Wi-Fi 7, Bluetooth 6, Thread</strong>; chip <strong>C1X Modem</strong> (bản Cellular) tăng tốc độ dữ liệu di động 50% và tiết kiệm năng lượng hơn 30% so với M4.</p>
+
+                    <h2>Thiết kế và màn hình Ultra Retina XDR – mỏng nhẹ nhưng đột phá</h2>
+
+                    <p><strong>iPad Pro M5</strong> tiếp tục giữ vị thế <strong>máy tính bảng mỏng nhất thế giới</strong> với độ dày chỉ <strong>5.3 mm (11 inch)</strong> và <strong>5.1 mm (13 inch)</strong>. Màn hình <strong>Ultra Retina XDR</strong> sử dụng <strong>công nghệ Tandem OLED kép</strong>, đạt <strong>độ sáng 1600 nits (HDR)</strong> và <strong>1000 nits (SDR)</strong>, hiển thị màu sắc cực chuẩn với <strong>tùy chọn mặt kính nano-texture</strong> giảm chói.</p>
+
+                    <h2>iPadOS 26 – hệ điều hành "siêu năng suất"</h2>
+
+                    <img src="https://www.techone.vn/wp-content/uploads/2025/01/ipados-26.jpg" alt="iPadOS 26">
+
+                    <ul>
+                        <li>Giao diện <strong>Liquid Glass</strong> trong suốt, phản chiếu ánh sáng tự nhiên.</li>
+                        <li>Hệ thống <strong>windowing</strong> mới cho phép mở nhiều ứng dụng song song.</li>
+                        <li><strong>Menu bar</strong> động giúp truy cập lệnh nhanh bằng cử chỉ vuốt.</li>
+                        <li>Ứng dụng <strong>Preview</strong> chính thức xuất hiện, hỗ trợ chỉnh PDF bằng Apple Pencil.</li>
+                        <li><strong>Apple Intelligence</strong> tích hợp sâu vào hệ thống, mang lại các tính năng dịch trực tiếp, tóm tắt nội dung và gợi ý thông minh.</li>
+                    </ul>
+
+                    <h2>Phụ kiện mới – Apple Pencil Pro và Magic Keyboard</h2>
+
+                    <p><strong>Apple Pencil Pro</strong> có cảm biến lực và rung phản hồi Haptic Feedback, hỗ trợ định vị qua Find My. Bàn phím <strong>Magic Keyboard thế hệ mới</strong> có hàng phím chức năng, khung nhôm và khu vực kê tay rộng hơn, giúp iPad Pro M5 trở thành <strong>thiết bị thay thế laptop chuyên nghiệp</strong>.</p>
+
+                    <h2>Cấu hình chi tiết iPad Pro M5</h2>
+
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th>Chip xử lý</th>
+                                <td>Apple M5 (10-core CPU, 10-core GPU, Neural Engine 16 lõi)</td>
+                            </tr>
+                            <tr>
+                                <th>RAM hợp nhất</th>
+                                <td>12GB (bản 256/512GB), 16GB (bản 1TB+)</td>
+                            </tr>
+                            <tr>
+                                <th>Bộ nhớ trong</th>
+                                <td>256GB – 1TB</td>
+                            </tr>
+                            <tr>
+                                <th>Màn hình</th>
+                                <td>11 inch hoặc 13 inch Ultra Retina XDR (Tandem OLED), 120Hz ProMotion</td>
+                            </tr>
+                            <tr>
+                                <th>Camera trước</th>
+                                <td>12MP Center Stage (Ultra Wide)</td>
+                            </tr>
+                            <tr>
+                                <th>Camera sau</th>
+                                <td>12MP Wide + LiDAR</td>
+                            </tr>
+                            <tr>
+                                <th>Kết nối</th>
+                                <td>USB-C / Thunderbolt, Wi-Fi 7, Bluetooth 6, 5G Cellular</td>
+                            </tr>
+                            <tr>
+                                <th>Pin</th>
+                                <td>Sạc nhanh 50% trong 30 phút (adapter ≥40W)</td>
+                            </tr>
+                            <tr>
+                                <th>Hệ điều hành</th>
+                                <td>iPadOS 26</td>
+                            </tr>
+                            <tr>
+                                <th>Màu sắc</th>
+                                <td>Space Black, Silver</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h2>Đặt trước iPad Pro M5 chính hãng tại Việt Nam</h2>
+
+                    <p><strong>iPad Pro M5</strong> mang lại sự kết hợp hoàn hảo giữa <strong>hiệu năng AI vượt trội</strong>, <strong>màn hình OLED kép siêu sáng</strong>, và <strong>thiết kế mỏng nhẹ nhất từng có trên iPad</strong>. Đây là chiếc tablet chuyên nghiệp hàng đầu – phù hợp cho người làm sáng tạo, thiết kế, lập trình và doanh nhân di động.</p>
+                </div>
+            </article>
+        </main>
+    </div>
+
+    <!-- Chat Bubble -->
+    <div class="xanhworld_blog_chat-bubble">
+        <i class="xanhworld_blog_fa fa-comment"></i>
+    </div>
+
+    <!-- Support Button -->
+    <div class="xanhworld_blog_support-button">
+        <i class="xanhworld_blog_fa fa-headset"></i>
+        <span>Hỗ trợ trực tuyến</span>
+    </div>
+
+    <!-- Right Sidebar Icons -->
+    <div class="xanhworld_blog_right-icons">
+        <div class="xanhworld_blog_right-icon">
+            <i class="xanhworld_blog_fa fa-comment-dots"></i>
+        </div>
+        <div class="xanhworld_blog_right-icon">
+            <i class="xanhworld_blog_fa fa-robot"></i>
+        </div>
+    </div>
+
+    <!-- reCAPTCHA Badge -->
+    <div class="xanhworld_blog_recaptcha-badge">
+        <div class="xanhworld_blog_grecaptcha-badge" style="width: 256px; height: 60px; box-shadow: gray 0px 0px 5px;">
+            <div style="width: 256px; height: 60px; position: relative;">
+                <iframe title="reCAPTCHA" width="256" height="60" role="presentation" name="a-recaptcha" frameborder="0" scrolling="no" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation allow-modals allow-popups-to-escape-sandbox"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle Sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('xanhworld_blog_leftSidebar');
+            sidebar.classList.toggle('xanhworld_blog_active');
+        }
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('xanhworld_blog_leftSidebar');
+            const toggle = document.querySelector('.xanhworld_blog_menu-toggle');
+            
+            if (!sidebar.contains(event.target) && !toggle.contains(event.target)) {
+                sidebar.classList.remove('xanhworld_blog_active');
+            }
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Add scroll animation to images
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        document.querySelectorAll('.xanhworld_blog_article-content img').forEach(img => {
+            img.style.opacity = '0';
+            img.style.transform = 'translateY(20px)';
+            img.style.transition = 'opacity 0.6s, transform 0.6s';
+            observer.observe(img);
+        });
+
+        // Chat bubble animation
+        const chatBubble = document.querySelector('.xanhworld_blog_chat-bubble');
+        setInterval(() => {
+            chatBubble.style.animation = 'pulse 1s';
+            setTimeout(() => {
+                chatBubble.style.animation = '';
+            }, 1000);
+        }, 5000);
+
+        // Add pulse animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
