@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết sản phẩm</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Left Column: Image Gallery -->
+        <div class="left-column">
+            <!-- Image Gallery Container -->
+            <div class="image-gallery-container">
+                <!-- Thumbnail Gallery - Vertical Left Side with Scroll -->
+                <div class="thumbnail-gallery-wrapper">
+                    <button class="scroll-btn scroll-up" aria-label="Scroll up">▲</button>
+                    <div class="thumbnail-gallery">
+                        <div class="thumbnail-item active" data-image="https://via.placeholder.com/600x600">
+                            <img src="https://via.placeholder.com/80x80" alt="Thumb 1">
+                        </div>
+                        <div class="thumbnail-item" data-image="https://via.placeholder.com/600x600/ff0000">
+                            <img src="https://via.placeholder.com/80x80/ff0000" alt="Thumb 2">
+                        </div>
+                        <div class="thumbnail-item" data-image="https://via.placeholder.com/600x600/00ff00">
+                            <img src="https://via.placeholder.com/80x80/00ff00" alt="Thumb 3">
+                        </div>
+                        <div class="thumbnail-item" data-image="https://via.placeholder.com/600x600/0000ff">
+                            <img src="https://via.placeholder.com/80x80/0000ff" alt="Thumb 4">
+                        </div>
+                        <div class="thumbnail-item" data-image="https://via.placeholder.com/600x600/ffff00">
+                            <img src="https://via.placeholder.com/80x80/ffff00" alt="Thumb 5">
+                        </div>
+                        <div class="thumbnail-item" data-image="https://via.placeholder.com/600x600/ff00ff">
+                            <img src="https://via.placeholder.com/80x80/ff00ff" alt="Thumb 6">
+                        </div>
+                        <div class="thumbnail-item" data-image="https://via.placeholder.com/600x600/00ffff">
+                            <img src="https://via.placeholder.com/80x80/00ffff" alt="Thumb 7">
+                        </div>
+                        <div class="thumbnail-item" data-image="https://via.placeholder.com/600x600/888888">
+                            <img src="https://via.placeholder.com/80x80/888888" alt="Thumb 8">
+                        </div>
+                        <div class="thumbnail-item" data-image="https://via.placeholder.com/600x600/ff8800">
+                            <img src="https://via.placeholder.com/80x80/ff8800" alt="Thumb 9">
+                        </div>
+                        <div class="thumbnail-item" data-image="https://via.placeholder.com/600x600/8800ff">
+                            <img src="https://via.placeholder.com/80x80/8800ff" alt="Thumb 10">
+                        </div>
+                    </div>
+                    <button class="scroll-btn scroll-down" aria-label="Scroll down">▼</button>
+                </div>
+                
+                <!-- Main Image Display -->
+                <div class="main-image-container">
+                    <img id="mainImage" src="https://via.placeholder.com/600x600" alt="Product Image">
+                    <!-- Play button overlay for video -->
+                    <div class="play-button-overlay">
+                        <div class="play-button">▶</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Tabs Section -->
+            <div class="product-tabs">
+                <div class="tabs-header">
+                    <button class="tab-button active" data-tab="description">Mô tả</button>
+                    <button class="tab-button" data-tab="sizeguide">Hướng dẫn chọn size</button>
+                </div>
+                
+                <div class="tabs-content">
+                    <!-- Description Tab -->
+                    <div class="tab-pane active" id="description">
+                        <div class="product-description">
+                            <h3>Thông tin sản phẩm</h3>
+                            <p>Collapsible Multi Tool EDC Pliers - Kìm đa năng gấp gọn, công cụ EDC hoàn hảo cho mọi nhu cầu sử dụng hàng ngày.</p>
+                            
+                            <h4>Đặc điểm nổi bật:</h4>
+                            <ul>
+                                <li><strong>Thiết kế gấp gọn thông minh:</strong> Dễ dàng mang theo trong túi, ba lô hoặc móc chìa khóa</li>
+                                <li><strong>Tay cầm cao su chống trượt:</strong> Đảm bảo độ bám tốt, an toàn khi sử dụng</li>
+                                <li><strong>Đa chức năng:</strong> Tích hợp nhiều công cụ: kìm, cắt dây, tuốc nơ vít, dao cắt...</li>
+                                <li><strong>Chất liệu cao cấp:</strong> Thép không gỉ bền bỉ, chịu lực tốt</li>
+                                <li><strong>Kích thước nhỏ gọn:</strong> Khi gấp lại chỉ 10cm, khi mở ra 16cm</li>
+                            </ul>
+
+                            <h4>Thông số kỹ thuật:</h4>
+                            <table class="specs-table">
+                                <tr>
+                                    <td><strong>Chất liệu:</strong></td>
+                                    <td>Thép không gỉ 420</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tay cầm:</strong></td>
+                                    <td>Cao su chống trượt</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Trọng lượng:</strong></td>
+                                    <td>180g</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Kích thước gấp:</strong></td>
+                                    <td>10cm x 4cm</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Kích thước mở:</strong></td>
+                                    <td>16cm x 6cm</td>
+                                </tr>
+                            </table>
+
+                            <h4>Công dụng:</h4>
+                            <ul>
+                                <li>Sửa chữa điện tử, đồ gia dụng</li>
+                                <li>Cắt dây điện, dây cáp</li>
+                                <li>Công cụ dã ngoại, cắm trại</li>
+                                <li>Sửa chữa xe đạp, xe máy</li>
+                                <li>Công cụ khẩn cấp trong ô tô</li>
+                            </ul>
+
+                            <h4>Bảo quản:</h4>
+                            <p>Lau khô sau mỗi lần sử dụng, bảo quản nơi khô ráo thoáng mát. Tra dầu định kỳ cho khớp gấp để đảm bảo độ mượt mà.</p>
+                        </div>
+                    </div>
+
+                    <!-- Size Guide Tab -->
+                    <div class="tab-pane" id="sizeguide">
+                        <div class="size-guide">
+                            <h3>Hướng dẫn chọn size</h3>
+                            
+                            <div class="size-note">
+                                <p><strong>Lưu ý:</strong> Đây là sản phẩm công cụ, không có size quần áo. Thông tin dưới đây giúp bạn chọn loại phù hợp với nhu cầu sử dụng.</p>
+                            </div>
+
+                            <h4>Các loại kích thước:</h4>
+                            
+                            <div class="size-table-wrapper">
+                                <table class="size-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Loại</th>
+                                            <th>Kích thước</th>
+                                            <th>Trọng lượng</th>
+                                            <th>Phù hợp với</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Mini</strong></td>
+                                            <td>8cm x 3cm</td>
+                                            <td>120g</td>
+                                            <td>Móc chìa khóa, EDC hàng ngày nhẹ</td>
+                                        </tr>
+                                        <tr class="highlight">
+                                            <td><strong>Standard</strong> ⭐</td>
+                                            <td>10cm x 4cm</td>
+                                            <td>180g</td>
+                                            <td>Đa năng, phổ biến nhất (Khuyên dùng)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Pro</strong></td>
+                                            <td>12cm x 5cm</td>
+                                            <td>250g</td>
+                                            <td>Công việc nặng, chuyên nghiệp</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4>Chọn loại phù hợp:</h4>
+                            <div class="size-recommendations">
+                                <div class="size-rec-item">
+                                    <div class="rec-icon">🎒</div>
+                                    <div class="rec-content">
+                                        <strong>Cho EDC hàng ngày:</strong>
+                                        <p>Chọn <strong>Mini</strong> hoặc <strong>Standard</strong> - Gọn nhẹ, dễ mang theo</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="size-rec-item">
+                                    <div class="rec-icon">🏕️</div>
+                                    <div class="rec-content">
+                                        <strong>Cho cắm trại, dã ngoại:</strong>
+                                        <p>Chọn <strong>Standard</strong> - Cân bằng giữa kích thước và tính năng</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="size-rec-item">
+                                    <div class="rec-icon">🔧</div>
+                                    <div class="rec-content">
+                                        <strong>Cho công việc chuyên nghiệp:</strong>
+                                        <p>Chọn <strong>Pro</strong> - Bền bỉ, chịu lực tốt cho công việc nặng</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="size-tips">
+                                <h4>Mẹo nhỏ:</h4>
+                                <ul>
+                                    <li>✓ Size Standard là lựa chọn phổ biến nhất, phù hợp với 80% người dùng</li>
+                                    <li>✓ Nếu hay mang theo túi quần, chọn Mini để tiện lợi hơn</li>
+                                    <li>✓ Nếu làm thợ điện, thợ cơ khí, nên chọn Pro để chắc chắn hơn</li>
+                                    <li>✓ Mọi size đều có đầy đủ chức năng cơ bản</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Product Info -->
+        <div class="right-column">
+            <div class="product-info">
+                <h1 class="product-title">Collapsible Multi Tool EDC Pliers</h1>
+                
+                <div class="product-rating">
+                    <div class="stars">★★★★★</div>
+                    <span class="rating-count">4.8 (1.234 đánh giá)</span>
+                </div>
+
+                <div class="product-price">
+                    <div class="current-price">₫299.000</div>
+                    <div class="original-price">₫599.000</div>
+                    <div class="discount-badge">-50%</div>
+                </div>
+
+                <!-- Shipping Info -->
+                <div class="shipping-info">
+                    <div class="info-row">
+                        <span class="label">Vận chuyển</span>
+                        <div class="info-content">
+                            <div class="free-shipping">Miễn phí vận chuyển</div>
+                            <div class="delivery-time">Nhận hàng trong 3-5 ngày</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Selection -->
+                <div class="product-options">
+                    <div class="option-group">
+                        <label class="option-label">Màu sắc</label>
+                        <div class="color-options">
+                            <button class="color-btn active" style="background: #2c5f5d"></button>
+                            <button class="color-btn" style="background: #000"></button>
+                            <button class="color-btn" style="background: #8b4513"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quantity Selector -->
+                <div class="quantity-selector">
+                    <label class="option-label">Số lượng</label>
+                    <div class="quantity-controls">
+                        <button class="qty-btn minus">-</button>
+                        <input type="number" class="qty-input" value="1" min="1">
+                        <button class="qty-btn plus">+</button>
+                    </div>
+                    <span class="stock-info">Còn 999 sản phẩm</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-cart">Thêm vào giỏ hàng</button>
+                    <button class="btn btn-buy">Mua ngay</button>
+                </div>
+
+                <!-- Product Features -->
+                <div class="product-features">
+                    <div class="feature-item">
+                        <img src="https://via.placeholder.com/150x150" alt="Feature 1">
+                        <p>Folding with stoppers<br><strong>Folding storage<br>Easier to carry</strong></p>
+                    </div>
+                    <div class="feature-item">
+                        <img src="https://via.placeholder.com/150x150" alt="Feature 2">
+                        <p>Rubber-coated handle<br><strong>Not easy to slip</strong></p>
+                    </div>
+                </div>
+
+                <!-- Guarantee Info -->
+                <div class="guarantee-info">
+                    <div class="guarantee-item">
+                        <span class="icon">✓</span>
+                        <span>Đảm bảo hoàn tiền 100%</span>
+                    </div>
+                    <div class="guarantee-item">
+                        <span class="icon">✓</span>
+                        <span>Giao hàng toàn quốc</span>
+                    </div>
+                    <div class="guarantee-item">
+                        <span class="icon">✓</span>
+                        <span>Kiểm tra hàng trước khi thanh toán</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products Section -->
+    <div class="related-products">
+        <h2 class="section-title">Sản phẩm tương tự</h2>
+        <div class="products-grid">
+            <!-- Product Cards -->
+            <div class="product-card">
+                <img src="https://via.placeholder.com/200x200" alt="Product">
+                <div class="card-info">
+                    <div class="card-title">Sản phẩm 1</div>
+                    <div class="card-price">₫199.000</div>
+                    <div class="card-rating">★★★★☆ (123)</div>
+                </div>
+            </div>
+            <div class="product-card">
+                <img src="https://via.placeholder.com/200x200" alt="Product">
+                <div class="card-info">
+                    <div class="card-title">Sản phẩm 2</div>
+                    <div class="card-price">₫299.000</div>
+                    <div class="card-rating">★★★★★ (456)</div>
+                </div>
+            </div>
+            <div class="product-card">
+                <img src="https://via.placeholder.com/200x200" alt="Product">
+                <div class="card-info">
+                    <div class="card-title">Sản phẩm 3</div>
+                    <div class="card-price">₫399.000</div>
+                    <div class="card-rating">★★★★☆ (789)</div>
+                </div>
+            </div>
+            <div class="product-card">
+                <img src="https://via.placeholder.com/200x200" alt="Product">
+                <div class="card-info">
+                    <div class="card-title">Sản phẩm 4</div>
+                    <div class="card-price">₫499.000</div>
+                    <div class="card-rating">★★★★★ (234)</div>
+                </div>
+            </div>
+            <div class="product-card">
+                <img src="https://via.placeholder.com/200x200" alt="Product">
+                <div class="card-info">
+                    <div class="card-title">Sản phẩm 5</div>
+                    <div class="card-price">₫599.000</div>
+                    <div class="card-rating">★★★★☆ (567)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

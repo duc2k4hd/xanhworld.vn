@@ -306,7 +306,7 @@ class ImageSearchController extends Controller
                 'price' => $product->price,
                 'sale_price' => $product->sale_price,
                 'image' => $product->primaryImage?->url
-                    ? asset('clients/assets/img/clothes/resize/230x230/'.$product->primaryImage->url)
+                    ? asset('clients/assets/img/clothes/'.$product->primaryImage->url)
                     : asset('clients/assets/img/clothes/no-image.webp'),
                 'category' => $product->primaryCategory?->name,
                 'url' => route('client.product.detail', $product->slug),

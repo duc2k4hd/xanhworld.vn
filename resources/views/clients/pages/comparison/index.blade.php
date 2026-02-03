@@ -1,6 +1,6 @@
 @extends('clients.layouts.master')
 
-@section('title', 'So sánh sản phẩm | ' . ($settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD'))
+@section('title', 'So sánh sản phẩm | ' . ($settings->site_name ?? $settings->site_name ?? 'Thế giới cây xanh Xworld'))
 
 @push('css_page')
     <link rel="stylesheet" href="{{ asset('clients/assets/css/comparison.css') }}">
@@ -56,7 +56,7 @@
                                             </button>
                                             <div class="xanhworld_comparison_product_image">
                                                 @if($product->primaryImage && $product->primaryImage->url)
-                                                    <img src="{{ asset('clients/assets/img/clothes/resize/230x230/' . $product->primaryImage->url) }}" 
+                                                    <img src="{{ asset('clients/assets/img/clothes/' . $product->primaryImage->url) }}" 
                                                          alt="{{ $product->name }}" 
                                                          loading="lazy">
                                                 @else

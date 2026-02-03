@@ -210,21 +210,7 @@
 
 @push('scripts')
     <script>
-        // Khởi tạo TinyMCE cho nội dung email
         document.addEventListener('DOMContentLoaded', function () {
-            if (typeof tinymce !== 'undefined') {
-                tinymce.init({
-                    selector: 'textarea[name="content"]',
-                    height: 500,
-                    menubar: false,
-                    plugins: 'link lists table code autoresize image',
-                    toolbar: 'undo redo | blocks | image media | bold italic underline forecolor | alignleft aligncenter alignright alignjustify | bullist numlist | link table | code',
-                    convert_urls: false,
-                    relative_urls: false,
-                    branding: false,
-                });
-            }
-
             const form = document.getElementById('campaign-form');
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -233,11 +219,7 @@
                     return;
                 }
 
-                // Đồng bộ nội dung TinyMCE về textarea trước khi gửi
-                if (typeof tinymce !== 'undefined') {
-                    tinymce.triggerSave();
-                }
-
+                // CKEditor đã đồng bộ dữ liệu vào textarea trong ckeditor-admin.js
                 const formData = new FormData(this);
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalText = submitBtn.innerHTML;

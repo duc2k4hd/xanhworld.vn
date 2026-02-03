@@ -9,8 +9,16 @@ use Intervention\Image\ImageManagerStatic as Image;
 
 class ImageController extends Controller
 {
+    /**
+     * Đã tắt chức năng resize - chỉ dùng ảnh gốc
+     */
     public function resize(Request $request)
     {
+        // Đã tắt chức năng resize - chỉ dùng ảnh gốc trong clients/assets/img/clothes/
+        abort(404);
+        
+        // Code cũ đã được comment:
+        /*
         $url = $request->query('url');
         $width = (int) $request->query('width', 300);
 
@@ -50,6 +58,7 @@ class ImageController extends Controller
         })->afterResponse();
 
         return $this->imageResponse($path); // fallback
+        */
     }
 
     private function imageResponse(string $path)

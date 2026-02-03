@@ -49,7 +49,8 @@ class ProductService
         });
 
         // Sau khi đã lưu xong product và images, xử lý resize ảnh
-        $this->processProductImages($product);
+        // Đã tắt chức năng resize - chỉ dùng ảnh gốc
+        // $this->processProductImages($product);
 
         return $product;
     }
@@ -132,7 +133,8 @@ class ProductService
         });
 
         // Sau khi update xong, luôn xử lý lại ảnh (idempotent, sẽ ghi đè nếu đã tồn tại)
-        $this->processProductImages($product);
+        // Đã tắt chức năng resize - chỉ dùng ảnh gốc
+        // $this->processProductImages($product);
 
         return $product;
     }
@@ -931,6 +933,9 @@ class ProductService
      */
     private function processProductImages(Product $product): void
     {
+        // Đã tắt chức năng resize - chỉ dùng ảnh gốc
+        return;
+        
         try {
             $imageIds = $product->image_ids ?? [];
             if (empty($imageIds) || ! is_array($imageIds)) {

@@ -506,7 +506,7 @@ class BlogController extends Controller
     {
         $settings = \Illuminate\Support\Facades\View::shared('settings');
         $siteUrl = rtrim($settings->site_url ?? config('app.url') ?? url('/'), '/');
-        $siteName = $settings->site_name ?? config('app.name') ?? 'THẾ GIỚI CÂY XANH XWORLD';
+        $siteName = $settings->site_name ?? config('app.name') ?? 'Thế giới cây xanh Xworld';
         $canonicalUrl = $post->meta_canonical
             ? $siteUrl.'/'.ltrim($post->meta_canonical, '/')
             : $siteUrl.'/kinh-nghiem/'.$post->slug;

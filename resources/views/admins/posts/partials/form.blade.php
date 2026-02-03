@@ -108,7 +108,13 @@
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Nội dung</label>
-                    <textarea id="post-content-editor" name="content" class="form-control" rows="15">{{ old('content', $post->content ?? '') }}</textarea>
+                    <textarea
+                        id="post-content-editor"
+                        name="content"
+                        class="form-control"
+                        rows="15"
+                        data-media-folder="{{ $mediaPicker['folder'] ?? 'posts' }}"
+                    >{{ old('content', $post->content ?? '') }}</textarea>
                     <small class="text-muted" id="autosave-status">Autosave sẽ hiển thị sau khi bạn chỉnh sửa.</small>
                 </div>
             </div>
@@ -265,71 +271,7 @@
             return div.innerHTML;
         };
 
-        if (window.tinymce && document.getElementById('post-content-editor')) {
-            tinymce.init({
-                selector: '#post-content-editor',
-                menubar: true,
-                height: 500,
-                plugins: 'code lists link image table media autoresize fullscreen codesample wordcount preview',
-                toolbar: 'undo redo | styles | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image media nobi_gallery | table codesample | code | fullscreen preview',
-                skin: 'oxide',
-                statusbar: true,
-                relative_urls: false,
-                remove_script_host: false,
-                convert_urls: true,
-                content_style: `
-                    body {
-                        max-height: 500px;
-                        overflow-y: scroll !important;
-                    }
-                `,
-                automatic_uploads: false,
-                file_picker_types: 'image media',
-                file_picker_callback: (callback, value, meta) => {
-                    if (meta.filetype !== 'image') {
-                        return;
-                    }
-                    if (typeof window.openMediaPicker !== 'function') {
-                        alert('Không tải được popup thư viện ảnh. Vui lòng F5.');
-                        return;
-                    }
-                    window.openMediaPicker({
-                        mode: 'single',
-                        scope: 'client',
-                        onSelect: (file) => {
-                            if (!file) return;
-                            const alt = file.alt || file.title || file.filename || file.name || '';
-                            callback(file.url, { alt });
-                        }
-                    });
-                },
-                images_upload_handler: () => Promise.reject('Upload bị vô hiệu, hãy chọn ảnh từ thư viện'),
-                setup: function (editor) {
-                    editor.ui.registry.addButton('nobi_gallery', {
-                        text: '🖼 Thư viện',
-                        tooltip: 'Chèn ảnh từ thư viện assets',
-                        onAction: function () {
-                            if (typeof window.openMediaPicker !== 'function') {
-                                alert('Không tải được popup thư viện ảnh. Vui lòng F5.');
-                                return;
-                            }
-                            window.openMediaPicker({
-                                mode: 'single',
-                                scope: 'client',
-                                onSelect: (file) => {
-                                    if (!file) return;
-                                    const alt = file.alt || file.title || file.filename || file.name || '';
-                                    editor.insertContent(`<img src="${file.url}" alt="${escapeHtml(alt)}">`);
-                                }
-                            });
-                        },
-                    });
-
-                    editor.on('input', scheduleAutosave);
-                    editor.on('change', scheduleAutosave);
-                }
-            });
-        }
+        // CKEditor 5 được init trong admins/js/ckeditor-admin.js
 
         document.querySelectorAll('input[name="title"], textarea[name="excerpt"], input[name="meta_title"], textarea[name="meta_description"]').forEach(el => {
             el.addEventListener('input', scheduleAutosave);
@@ -438,7 +380,9 @@
                 body: JSON.stringify({
                     title: document.querySelector('input[name="title"]').value,
                     excerpt: document.querySelector('textarea[name="excerpt"]').value,
-                    content: window.tinymce ? tinymce.get('post-content-editor').getContent() : document.getElementById('post-content-editor').value,
+                    content: (window.CKEDITOR_INSTANCES && window.CKEDITOR_INSTANCES['post-content-editor'])
+                        ? window.CKEDITOR_INSTANCES['post-content-editor'].getData()
+                        : document.getElementById('post-content-editor').value,
                     meta_title: document.querySelector('input[name="meta_title"]').value,
                     meta_description: document.querySelector('textarea[name="meta_description"]').value,
                     meta_keywords: document.querySelector('input[name="meta_keywords"]').value,
@@ -457,7 +401,10 @@
             
             // Tính toán SEO score từ dữ liệu hiện tại
             const title = document.querySelector('input[name="title"]').value;
-            const content = window.tinymce ? tinymce.get('post-content-editor').getContent() : document.getElementById('post-content-editor').value;
+            const editorInstance = window.CKEDITOR_INSTANCES && window.CKEDITOR_INSTANCES['post-content-editor'];
+            const content = editorInstance
+                ? editorInstance.getData()
+                : document.getElementById('post-content-editor').value;
             const excerpt = document.querySelector('textarea[name="excerpt"]').value;
             const metaTitle = document.querySelector('input[name="meta_title"]').value;
             const metaDescription = document.querySelector('textarea[name="meta_description"]').value;

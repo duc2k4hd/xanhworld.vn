@@ -1309,6 +1309,10 @@
 
 /* Mobile tối ưu */
 @media (max-width: 768px) {
+    .xanhworld_main {
+        width: 98% !important;
+    }
+    
     .xanhworld_main_product_category {
         flex-direction: column;
     }

@@ -939,13 +939,13 @@ document
 
 const qtyDisplay = document.querySelector(
     ".xanhworld_single_info_specifications_actions_value"
-);
+) || document.querySelector(".qty-input");
 const qtyWrapper = document.querySelector(
     ".xanhworld_single_info_specifications_actions_qty"
 );
-const qtyInputField = document.querySelector("input[name='quantity']");
+const qtyInputField = document.querySelector("input[name='quantity']") || document.getElementById("quantity_input") || document.getElementById("form_quantity_input");
 const qtyMax = parseInt(
-    qtyWrapper?.dataset.maxStock || qtyInputField?.dataset.maxStock || 99,
+    qtyWrapper?.dataset.maxStock || qtyInputField?.dataset.maxStock || document.querySelector(".qty-input")?.dataset.maxStock || 99,
     10
 );
 
@@ -957,11 +957,18 @@ function safeToast(message, type = "info") {
 
 function syncQuantity(val) {
     if (qtyDisplay) {
-        qtyDisplay.textContent = val;
+        if (qtyDisplay.tagName === 'INPUT') {
+            qtyDisplay.value = val;
+        } else {
+            qtyDisplay.textContent = val;
+        }
     }
     if (qtyInputField) {
         qtyInputField.value = val;
     }
+    // Also update form quantity input for new theme
+    const formQtyInput = document.getElementById('form_quantity_input');
+    if (formQtyInput) formQtyInput.value = val;
 }
 
 function currentQty() {
@@ -1897,4 +1904,449 @@ function updateCartCountBadge(count) {
         }
     });
 
+});
+
+// ===== NEW THEME FUNCTIONALITY =====
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // ===== THUMBNAIL GALLERY SCROLL FUNCTIONALITY =====
+    const thumbnailGallery = document.querySelector('.thumbnail-gallery');
+    const scrollUpBtn = document.querySelector('.scroll-up');
+    const scrollDownBtn = document.querySelector('.scroll-down');
+    
+    if (thumbnailGallery) {
+        const scrollAmount = 88;
+        
+        function updateScrollButtons() {
+            const atTop = thumbnailGallery.scrollTop === 0;
+            const atBottom = Math.ceil(thumbnailGallery.scrollTop + thumbnailGallery.clientHeight) >= thumbnailGallery.scrollHeight;
+            if (scrollUpBtn) scrollUpBtn.disabled = atTop;
+            if (scrollDownBtn) scrollDownBtn.disabled = atBottom;
+        }
+        
+        if (scrollUpBtn) {
+            scrollUpBtn.addEventListener('click', function() {
+                thumbnailGallery.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+            });
+        }
+        
+        if (scrollDownBtn) {
+            scrollDownBtn.addEventListener('click', function() {
+                thumbnailGallery.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+            });
+        }
+        
+        thumbnailGallery.addEventListener('scroll', updateScrollButtons);
+        updateScrollButtons();
+        window.addEventListener('resize', updateScrollButtons);
+    }
+    
+    // ===== IMAGE GALLERY FUNCTIONALITY =====
+    const mainImage = document.getElementById('mainImage');
+    const thumbnails = document.querySelectorAll('.thumbnail-item');
+    
+    // Set initial data attribute
+    if (mainImage && !mainImage.getAttribute('data-current-image')) {
+        mainImage.setAttribute('data-current-image', mainImage.src);
+    }
+    
+    if (mainImage && thumbnails.length > 0) {
+        thumbnails.forEach(thumbnail => {
+            thumbnail.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Remove active from all thumbnails
+                thumbnails.forEach(t => t.classList.remove('active'));
+                
+                // Add active to clicked thumbnail
+                this.classList.add('active');
+                
+                // Update main image
+                const newImageSrc = this.getAttribute('data-image');
+                if (newImageSrc && mainImage) {
+                    // Update src and srcset
+                    mainImage.src = newImageSrc;
+                    mainImage.srcset = newImageSrc + ' 500w';
+                    mainImage.setAttribute('data-current-image', newImageSrc);
+                }
+            });
+        });
+        
+        // Click on main image to open lightbox
+        mainImage.addEventListener('click', function() {
+            openImageLightbox();
+        });
+        
+        // Also make main image container clickable
+        const mainImageContainer = document.querySelector('.main-image-container');
+        if (mainImageContainer) {
+            mainImageContainer.style.cursor = 'pointer';
+            mainImageContainer.addEventListener('click', function(e) {
+                if (e.target === this || e.target === mainImage) {
+                    openImageLightbox();
+                }
+            });
+        }
+    }
+    
+    // ===== IMAGE LIGHTBOX =====
+    let currentLightboxIndex = 0;
+    let lightboxImages = [];
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let isDragging = false;
+    let startX = 0;
+    let scrollLeft = 0;
+    
+    function initLightboxImages() {
+        const thumbnails = document.querySelectorAll('.thumbnail-item');
+        lightboxImages = Array.from(thumbnails).map(thumb => ({
+            src: thumb.getAttribute('data-image'),
+            alt: thumb.querySelector('img')?.alt || ''
+        }));
+        
+        // Find current image index
+        const currentSrc = mainImage?.getAttribute('data-current-image') || mainImage?.src;
+        currentLightboxIndex = lightboxImages.findIndex(img => img.src === currentSrc);
+        if (currentLightboxIndex === -1) currentLightboxIndex = 0;
+    }
+    
+    function openImageLightbox() {
+        initLightboxImages();
+        if (lightboxImages.length === 0) return;
+        
+        // Create lightbox if not exists
+        let lightbox = document.getElementById('product-lightbox');
+        if (!lightbox) {
+            lightbox = createLightbox();
+            document.body.appendChild(lightbox);
+        }
+        
+        updateLightboxImage();
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function createLightbox() {
+        const lightbox = document.createElement('div');
+        lightbox.id = 'product-lightbox';
+        lightbox.className = 'product-lightbox';
+        lightbox.innerHTML = `
+            <div class="lightbox-overlay"></div>
+            <button class="lightbox-close" aria-label="Đóng">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="24" height="24">
+                    <path fill="currentColor" d="M324.5 411.1c6.2 6.2 16.4 6.2 22.6 0s6.2-16.4 0-22.6L214.6 256 347.1 123.5c6.2-6.2 6.2-16.4 0-22.6s-16.4-6.2-22.6 0L192 233.4 59.5 100.9c-6.2-6.2-16.4-6.2-22.6 0s-6.2 16.4 0 22.6L169.4 256 36.9 388.5c-6.2 6.2-6.2 16.4 0 22.6s16.4 6.2 22.6 0L192 278.6 324.5 411.1z"/>
+                </svg>
+            </button>
+            <button class="lightbox-prev" aria-label="Ảnh trước">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="24" height="24">
+                    <path fill="currentColor" d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
+                </svg>
+            </button>
+            <button class="lightbox-next" aria-label="Ảnh sau">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="24" height="24">
+                    <path fill="currentColor" d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/>
+                </svg>
+            </button>
+            <div class="lightbox-content">
+                <div class="lightbox-image-wrapper">
+                    <img class="lightbox-image" src="" alt="" loading="lazy">
+                    <div class="lightbox-loader"></div>
+                </div>
+                <div class="lightbox-info">
+                    <div class="lightbox-counter">
+                        <span class="lightbox-current">1</span> / <span class="lightbox-total">1</span>
+                    </div>
+                    <div class="lightbox-actions">
+                        <button class="lightbox-download" aria-label="Tải ảnh">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20" height="20">
+                                <path fill="currentColor" d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/>
+                            </svg>
+                            Tải ảnh
+                        </button>
+                        <button class="lightbox-zoom-in" aria-label="Phóng to">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20" height="20">
+                                <path fill="currentColor" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288zm64-208c0-8.8-7.2-16-16-16s-16 7.2-16 16v48H192c-8.8 0-16 7.2-16 16s7.2 16 16 16h48v48c0 8.8 7.2 16 16 16s16-7.2 16-16V272h48c8.8 0 16-7.2 16-16s-7.2-16-16-16H288V144z"/>
+                            </svg>
+                        </button>
+                        <button class="lightbox-zoom-out" aria-label="Thu nhỏ" style="display: none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20" height="20">
+                                <path fill="currentColor" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM192 176c0-8.8 7.2-16 16-16H288c8.8 0 16 7.2 16 16s-7.2 16-16 16H208c-8.8 0-16-7.2-16-16z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Event listeners
+        lightbox.querySelector('.lightbox-overlay').addEventListener('click', closeLightbox);
+        lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+        lightbox.querySelector('.lightbox-prev').addEventListener('click', () => navigateLightbox(-1));
+        lightbox.querySelector('.lightbox-next').addEventListener('click', () => navigateLightbox(1));
+        lightbox.querySelector('.lightbox-download').addEventListener('click', downloadImage);
+        lightbox.querySelector('.lightbox-zoom-in').addEventListener('click', zoomIn);
+        lightbox.querySelector('.lightbox-zoom-out').addEventListener('click', zoomOut);
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', handleLightboxKeyboard);
+        
+        // Touch/swipe support
+        const imageWrapper = lightbox.querySelector('.lightbox-image-wrapper');
+        imageWrapper.addEventListener('touchstart', handleTouchStart, { passive: true });
+        imageWrapper.addEventListener('touchend', handleTouchEnd, { passive: true });
+        imageWrapper.addEventListener('mousedown', handleMouseDown);
+        
+        return lightbox;
+    }
+    
+    function updateLightboxImage() {
+        const lightbox = document.getElementById('product-lightbox');
+        if (!lightbox || lightboxImages.length === 0) return;
+        
+        const image = lightbox.querySelector('.lightbox-image');
+        const loader = lightbox.querySelector('.lightbox-loader');
+        const current = lightbox.querySelector('.lightbox-current');
+        const total = lightbox.querySelector('.lightbox-total');
+        const prevBtn = lightbox.querySelector('.lightbox-prev');
+        const nextBtn = lightbox.querySelector('.lightbox-next');
+        
+        if (currentLightboxIndex < 0) currentLightboxIndex = 0;
+        if (currentLightboxIndex >= lightboxImages.length) currentLightboxIndex = lightboxImages.length - 1;
+        
+        const currentImage = lightboxImages[currentLightboxIndex];
+        
+        // Show loader
+        loader.style.display = 'block';
+        image.style.opacity = '0';
+        
+        // Load image
+        const img = new Image();
+        img.onload = function() {
+            image.src = currentImage.src;
+            image.alt = currentImage.alt;
+            image.style.opacity = '1';
+            loader.style.display = 'none';
+            // Reset zoom
+            image.style.transform = 'scale(1)';
+            lightbox.querySelector('.lightbox-zoom-out').style.display = 'none';
+            lightbox.querySelector('.lightbox-zoom-in').style.display = 'block';
+        };
+        img.onerror = function() {
+            loader.style.display = 'none';
+            const noImagePath = document.querySelector('#mainImage')?.getAttribute('data-default-src')?.replace(/\/[^\/]+$/, '/no-image.webp') || '/clients/assets/img/clothes/no-image.webp';
+            image.src = noImagePath;
+        };
+        img.src = currentImage.src;
+        
+        // Update counter
+        if (current) current.textContent = currentLightboxIndex + 1;
+        if (total) total.textContent = lightboxImages.length;
+        
+        // Update buttons
+        if (prevBtn) prevBtn.style.display = currentLightboxIndex === 0 ? 'none' : 'flex';
+        if (nextBtn) nextBtn.style.display = currentLightboxIndex === lightboxImages.length - 1 ? 'none' : 'flex';
+    }
+    
+    function navigateLightbox(direction) {
+        currentLightboxIndex += direction;
+        if (currentLightboxIndex < 0) currentLightboxIndex = lightboxImages.length - 1;
+        if (currentLightboxIndex >= lightboxImages.length) currentLightboxIndex = 0;
+        updateLightboxImage();
+    }
+    
+    function closeLightbox() {
+        const lightbox = document.getElementById('product-lightbox');
+        if (lightbox) {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+    
+    function downloadImage() {
+        const lightbox = document.getElementById('product-lightbox');
+        if (!lightbox) return;
+        
+        const image = lightbox.querySelector('.lightbox-image');
+        const imageSrc = image.src;
+        const link = document.createElement('a');
+        link.href = imageSrc;
+        link.download = imageSrc.split('/').pop() || 'image.webp';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    let isZoomed = false;
+    function zoomIn() {
+        const lightbox = document.getElementById('product-lightbox');
+        if (!lightbox) return;
+        
+        const image = lightbox.querySelector('.lightbox-image');
+        image.style.transform = 'scale(2)';
+        image.style.cursor = 'zoom-out';
+        lightbox.querySelector('.lightbox-zoom-out').style.display = 'block';
+        lightbox.querySelector('.lightbox-zoom-in').style.display = 'none';
+        isZoomed = true;
+    }
+    
+    function zoomOut() {
+        const lightbox = document.getElementById('product-lightbox');
+        if (!lightbox) return;
+        
+        const image = lightbox.querySelector('.lightbox-image');
+        image.style.transform = 'scale(1)';
+        image.style.cursor = 'zoom-in';
+        lightbox.querySelector('.lightbox-zoom-out').style.display = 'none';
+        lightbox.querySelector('.lightbox-zoom-in').style.display = 'block';
+        isZoomed = false;
+    }
+    
+    function handleLightboxKeyboard(e) {
+        const lightbox = document.getElementById('product-lightbox');
+        if (!lightbox || !lightbox.classList.contains('active')) return;
+        
+        switch(e.key) {
+            case 'Escape':
+                closeLightbox();
+                break;
+            case 'ArrowLeft':
+                navigateLightbox(-1);
+                break;
+            case 'ArrowRight':
+                navigateLightbox(1);
+                break;
+        }
+    }
+    
+    function handleTouchStart(e) {
+        touchStartX = e.touches[0].clientX;
+    }
+    
+    function handleTouchEnd(e) {
+        if (!isZoomed) {
+            touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    navigateLightbox(1); // Swipe left - next
+                } else {
+                    navigateLightbox(-1); // Swipe right - prev
+                }
+            }
+        }
+    }
+    
+    function handleMouseDown(e) {
+        if (isZoomed) return;
+        isDragging = true;
+        startX = e.pageX - e.currentTarget.offsetLeft;
+        scrollLeft = e.currentTarget.scrollLeft;
+        e.preventDefault();
+    }
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const lightbox = document.getElementById('product-lightbox');
+        if (!lightbox) return;
+        const imageWrapper = lightbox.querySelector('.lightbox-image-wrapper');
+        if (!imageWrapper) return;
+        const x = e.pageX - imageWrapper.offsetLeft;
+        const walk = (x - startX) * 2;
+        // Handle drag for navigation
+    });
+    
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+    
+    // ===== TABS FUNCTIONALITY =====
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault(); // Ngăn scroll tự động
+            const targetTab = this.getAttribute('data-tab');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabPanes.forEach(pane => pane.classList.remove('active'));
+            this.classList.add('active');
+            const targetPane = document.getElementById(targetTab);
+            if (targetPane) targetPane.classList.add('active');
+        });
+    });
+    
+    // ===== QUANTITY CONTROLS =====
+    const qtyInput = document.querySelector('.qty-input');
+    const minusBtn = document.querySelector('.qty-btn.minus');
+    const plusBtn = document.querySelector('.qty-btn.plus');
+    const formQtyInput = document.getElementById('form_quantity_input');
+    
+    if (qtyInput) {
+        const maxStock = parseInt(qtyInput.getAttribute('data-max-stock')) || 999;
+        
+        if (minusBtn) {
+            minusBtn.addEventListener('click', function() {
+                let val = parseInt(qtyInput.value) || 1;
+                if (val > 1) {
+                    qtyInput.value = val - 1;
+                    if (formQtyInput) formQtyInput.value = qtyInput.value;
+                }
+            });
+        }
+        
+        if (plusBtn) {
+            plusBtn.addEventListener('click', function() {
+                let val = parseInt(qtyInput.value) || 1;
+                if (val < maxStock) {
+                    qtyInput.value = val + 1;
+                    if (formQtyInput) formQtyInput.value = qtyInput.value;
+                }
+            });
+        }
+        
+        qtyInput.addEventListener('input', function() {
+            let val = parseInt(this.value);
+            if (isNaN(val) || val < 1) this.value = 1;
+            else if (val > maxStock) this.value = maxStock;
+            if (formQtyInput) formQtyInput.value = this.value;
+        });
+        
+        qtyInput.addEventListener('blur', function() {
+            if (!this.value || parseInt(this.value) < 1) this.value = 1;
+            if (formQtyInput) formQtyInput.value = this.value;
+        });
+    }
+    
+    // ===== SMOOTH SCROLL FOR TABS - Đã tắt để tránh scroll tự động khi click tab =====
+    // const tabsSection = document.querySelector('.product-tabs');
+    // if (tabsSection && window.innerWidth < 768) {
+    //     tabButtons.forEach(button => {
+    //         button.addEventListener('click', function() {
+    //             tabsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    //         });
+    //     });
+    // }
+    
+    // ===== STICKY PRODUCT INFO =====
+    const productInfo = document.querySelector('.product-info');
+    if (window.innerWidth > 992 && productInfo) {
+        window.addEventListener('scroll', function() {
+            const container = document.querySelector('.xanhworld_single_info.container');
+            if (container && window.pageYOffset > container.offsetTop) {
+                productInfo.style.top = '20px';
+            }
+        });
+    }
+    
+    // ===== RESPONSIVE HANDLING =====
+    function handleResize() {
+        if (productInfo) {
+            productInfo.style.position = window.innerWidth < 992 ? 'static' : 'sticky';
+        }
+    }
+    window.addEventListener('resize', handleResize);
+    handleResize();
 });

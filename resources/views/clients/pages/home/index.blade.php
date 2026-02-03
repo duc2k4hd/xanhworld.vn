@@ -1,6 +1,6 @@
 @extends('clients.layouts.master')
 
-@section('title', 'Thế Giới Cây Xanh XWORLD - Mua cây phong thủy, cây nội thất chất lượng' ?? ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD'))
+@section('title', 'Thế Giới Cây Xanh XWORLD - Mua cây phong thủy, cây nội thất chất lượng' ?? ($settings->site_name ?? 'Thế giới cây xanh Xworld'))
 
 @section('head')
 
@@ -19,15 +19,15 @@
         content="{{ $settings->seo_keywords ?? 'cây xanh, cây cảnh, chậu cây, decor, setup góc làm việc xanh, cây phong thủy, cây văn phòng, xanhworld, xanh world' }}">
 
     <meta name="description"
-        content="{{ $settings->site_description ?? 'THẾ GIỚI CÂY XANH XWORLD - Thế giới cây xanh, chậu cảnh, phụ kiện trang trí. Setup góc làm việc, ban công, sân vườn xanh mát. Giao cây tận nơi, tư vấn miễn phí.' }}">
+        content="{{ $settings->site_description ?? 'Thế giới cây xanh Xworld - Thế giới cây xanh, chậu cảnh, phụ kiện trang trí. Setup góc làm việc, ban công, sân vườn xanh mát. Giao cây tận nơi, tư vấn miễn phí.' }}">
 
     {{-- Open Graph --}}
 
     <meta property="og:title"
-        content="{{ $settings->site_title ?? ($settings->subname ?? ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD')) }}">
+        content="{{ $settings->site_title ?? ($settings->subname ?? ($settings->site_name ?? 'Thế giới cây xanh Xworld')) }}">
 
     <meta property="og:description"
-        content="{{ $settings->site_description ?? 'THẾ GIỚI CÂY XANH XWORLD - Chuyên cây xanh, chậu cảnh, phụ kiện decor. Giao cây tận nơi, bảo hành cây khỏe, đổi trả linh hoạt.' }}">
+        content="{{ $settings->site_description ?? 'Thế giới cây xanh Xworld - Chuyên cây xanh, chậu cảnh, phụ kiện decor. Giao cây tận nơi, bảo hành cây khỏe, đổi trả linh hoạt.' }}">
 
     <meta property="og:url" content="{{ $settings->site_url ?? url('/') }}">
 
@@ -38,13 +38,13 @@
 
     <meta property="og:image:height" content="630">
 
-    <meta property="og:image:alt" content="{{ $settings->site_title ?? ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}">
+    <meta property="og:image:alt" content="{{ $settings->site_title ?? ($settings->site_name ?? 'Thế giới cây xanh Xworld') }}">
 
     <meta property="og:image:type" content="image/webp">
 
     <meta property="og:type" content="website">
 
-    <meta property="og:site_name" content="{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}">
+    <meta property="og:site_name" content="{{ $settings->site_name ?? 'Thế giới cây xanh Xworld' }}">
 
     <meta property="og:locale" content="vi_VN">
 
@@ -52,19 +52,19 @@
 
     <meta name="twitter:card" content="summary_large_image">
 
-    <meta name="twitter:site" content="{{ $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}">
+    <meta name="twitter:site" content="{{ $settings->site_name ?? 'Thế giới cây xanh Xworld' }}">
 
     <meta name="twitter:title"
-        content="{{ $settings->site_title ?? ($settings->subname ?? ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD')) }}">
+        content="{{ $settings->site_title ?? ($settings->subname ?? ($settings->site_name ?? 'Thế giới cây xanh Xworld')) }}">
 
     <meta name="twitter:description"
-        content="{{ $settings->site_description ?? 'THẾ GIỚI CÂY XANH XWORLD - Thế giới cây xanh, chậu cảnh, phụ kiện decor. Gợi ý setup góc làm việc, phòng khách, ban công xanh mát.' }}">
+        content="{{ $settings->site_description ?? 'Thế giới cây xanh Xworld - Thế giới cây xanh, chậu cảnh, phụ kiện decor. Gợi ý setup góc làm việc, phòng khách, ban công xanh mát.' }}">
 
     <meta name="twitter:image"
         content="{{ asset('clients/assets/img/business/' . ($settings->site_banner ?? $settings->site_logo ?? 'logo-xworld.png')) }}">
 
     <meta name="twitter:creator"
-        content="{{ $settings->seo_author ?? ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD') }}">
+        content="{{ $settings->seo_author ?? ($settings->site_name ?? 'Thế giới cây xanh Xworld') }}">
 
     @php
         $homeUrl = $settings->site_url ?? url('/');
@@ -383,7 +383,7 @@
 
 
         <!-- Ảnh khuyến mãi -->
-        <section>
+        {{-- <section>
             <div @class(['xanhworld_main_promotion'])>
                 @foreach ($vouchers as $voucher)
                     <div @class(['xanhworld_main_promotion_item'])>
@@ -421,7 +421,7 @@
                     </div>
                 @endforeach
             </div>
-        </section>
+        </section> --}}
 
         <hr>
 

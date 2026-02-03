@@ -390,10 +390,6 @@
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
             z-index: 1;
         }
-
-        .tox-tinymce {
-            min-height: 500px;
-        }
         
         /* Responsive design */
         @media (max-width: 640px) {
@@ -869,7 +865,14 @@
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-    <script src="https://cdn.tiny.cloud/1/{{ env('APP_KEY_TINYMCE') }}/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
+
+    {{-- CKEditor 5 - UMD build from CDN, using config adapted from ckeditor5-builder-47.4.0/main.js --}}
+    <link rel="stylesheet"
+          href="https://cdn.ckeditor.com/ckeditor5/47.4.0/ckeditor5.css"
+          crossorigin>
+    <script src="https://cdn.ckeditor.com/ckeditor5/47.4.0/ckeditor5.umd.js" crossorigin></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/47.4.0/translations/vi.umd.js" crossorigin></script>
+    <script src="{{ asset('admins/js/ckeditor-admin.js') }}"></script>
     @stack('scripts')
 </body>
 </html>

@@ -156,81 +156,24 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const initializeEditor = () => {
-                if (!window.tinymce) {
-                    return;
-                }
-
-                tinymce.init({
-                    selector: '#contact-reply-editor',
-                    menubar: false,
-                    height: 320,
-                    plugins: 'link lists image code table media',
-                    toolbar: 'undo redo | styles | link image table | bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | code media',
-                    language: 'vi',
-                    image_dimensions: false,
-                    images_upload_handler: function (blobInfo, progress) {
-                        return new Promise(function (resolve, reject) {
-                            const formData = new FormData();
-                            formData.append('file', blobInfo.blob(), blobInfo.filename());
-                            formData.append('_token', '{{ csrf_token() }}');
-
-                            fetch('{{ route('admin.contacts.editor.upload-image') }}', {
-                                method: 'POST',
-                                body: formData,
-                                credentials: 'same-origin',
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                },
-                            })
-                                .then(function (response) {
-                                    if (!response.ok) {
-                                        throw new Error('Upload failed');
-                                    }
-
-                                    return response.json();
-                                })
-                                .then(function (data) {
-                                    if (data && data.location) {
-                                        resolve(data.location);
-                                    } else {
-                                        reject('Không thể tải ảnh lên.');
-                                    }
-                                })
-                                .catch(function () {
-                                    reject('Không thể tải ảnh lên.');
-                                });
-                        });
-                    },
-                    setup(editor) {
-                        editor.on('change keyup', () => editor.save());
-                    },
-                });
-            };
-
-            initializeEditor();
-
             const replyForm = document.getElementById('contact-reply-form');
             if (replyForm) {
                 replyForm.addEventListener('submit', function (event) {
-                    if (!window.tinymce) {
-                        return;
-                    }
-
-                    const editor = tinymce.get('contact-reply-editor');
-                    if (!editor) {
-                        return;
-                    }
-
-                    const plain = editor.getContent({ format: 'text' }).trim();
+                    const textarea = document.getElementById('contact-reply-editor');
+                    const instance =
+                        window.CKEDITOR_INSTANCES && window.CKEDITOR_INSTANCES['contact-reply-editor'];
+                    const html = instance ? instance.getData() : (textarea?.value || '');
+                    const plain = html.replace(/<[^>]*>/g, '').trim();
                     if (plain.length === 0) {
                         event.preventDefault();
-                        editor.focus();
+                        if (instance) {
+                            instance.editing.view.focus();
+                        } else if (textarea) {
+                            textarea.focus();
+                        }
                         alert('Vui lòng nhập nội dung phản hồi.');
                         return;
                     }
-
-                    editor.save();
                 });
             }
         });

@@ -6,7 +6,7 @@
         $pageTitle
         ?? $post->meta_title
         ?? $post->title
-    ) . ' | ' . ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD')
+    ) . ' | ' . ($settings->site_name ?? 'Thế giới cây xanh Xworld')
 )
 
 @push('css_page')

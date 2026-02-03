@@ -3,8 +3,8 @@
 @section('title', $pageTitle)
 
 @section('head')
-    <link rel="stylesheet" href="{{ asset('clients/assets/css/shop.css') }}">
-    <link rel="stylesheet" href="{{ asset('clients/assets/css/shop-modal.css') }}">
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/shop.css?v='. time()) }}">
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/shop-modal.css?v='. time()) }}">
 
     <!-- 🔑 Keywords -->
     <meta name="keywords" content="{{ $pageKeywords }}">
@@ -34,7 +34,7 @@
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="{{ $pageTitle }}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="{{ $settings->site_name ?? $settings->subname ?? 'THẾ GIỚI CÂY XANH XWORLD' }}">
+    <meta property="og:site_name" content="{{ $settings->site_name ?? $settings->subname ?? 'Thế giới cây xanh Xworld' }}">
     <meta property="og:locale" content="vi_VN">
 
     <!-- 🐦 Twitter -->
@@ -42,7 +42,7 @@
     <meta name="twitter:title" content="{{ $pageTitle }}">
     <meta name="twitter:description" content="{{ $pageDescription }}">
     <meta name="twitter:image" content="{{ $pageImage }}">
-    <meta name="twitter:creator" content="{{ $settings->site_name ?? $settings->subname ?? 'THẾ GIỚI CÂY XANH XWORLD' }}">
+    <meta name="twitter:creator" content="{{ $settings->site_name ?? $settings->subname ?? 'Thế giới cây xanh Xworld' }}">
 
     <!-- 🔗 Canonical & hreflang -->
     <link rel="canonical" href="{{ $canonicalUrl }}">
@@ -52,7 +52,7 @@
 
 
 @section('foot')
-    <script src="{{ asset('clients/assets/js/shop.js') }}"></script>
+    <script src="{{ asset('clients/assets/js/shop.js?v='. time()) }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             

@@ -152,7 +152,7 @@ class ShopController extends Controller
         $productsMain = $this->buildProductListing(clone $filteredQuery, $filters, $keyword);
         $newProducts = $this->resolveNewProducts(clone $filteredQuery);
 
-        $defaultSiteName = $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD';
+        $defaultSiteName = $settings->site_name ?? 'Thế giới cây xanh Xworld';
         $seoMeta = [
             'title' => "Kết quả tìm kiếm cho '{$keyword}' - {$defaultSiteName}",
             'description' => "Tìm thấy các sản phẩm liên quan đến '{$keyword}' tại {$defaultSiteName}.",
@@ -435,7 +435,7 @@ class ShopController extends Controller
 
     protected function prepareSeoMeta(object $settings, ?Category $category, string $keyword, array $tagIds = [], ?\Illuminate\Http\Request $request = null): array
     {
-        $defaultSiteName = $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD';
+        $defaultSiteName = $settings->site_name ?? 'Thế giới cây xanh Xworld';
 
         // Xử lý tags nếu có
         $tagNames = [];
@@ -531,7 +531,7 @@ class ShopController extends Controller
 
         // Trang shop chính: Title và Description tối ưu cho SEO
         $title = 'Cửa Hàng Cây Cảnh XWORLD – Cây Xanh, Hoa & Phụ Kiện Trang Trí';
-        $description = 'Cửa hàng THẾ GIỚI CÂY XANH XWORLD chuyên cung cấp cây cảnh, cây phong thủy, hoa trang trí và phụ kiện trồng cây. Phù hợp nhà ở, văn phòng, sân vườn và không gian sống.';
+        $description = 'Cửa hàng Thế giới cây xanh Xworld chuyên cung cấp cây cảnh, cây phong thủy, hoa trang trí và phụ kiện trồng cây. Phù hợp nhà ở, văn phòng, sân vườn và không gian sống.';
 
         return [
             'title' => $title,

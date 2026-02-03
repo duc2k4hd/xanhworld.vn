@@ -1,14 +1,14 @@
 @extends('clients.layouts.master')
 
-@section('title', 'Giới thiệu ' .($settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD'). ' | Cây cảnh & giải pháp cây xanh')
+@section('title', 'Giới thiệu ' .($settings->site_name ?? $settings->site_name ?? 'Thế giới cây xanh Xworld'). ' | Cây cảnh & giải pháp cây xanh')
 
 @section('head')
     <meta name="robots" content="index, follow" />
     <meta name="description"
-        content="{{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} dẫn đầu giải pháp cây phong thủy, cây để bàn, cây trang trí nội thất và cảnh quan cho doanh nghiệp Việt." />
-    <meta property="og:title" content="Giới thiệu {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} - Giải pháp cây xanh trọn gói" />
+        content="{{ $settings->site_name ?? $settings->site_name ?? 'Thế giới cây xanh Xworld' }} dẫn đầu giải pháp cây phong thủy, cây để bàn, cây trang trí nội thất và cảnh quan cho doanh nghiệp Việt." />
+    <meta property="og:title" content="Giới thiệu {{ $settings->site_name ?? $settings->site_name ?? 'Thế giới cây xanh Xworld' }} - Giải pháp cây xanh trọn gói" />
     <meta property="og:description"
-        content="Khám phá hệ sinh thái {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}: tư vấn, cung cấp, bảo dưỡng và thiết kế cảnh quan cây xanh chuyên nghiệp." />
+        content="Khám phá hệ sinh thái {{ $settings->site_name ?? $settings->site_name ?? 'Thế giới cây xanh Xworld' }}: tư vấn, cung cấp, bảo dưỡng và thiết kế cảnh quan cây xanh chuyên nghiệp." />
     <meta property="og:image"
         content="{{ asset('clients/assets/img/business/' . ($settings->site_banner ?? $settings->site_logo ?? 'no-image.webp')) }}" />
     <meta property="og:url" content="{{ route('client.introduction.index') }}" />
@@ -22,15 +22,15 @@
 @section('content')
     <section class="xworld-hero">
         <div class="xworld-hero__content">
-            <p class="eyebrow">{{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} Ecosystem</p>
-            <h1>{{ ($settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD') . ' - Cây cảnh & giải pháp cây xanh' }}</h1>
+            <p class="eyebrow">{{ $settings->site_name ?? $settings->site_name ?? 'Thế giới cây xanh Xworld' }} Ecosystem</p>
+            <h1>{{ ($settings->site_name ?? 'Thế giới cây xanh Xworld') . ' - Cây cảnh & giải pháp cây xanh' }}</h1>
             <p>
-                Từ cây phong thủy văn phòng, tiểu cảnh sân vườn đến dịch vụ chăm sóc định kỳ, {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }} đồng hành cùng
+                Từ cây phong thủy văn phòng, tiểu cảnh sân vườn đến dịch vụ chăm sóc định kỳ, {{ $settings->site_name ?? $settings->site_name ?? 'Thế giới cây xanh Xworld' }} đồng hành cùng
                 doanh nghiệp và gia đình kiến tạo môi trường sống giàu năng lượng.
             </p>
             <p style="font-size:16px; line-height:1.8; color: white; margin-bottom:16px; margin-top:16px;">
                 Trong quá trình tìm hiểu thông tin, nhiều khách hàng của 
-                <strong style="color:#1b7f5a;">THẾ GIỚI CÂY XANH XWORLD</strong> thường đặt câu hỏi:
+                <strong style="color:#1b7f5a;">Thế giới cây xanh Xworld</strong> thường đặt câu hỏi:
                 <em>“Vì sao khi tìm kiếm XWORLD trên Google lại xuất hiện một trò chơi, nhưng không thấy website của công ty?”</em>
             </p>
             
@@ -42,7 +42,7 @@
             </p>
             
             <p style="font-size:16px; line-height:1.8; color: white; margin-bottom:16px;">
-                Website chính thức của <strong>THẾ GIỚI CÂY XANH XWORLD</strong> hiện đang hoạt động tại:
+                Website chính thức của <strong>Thế giới cây xanh Xworld</strong> hiện đang hoạt động tại:
                 <a href="{{ $settings->site_url ?? '#' }}" 
                    target="_blank" 
                    rel="noopener"
@@ -79,7 +79,7 @@
         </div>
         <div class="xworld-hero__media">
             <img src="{{ asset('clients/assets/img/business/' . ($settings->site_banner ?? $settings->site_logo ?? 'no-image.webp')) }}"
-                alt="Không gian trưng bày {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}" loading="lazy" />
+                alt="Không gian trưng bày {{ $settings->site_name ?? $settings->site_name ?? 'Thế giới cây xanh Xworld' }}" loading="lazy" />
             <div class="media-badge">
                 <p>GREEN CONCIERGE</p>
                 <h4>Thiết kế - Thi công - Bảo dưỡng</h4>
@@ -111,7 +111,7 @@
 
     <section class="xworld-journey">
         <div class="journey-content">
-            <h2>Hành trình {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}</h2>
+            <h2>Hành trình {{ $settings->site_name ?? $settings->site_name ?? 'Thế giới cây xanh Xworld' }}</h2>
             <div class="timeline">
                 <div class="timeline-item">
                     <span class="year">2019</span>
@@ -244,7 +244,7 @@
     <section class="xworld-cta">
         <div class="cta-card">
             <div>
-                <p class="eyebrow">Kết nối cùng {{ $settings->site_name ?? $settings->site_name ?? 'THẾ GIỚI CÂY XANH XWORLD' }}</p>
+                <p class="eyebrow">Kết nối cùng {{ $settings->site_name ?? $settings->site_name ?? 'Thế giới cây xanh Xworld' }}</p>
                 <h3>Đăng ký nhận bản tin Green Insight & mời tham dự workshop chăm cây</h3>
             </div>
             <a class="btn secondary" href="{{ route('client.contact.index') }}">Đăng ký ngay</a>

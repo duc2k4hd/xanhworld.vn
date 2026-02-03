@@ -291,9 +291,6 @@
             border-radius: 8px;
             border: 1px solid #e2e8f0;
         }
-        .tox-tinymce {
-            min-height: 500px;
-        }
         .steps-list, .supplies-list {
             margin-top: 10px;
         }
@@ -325,456 +322,7 @@
             let isDirty = false;
             const markDirty = () => { isDirty = true; };
             
-            const initTinyMCE = () => {
-                if (typeof tinymce === 'undefined') {
-                    return;
-                }
-                tinymce.remove('.tinymce-editor');
-                tinymce.init({
-                    selector: '.tinymce-editor',
-                    menubar: false,
-                    height: 500,
-                    language: 'vi',
-                    statusbar: true,
-                    content_style: `
-                        body {
-                            max-height: 500px;
-                            overflow-y: scroll !important;
-                        }
-                    `,
-                    branding: false,
-                    plugins: 'link lists image table code autoresize',
-                    toolbar: 'undo redo | styles | bold italic underline | alignleft aligncenter alignright | bullist numlist | link table nobi_gallery | code',
-                    relative_urls: false,
-                    remove_script_host: false,
-                    convert_urls: true,
-                    automatic_uploads: false,
-                    file_picker_types: 'image',
-                    file_picker_callback: (callback, value, meta) => {
-                        if (meta.filetype === 'image') {
-                            if (typeof openMediaPicker === 'function') {
-                                openMediaPicker({
-                                    mode: 'single',
-                                    scope: 'client',
-                                    onSelect: (file) => {
-                                        if (file && file.url) {
-                                            callback(file.url, {
-                                                alt: file.alt || file.title || file.filename || file.name || '',
-                                                title: file.title || file.filename || file.name || ''
-                                            });
-                                        }
-                                    }
-                                });
-                            } else {
-                                alert('Popup thư viện ảnh chưa được tải. Vui lòng F5 lại trang.');
-                            }
-                        }
-                    },
-                    setup: (editor) => {
-                        editor.ui.registry.addButton('nobi_gallery', {
-                            text: '🖼 Chèn ảnh @img',
-                            tooltip: 'Chọn ảnh từ thư viện @img',
-                            onAction: () => openImagePicker(editor),
-                        });
-
-                        // Convert relative URLs to absolute URLs when loading content
-                        editor.on('GetContent', (e) => {
-                            if (e.format === 'html' && e.content) {
-                                // Convert relative image URLs to absolute URLs
-                                e.content = e.content.replace(
-                                    /<img([^>]*?)src=["']([^"']+)["']/gi,
-                                    (match, attrs, imageUrl) => {
-                                        // If already absolute, keep it
-                                        if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('//')) {
-                                            return match;
-                                        }
-                                        // Convert relative to absolute
-                                        const baseUrl = window.location.origin;
-                                        let absoluteUrl = imageUrl;
-                                        
-                                        // Remove relative path prefixes
-                                        absoluteUrl = absoluteUrl.replace(/^\.\.\/\.\.\/\.\.\//, '').replace(/^\.\.\/\.\.\//, '').replace(/^\.\.\//, '');
-                                        
-                                        // Ensure it starts with /
-                                        if (!absoluteUrl.startsWith('/')) {
-                                            absoluteUrl = '/' + absoluteUrl;
-                                        }
-                                        
-                                        absoluteUrl = baseUrl + absoluteUrl;
-                                        return `<img${attrs}src="${absoluteUrl}"`;
-                                    }
-                                );
-                            }
-                        });
-
-                        // Ensure image URLs are absolute when setting content
-                        editor.on('SetContent', (e) => {
-                            if (e.load && e.content) {
-                                // Convert relative URLs to absolute when loading existing content
-                                e.content = e.content.replace(
-                                    /<img([^>]*?)src=["']([^"']+)["']/gi,
-                                    (match, attrs, imageUrl) => {
-                                        // If already absolute, keep it
-                                        if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('//')) {
-                                            return match;
-                                        }
-                                        // Convert relative to absolute
-                                        const baseUrl = window.location.origin;
-                                        let absoluteUrl = imageUrl;
-                                        
-                                        // Remove relative path prefixes
-                                        absoluteUrl = absoluteUrl.replace(/^\.\.\/\.\.\/\.\.\//, '').replace(/^\.\.\/\.\.\//, '').replace(/^\.\.\//, '');
-                                        
-                                        // Ensure it starts with /
-                                        if (!absoluteUrl.startsWith('/')) {
-                                            absoluteUrl = '/' + absoluteUrl;
-                                        }
-                                        
-                                        absoluteUrl = baseUrl + absoluteUrl;
-                                        return `<img${attrs}src="${absoluteUrl}"`;
-                                    }
-                                );
-                            }
-                            if (!e.load) {
-                                markDirty();
-                            }
-                        });
-
-                        // Handle image double-click to open crop editor
-                        editor.on('dblclick', (e) => {
-                            const node = editor.selection.getNode();
-                            if (node && node.tagName === 'IMG') {
-                                e.preventDefault();
-                                // Select the image node to ensure it's the active selection
-                                editor.selection.select(node);
-                                openImageCropper(editor, node);
-                            }
-                        });
-
-                        // Also handle context menu (right-click) on images
-                        editor.on('contextmenu', (e) => {
-                            const node = editor.selection.getNode();
-                            if (node && node.tagName === 'IMG') {
-                                e.preventDefault();
-                                // Select the image node to ensure it's the active selection
-                                editor.selection.select(node);
-                                openImageCropper(editor, node);
-                            }
-                        });
-
-                        ['change', 'input', 'keyup', 'undo', 'redo'].forEach(evt => {
-                            editor.on(evt, () => markDirty());
-                        });
-                    }
-                });
-            };
-
-            // Function to open image cropper
-            const openImageCropper = (editorInstance, imgElement) => {
-                const originalSrc = imgElement.src || imgElement.getAttribute('src');
-                const originalAlt = imgElement.alt || imgElement.getAttribute('alt') || '';
-
-                // Store editor instance and original image data for later use
-                const editor = editorInstance;
-                
-                // Extract filename from URL
-                const urlParts = originalSrc.split('/');
-                const filenameWithExt = urlParts[urlParts.length - 1];
-                const filenameMatch = filenameWithExt.match(/^(.+?)(\.(webp|jpg|jpeg|png|gif|svg))$/i);
-                const baseFilename = filenameMatch ? filenameMatch[1] : filenameWithExt.replace(/\.[^.]+$/, '');
-                const extension = filenameMatch ? filenameMatch[3] : 'webp';
-
-                // Remove existing -size-w-h pattern if exists
-                const cleanBaseFilename = baseFilename.replace(/-size-\d+-\d+$/, '');
-                
-                const originalImageData = {
-                    src: originalSrc,
-                    alt: originalAlt,
-                    element: imgElement,
-                    filenameWithExt: filenameWithExt,
-                };
-
-                const modal = document.createElement('div');
-                modal.style.position = 'fixed';
-                modal.style.top = '0';
-                modal.style.left = '0';
-                modal.style.right = '0';
-                modal.style.bottom = '0';
-                modal.style.background = 'rgba(0,0,0,0.8)';
-                modal.style.display = 'flex';
-                modal.style.alignItems = 'center';
-                modal.style.justifyContent = 'center';
-                modal.style.zIndex = '10000';
-                modal.innerHTML = `
-                    <div style="background:#fff;padding:20px;border-radius:12px;max-width:90vw;max-height:90vh;overflow:auto;width:800px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-                            <h4 style="margin:0;">Cắt ảnh</h4>
-                            <button type="button" data-close-crop style="border:none;background:none;font-size:24px;cursor:pointer;color:#666;">&times;</button>
-                        </div>
-                        <div style="margin-bottom:15px;">
-                            <label style="display:block;margin-bottom:8px;font-weight:500;">Chọn tỷ lệ:</label>
-                            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                                <button type="button" data-aspect-ratio="1" class="btn btn-sm btn-outline-primary">1:1 (Vuông)</button>
-                                <button type="button" data-aspect-ratio="4/3" class="btn btn-sm btn-outline-primary">4:3</button>
-                                <button type="button" data-aspect-ratio="16/9" class="btn btn-sm btn-outline-primary">16:9</button>
-                                <button type="button" data-aspect-ratio="3/4" class="btn btn-sm btn-outline-primary">3:4 (Dọc)</button>
-                                <button type="button" data-aspect-ratio="NaN" class="btn btn-sm btn-outline-primary">Tự do</button>
-                            </div>
-                        </div>
-                        <div style="margin-bottom:15px;">
-                            <img id="crop-image" src="${originalSrc}" style="max-width:100%;max-height:400px;display:block;">
-                        </div>
-                        <div style="display:flex;gap:10px;justify-content:flex-end;">
-                            <button type="button" class="btn btn-secondary" data-close-crop>Hủy</button>
-                            <button type="button" class="btn btn-primary" data-crop-apply>Cắt và Lưu</button>
-                        </div>
-                    </div>
-                `;
-
-                let cropper = null;
-                let currentAspectRatio = NaN;
-
-                const closeModal = () => {
-                    if (cropper) {
-                        cropper.destroy();
-                    }
-                    document.body.removeChild(modal);
-                };
-
-                const applyCrop = async () => {
-                    if (!cropper) {
-                        alert('Vui lòng chọn tỷ lệ cắt ảnh');
-                        return;
-                    }
-
-                    const canvas = cropper.getCroppedCanvas({
-                        width: cropper.getData().width,
-                        height: cropper.getData().height,
-                    });
-
-                    if (!canvas) {
-                        alert('Không thể cắt ảnh. Vui lòng thử lại.');
-                        return;
-                    }
-
-                    // Get crop dimensions
-                    const cropData = cropper.getData();
-                    const width = Math.round(cropData.width);
-                    const height = Math.round(cropData.height);
-
-                    // Convert canvas to blob
-                    canvas.toBlob(async (blob) => {
-                        if (!blob) {
-                            alert('Không thể tạo file ảnh. Vui lòng thử lại.');
-                            return;
-                        }
-
-                        // Create new filename: cleanBaseFilename-size-w-h.extension
-                        const newFilename = `${cleanBaseFilename}-size-${width}-${height}.${extension}`;
-
-                        // Create FormData
-                        const formData = new FormData();
-                        formData.append('image', blob, newFilename);
-                        formData.append('original_filename', cleanBaseFilename + '.' + extension);
-
-                        try {
-                            // Show loading
-                            const applyBtn = modal.querySelector('[data-crop-apply]');
-                            const originalText = applyBtn.textContent;
-                            applyBtn.disabled = true;
-                            applyBtn.textContent = 'Đang upload...';
-
-                            // Upload to server
-                            const response = await fetch('{{ route("admin.products.upload-cropped-image") }}', {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                                },
-                                body: formData,
-                            });
-
-                            if (!response.ok) {
-                                throw new Error('Upload failed');
-                            }
-
-                            const data = await response.json();
-
-                            if (data.success && data.url) {
-                                // Replace image in editor using TinyMCE API
-                                if (editor && editor.dom) {
-                                    // Method 1: Try to use the stored element directly (most reliable)
-                                    let targetImg = originalImageData.element;
-                                    
-                                    // Method 2: If element is not in editor body, try to find it by src
-                                    if (!targetImg || !editor.getBody().contains(targetImg)) {
-                                        const editorBody = editor.getBody();
-                                        const images = editorBody.querySelectorAll('img');
-                                        
-                                        // Find the image by comparing src
-                                        const originalSrcNormalized = originalImageData.src.replace(/^https?:\/\/[^\/]+/, '').replace(/^\/+/, '');
-                                        
-                                        for (let i = 0; i < images.length; i++) {
-                                            const img = images[i];
-                                            const imgSrc = img.getAttribute('src') || '';
-                                            const imgSrcNormalized = imgSrc.replace(/^https?:\/\/[^\/]+/, '').replace(/^\/+/, '');
-                                            
-                                            // Try multiple matching strategies
-                                            if (
-                                                imgSrcNormalized === originalSrcNormalized ||
-                                                imgSrc === originalImageData.src ||
-                                                imgSrc.includes(originalImageData.filenameWithExt) ||
-                                                imgSrcNormalized.includes(originalImageData.filenameWithExt) ||
-                                                originalSrcNormalized.includes(originalImageData.filenameWithExt)
-                                            ) {
-                                                targetImg = img;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    
-                                    // Method 3: Use current selection if available
-                                    if (!targetImg) {
-                                        const selectedNode = editor.selection.getNode();
-                                        if (selectedNode && selectedNode.tagName === 'IMG') {
-                                            targetImg = selectedNode;
-                                        }
-                                    }
-                                    
-                                    if (targetImg && editor.getBody().contains(targetImg)) {
-                                        // Update image src using TinyMCE DOM API
-                                        editor.dom.setAttrib(targetImg, 'src', data.url);
-                                        if (originalImageData.alt) {
-                                            editor.dom.setAttrib(targetImg, 'alt', originalImageData.alt);
-                                        }
-                                        
-                                        // Select the updated image to ensure it's visible
-                                        editor.selection.select(targetImg);
-                                        
-                                        // Trigger change event to mark editor as dirty
-                                        editor.dispatch('change');
-                                        editor.nodeChanged();
-                                    } else {
-                                        // Fallback: Update all images with matching src
-                                        const editorBody = editor.getBody();
-                                        const images = editorBody.querySelectorAll('img');
-                                        const originalSrcNormalized = originalImageData.src.replace(/^https?:\/\/[^\/]+/, '').replace(/^\/+/, '');
-                                        
-                                        images.forEach(img => {
-                                            const imgSrc = img.getAttribute('src') || '';
-                                            const imgSrcNormalized = imgSrc.replace(/^https?:\/\/[^\/]+/, '').replace(/^\/+/, '');
-                                            
-                                            if (
-                                                imgSrcNormalized === originalSrcNormalized ||
-                                                imgSrc === originalImageData.src ||
-                                                imgSrc.includes(originalImageData.filenameWithExt)
-                                            ) {
-                                                editor.dom.setAttrib(img, 'src', data.url);
-                                                if (originalImageData.alt) {
-                                                    editor.dom.setAttrib(img, 'alt', originalImageData.alt);
-                                                }
-                                            }
-                                        });
-                                        
-                                        editor.dispatch('change');
-                                        editor.nodeChanged();
-                                    }
-                                } else {
-                                    // Fallback: update imgElement directly
-                                    if (originalImageData.element) {
-                                        originalImageData.element.setAttribute('src', data.url);
-                                        if (originalImageData.alt) {
-                                            originalImageData.element.setAttribute('alt', originalImageData.alt);
-                                        }
-                                    }
-                                }
-                                markDirty();
-                                closeModal();
-                            } else {
-                                throw new Error(data.message || 'Upload failed');
-                            }
-                        } catch (error) {
-                            console.error('Error uploading cropped image:', error);
-                            alert('Không thể upload ảnh đã cắt: ' + error.message);
-                            const applyBtn = modal.querySelector('[data-crop-apply]');
-                            applyBtn.disabled = false;
-                            applyBtn.textContent = 'Cắt và Lưu';
-                        }
-                    }, 'image/webp', 0.9);
-                };
-
-                // Event handlers
-                modal.addEventListener('click', (e) => {
-                    if (e.target.matches('[data-close-crop]') || e.target === modal) {
-                        closeModal();
-                    } else if (e.target.matches('[data-aspect-ratio]')) {
-                        const aspectRatio = e.target.dataset.aspectRatio;
-                        if (aspectRatio === 'NaN') {
-                            currentAspectRatio = NaN;
-                        } else {
-                            currentAspectRatio = eval(aspectRatio); // 4/3, 16/9, etc.
-                        }
-                        if (cropper) {
-                            cropper.setAspectRatio(currentAspectRatio);
-                        }
-                        // Update button states
-                        modal.querySelectorAll('[data-aspect-ratio]').forEach(btn => {
-                            btn.classList.remove('btn-primary');
-                            btn.classList.add('btn-outline-primary');
-                        });
-                        e.target.classList.remove('btn-outline-primary');
-                        e.target.classList.add('btn-primary');
-                    } else if (e.target.matches('[data-crop-apply]')) {
-                        applyCrop();
-                    }
-                });
-
-                document.body.appendChild(modal);
-
-                // Initialize Cropper.js after image loads
-                const cropImage = modal.querySelector('#crop-image');
-                cropImage.onload = () => {
-                    cropper = new Cropper(cropImage, {
-                        aspectRatio: NaN, // Free crop by default
-                        viewMode: 1,
-                        dragMode: 'move',
-                        autoCropArea: 0.8,
-                        restore: false,
-                        guides: true,
-                        center: true,
-                        highlight: false,
-                        cropBoxMovable: true,
-                        cropBoxResizable: true,
-                        toggleDragModeOnDblclick: false,
-                    });
-                };
-            };
-
-            const openImagePicker = (editor) => {
-                if (!editor || !editor.hasFocus()) {
-                    alert('Hãy click vào trình soạn thảo trước khi chèn ảnh.');
-                    return;
-                }
-
-                const bookmark = editor.selection.getBookmark(2, true);
-
-                // Sử dụng popup media mới
-                if (typeof openMediaPicker === 'function') {
-                    openMediaPicker({
-                        mode: 'single',
-                        scope: 'client',
-                        onSelect: (file) => {
-                            if (file && file.url) {
-                                editor.selection.moveToBookmark(bookmark);
-                                const alt = file.alt || file.title || file.filename || file.name || '';
-                                editor.insertContent(`<img src="${file.url}" alt="${alt}">`);
-                                markDirty();
-                            }
-                        }
-                    });
-                } else {
-                    alert('Popup thư viện ảnh chưa được tải. Vui lòng F5 lại trang.');
-                }
-            };
+            // TinyMCE đã được thay bằng CKEditor 5 (khởi tạo trong admins/js/ckeditor-admin.js)
 
             // Repeater handlers
             document.querySelectorAll('[data-add]').forEach(btn => {
@@ -792,7 +340,6 @@
                     wrapper.innerHTML = html.trim();
                     const newBlock = wrapper.firstElementChild;
                     target.appendChild(newBlock);
-                    initTinyMCE();
                     markDirty();
                 });
             });
@@ -956,8 +503,6 @@
                 });
             }
 
-            initTinyMCE();
-
             // ==== Media Picker (popup mới) ====
             document.addEventListener('click', (e) => {
                 const btn = e.target.closest('[data-media-picker]');
@@ -1099,11 +644,21 @@
             </div>
             <div style="margin-top:15px;">
                 <label>Mô tả ngắn</label>
-                <textarea class="form-control tinymce-editor" name="short_description" rows="2">{{ old('short_description', $product->short_description) }}</textarea>
+                <textarea
+                    class="form-control tinymce-editor"
+                    name="short_description"
+                    rows="2"
+                    data-media-folder="clothes"
+                >{{ old('short_description', $product->short_description) }}</textarea>
             </div>
             <div style="margin-top:15px;">
                 <label>Mô tả chi tiết</label>
-                <textarea class="form-control tinymce-editor" name="description" rows="4">{{ old('description', $product->description) }}</textarea>
+                <textarea
+                    class="form-control tinymce-editor"
+                    name="description"
+                    rows="4"
+                    data-media-folder="clothes"
+                >{{ old('description', $product->description) }}</textarea>
             </div>
         </div>
 
