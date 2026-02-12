@@ -164,7 +164,7 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
     Route::get('flash-sales/compare', [\App\Http\Controllers\Admins\FlashSaleController::class, 'compare'])->name('flash-sales.compare');
 
     // Post Management
-    Route::resource('posts', \App\Http\Controllers\Admins\PostController::class);
+    Route::resource('posts', \App\Http\Controllers\Admins\PostController::class)->except(['show']);
     Route::post('posts/upload-image', [\App\Http\Controllers\Admins\PostController::class, 'uploadImage'])->name('posts.upload-image');
     Route::post('posts/{post}/publish', [\App\Http\Controllers\Admins\PostController::class, 'publish'])->name('posts.publish');
     Route::post('posts/{post}/archive', [\App\Http\Controllers\Admins\PostController::class, 'archive'])->name('posts.archive');
@@ -175,6 +175,12 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
     Route::get('posts/{post}/revisions', [\App\Http\Controllers\Admins\PostController::class, 'revisions'])->name('posts.revisions');
     Route::post('posts/{post}/autosave', [\App\Http\Controllers\Admins\PostController::class, 'autosave'])->name('posts.autosave');
     Route::post('posts/{post}/restore-revision/{revision}', [\App\Http\Controllers\Admins\PostController::class, 'restoreRevision'])->name('posts.restore-revision');
+    
+    // Posts Import/Export (simple UI)
+    Route::get('posts/import', [\App\Http\Controllers\Admins\PostImportController::class, 'index'])->name('posts.import');
+    Route::post('posts/import', [\App\Http\Controllers\Admins\PostImportController::class, 'import'])->name('posts.import.process');
+    Route::get('posts/export-template', [\App\Http\Controllers\Admins\PostImportController::class, 'exportTemplate'])->name('posts.export-template');
+    Route::get('posts/export', [\App\Http\Controllers\Admins\PostImportController::class, 'exportAll'])->name('posts.export');
 
     // Media Management
     Route::prefix('media')->name('media.')->group(function () {

@@ -13,6 +13,9 @@
             <p class="text-muted mb-0">Theo dõi, lọc và xuất bản nội dung như một mini CMS</p>
         </div>
         <div class="d-flex gap-2">
+            <a href="{{ route('admin.posts.import') }}" class="btn btn-info">
+                Xuất bài viết
+            </a>
             <a href="{{ route('admin.posts.create') }}" class="btn btn-primary">
                 ✍️ Viết bài mới
             </a>
