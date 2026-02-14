@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Cache;
 class Banner extends Model
 {
     use HasFactory, SoftDeletes;
+    use \App\Traits\ClearsResponseCache;
 
     protected $table = 'banners';
 
@@ -171,16 +172,11 @@ class Banner extends Model
     /**
      * Xóa cache banners khi banner được cập nhật hoặc xóa.
      */
-    protected static function booted(): void
+    public function responseCacheKeys(): array
     {
-        static::saved(function (self $banner) {
-            Cache::forget('banners_home_parent');
-            Cache::forget('banners_home_children');
-        });
-
-        static::deleted(function (self $banner) {
-            Cache::forget('banners_home_parent');
-            Cache::forget('banners_home_children');
-        });
+        return [
+            'banners_home_parent',
+            'banners_home_children',
+        ];
     }
 }

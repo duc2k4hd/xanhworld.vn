@@ -9,38 +9,49 @@
 
 @push('styles')
     <style>
+        :root {
+            --primary-color: #3b82f6;
+            --text-color: #1f2937;
+            --bg-light: #f9fafb;
+            --border-color: #e5e7eb;
+        }
+
         .category-container {
             display: grid;
-            grid-template-columns: 240px 1fr;
-            gap: 16px;
+            grid-template-columns: 260px 1fr;
+            gap: 20px;
             align-items: start;
         }
         
+        /* Sidebar Styles */
         .category-sidebar {
             position: sticky;
             top: 20px;
             background: #fff;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             max-height: calc(100vh - 40px);
             overflow-y: auto;
+            border: 1px solid var(--border-color);
         }
         
-        .category-sidebar h3 {
-            margin: 0 0 12px;
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .sidebar-title {
             font-size: 14px;
-            font-weight: 600;
-            color: #1f2937;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #f3f4f6;
-        }
-        
-        .category-main {
-            background: #fff;
-            border-radius: 8px;
-            padding: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-weight: 700;
+            color: var(--text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
         }
         
         .category-tree {
@@ -50,38 +61,49 @@
         }
         
         .tree-item {
-            padding: 6px 8px;
-            border-radius: 4px;
+            padding: 5px 8px;
+            border-radius: 6px;
             cursor: pointer;
             margin-bottom: 2px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            transition: background 0.15s;
+            gap: 8px;
+            transition: all 0.2s ease;
             font-size: 13px;
+            color: #4b5563;
         }
         
         .tree-item:hover {
-            background: #f1f5f9;
+            background: #f3f4f6;
+            color: var(--primary-color);
         }
         
         .tree-item.active {
-            background: #dbeafe;
-            color: #1e40af;
+            background: #eff6ff;
+            color: var(--primary-color);
             font-weight: 600;
         }
         
         .tree-toggle {
             width: 16px;
-            text-align: center;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
             font-size: 10px;
-            color: #64748b;
+            color: #9ca3af;
+            transition: transform 0.2s;
+        }
+        
+        .tree-toggle:hover {
+            color: var(--primary-color);
         }
         
         .tree-children {
-            margin-left: 20px;
-            margin-top: 2px;
+            margin-left: 18px;
+            padding-left: 8px;
+            border-left: 1px solid #f3f4f6;
             display: none;
         }
         
@@ -89,162 +111,240 @@
             display: block;
         }
         
-        .category-table {
-            width: 100%;
-            border-collapse: collapse;
+        /* Main Content Styles */
+        .category-main {
             background: #fff;
-            font-size: 12px;
-        }
-        
-        .category-table th, .category-table td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #eef2f7;
-            text-align: left;
-        }
-        
-        .category-table th {
-            background: #f8fafc;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #475569;
-            font-weight: 600;
-            font-size: 11px;
-            white-space: nowrap;
-        }
-        
-        .category-table tr:hover td {
-            background: #f9fafb;
-        }
-        
-        .category-image {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border-radius: 4px;
-            border: 1px solid #e5e7eb;
-        }
-        
-        .filter-bar {
-            display: grid;
-            grid-template-columns: 1fr auto auto auto auto auto auto;
-            gap: 8px;
-            margin-bottom: 16px;
-            padding: 12px;
-            background: #f8fafc;
-            border-radius: 6px;
-            align-items: center;
-        }
-        
-        .filter-bar input {
-            padding: 6px 10px;
-            border: 1px solid #cbd5f5;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        
-        .filter-bar select {
-            padding: 6px 8px;
-            border: 1px solid #cbd5f5;
-            border-radius: 4px;
-            font-size: 12px;
-            min-width: 120px;
-        }
-        
-        .filter-bar .btn {
-            padding: 6px 12px;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        
-        .badge {
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        
-        .badge-success {
-            background: #dcfce7;
-            color: #15803d;
-        }
-        
-        .badge-danger {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-        
-        .badge-info {
-            background: #e0e7ff;
-            color: #4338ca;
-        }
-        
-        .actions {
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
             display: flex;
-            gap: 4px;
+            flex-direction: column;
         }
-        
-        .btn-sm {
-            padding: 4px 8px;
-            font-size: 11px;
-        }
-        
-        .page-header {
+
+        .main-header {
+            padding: 12px 16px;
+            background: #fff;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
         }
-        
-        .page-header h2 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .page-header-actions {
+
+        .filter-section {
+            padding: 10px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
         }
         
-        .slug-code {
-            background: #f1f5f9;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-family: 'Courier New', monospace;
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            display: inline-block;
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
         }
         
-        .parent-select {
-            min-width: 160px;
+        .search-box input {
+            width: 100%;
+            padding: 6px 10px 6px 30px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+        .search-box input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .filter-select {
+            padding: 6px 24px 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            background-color: #fff;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            max-height: calc(100vh - 220px);
+        }
+        
+        .compact-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 12px;
+        }
+        
+        .compact-table th {
+            background: #f8fafc;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding: 8px 10px;
+            font-weight: 600;
+            text-transform: uppercase;
             font-size: 11px;
-            padding: 4px 6px;
+            color: #64748b;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
         }
         
-        @media (max-width: 1400px) {
-            .category-container {
-                grid-template-columns: 200px 1fr;
-            }
-            
-            .filter-bar {
-                grid-template-columns: 1fr;
-            }
+        .compact-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            color: #334155;
         }
         
+        .compact-table tr:hover td {
+            background: #f8fafc;
+        }
+        
+        .compact-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .col-checkbox { width: 30px; text-align: center; }
+        .col-id { width: 50px; text-align: center; color: #94a3b8; }
+        .col-image { width: 50px; text-align: center; }
+        .col-name { min-width: 200px; }
+        .col-slug { width: 140px; color: #64748b; font-family: monospace; font-size: 11px; }
+        .col-parent { width: 160px; }
+        .col-status { width: 90px; text-align: center; }
+        .col-order { width: 60px; text-align: center; }
+        .col-created { width: 90px; text-align: right; color: #64748b; font-size: 11px; }
+        .col-actions { width: 90px; text-align: right; }
+
+        .img-thumb {
+            width: 32px;
+            height: 32px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+        
+        .category-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .category-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .children-badge {
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 1px 5px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 600;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .status-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 99px;
+        }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-inactive { background: #fee2e2; color: #991b1b; }
+
+        .parent-select {
+            padding: 2px 20px 2px 6px;
+            border: 1px solid transparent;
+            background: transparent;
+            font-size: 12px;
+            color: #475569;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 100%;
+        }
+        .parent-select:hover {
+            border-color: #cbd5e1;
+            background: #fff;
+        }
+        
+        .btn-icon {
+            padding: 4px;
+            border-radius: 4px;
+            color: #64748b;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+        .btn-icon:hover { background: #f1f5f9; color: var(--primary-color); }
+        .btn-icon.text-danger:hover { background: #fee2e2; color: #ef4444; }
+        
+        .btn-action {
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-primary-new { background: #2563eb; color: #fff; border: 1px solid #1d4ed8; }
+        .btn-primary-new:hover { background: #1d4ed8; }
+        
+        .pagination-wrapper {
+            padding: 10px 16px;
+            border-top: 1px solid var(--border-color);
+            background: #fff;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-left: auto;
+        }
+
         @media (max-width: 1024px) {
             .category-container {
                 grid-template-columns: 1fr;
             }
-            
             .category-sidebar {
                 position: relative;
                 top: 0;
                 max-height: 300px;
+                margin-bottom: 16px;
             }
         }
     </style>
@@ -253,112 +353,136 @@
 @section('content')
     <div class="category-container">
         <!-- Sidebar - Tree View -->
-        <div class="category-sidebar">
-            <h3>📁 Cây danh mục</h3>
+        <aside class="category-sidebar">
+            <div class="sidebar-header">
+                <h3 class="sidebar-title">📁 Cây danh mục</h3>
+            </div>
             <ul class="category-tree" id="categoryTree">
                 @foreach($tree ?? [] as $item)
                     @include('admins.categories.partials.tree-item', ['item' => $item, 'level' => 0])
                 @endforeach
             </ul>
-        </div>
+        </aside>
 
         <!-- Main Content -->
-        <div class="category-main">
-            <div class="page-header">
-                <h2>Danh sách danh mục</h2>
-                <div class="page-header-actions">
-                @if($parentId)
-                        <a href="{{ route('admin.categories.edit', $parentId) }}" class="btn btn-info btn-sm">✏️ Sửa cha</a>
-                @endif
-                    <a href="{{ route('admin.categories.create') }}" class="btn btn-primary btn-sm">➕ Thêm mới</a>
+        <main class="category-main">
+            <!-- Header with Actions -->
+            <div class="main-header">
+                <div>
+                    <h2 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0;">Danh sách danh mục</h2>
+                    <p style="font-size: 12px; color: #6b7280; margin: 2px 0 0;">Quản lý toàn bộ danh mục sản phẩm</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    @if($parentId)
+                        <a href="{{ route('admin.categories.edit', $parentId) }}" class="btn-action" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+                            <span>✏️</span> Sửa cha
+                        </a>
+                    @endif
+                    <a href="{{ route('admin.categories.create') }}" class="btn-action btn-primary-new">
+                        <span>➕</span> Thêm mới
+                    </a>
                 </div>
             </div>
 
-            <form class="filter-bar" method="GET">
-                <input type="text" name="keyword" placeholder="🔍 Tìm tên hoặc slug..." value="{{ request('keyword') }}">
-                <select name="status">
-                    <option value="">Trạng thái</option>
-                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Đang hiển thị</option>
-                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Tạm ẩn</option>
+            <!-- Filters -->
+            <form method="GET" class="filter-section">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" name="keyword" placeholder="Tìm kiếm danh mục..." value="{{ request('keyword') }}">
+                </div>
+                
+                <select name="status" class="filter-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Hiển thị</option>
+                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Đang ẩn</option>
                 </select>
-                <select name="only_root">
-                    <option value="">Loại</option>
-                    <option value="1" {{ request('only_root') === '1' ? 'selected' : '' }}>Chỉ gốc</option>
+
+                <select name="only_root" class="filter-select">
+                    <option value="">Tất cả cấp</option>
+                    <option value="1" {{ request('only_root') === '1' ? 'selected' : '' }}>Chỉ danh mục gốc</option>
                 </select>
-                <select name="sort_by">
-                    <option value="order" {{ request('sort_by') === 'order' ? 'selected' : '' }}>Sắp xếp</option>
-                    <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Theo tên</option>
-                    <option value="created_at" {{ request('sort_by') === 'created_at' ? 'selected' : '' }}>Theo ngày</option>
+                
+                <select name="sort_by" class="filter-select">
+                    <option value="order" {{ request('sort_by') === 'order' ? 'selected' : '' }}>Sắp xếp: Thứ tự</option>
+                    <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Sắp xếp: Tên A-Z</option>
+                    <option value="created_at" {{ request('sort_by') === 'created_at' ? 'selected' : '' }}>Sắp xếp: Mới nhất</option>
                 </select>
-                <select name="per_page">
-                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50/trang</option>
-                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100/trang</option>
-                </select>
-                <button type="submit" class="btn btn-primary">Lọc</button>
-                @if(request()->anyFilled(['keyword', 'status', 'only_root', 'sort_by', 'per_page', 'parent_id']))
-                    <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">Xóa</a>
+
+                <button type="submit" class="btn-action" style="background: #4b5563; color: white;">Lọc</button>
+                
+                @if(request()->anyFilled(['keyword', 'status', 'only_root', 'sort_by', 'parent_id']))
+                    <a href="{{ route('admin.categories.index') }}" class="btn-action" style="background: #f3f4f6; color: #4b5563; padding: 6px 10px;">✕</a>
                 @endif
+                
+                <div class="bulk-actions" id="bulkActions" style="display: none;">
+                    <span style="font-size: 12px; color: #64748b; padding-right: 8px; border-right: 1px solid #e2e8f0;">Đã chọn <b id="selectedCount">0</b></span>
+                    <button type="submit" form="category-bulk-form" name="bulk_action" value="hide" class="btn-icon" title="Ẩn đã chọn" style="width: 28px; height: 28px;">👁️‍🗨️</button>
+                    <button type="submit" form="category-bulk-form" name="bulk_action" value="show" class="btn-icon" title="Hiện đã chọn" style="width: 28px; height: 28px;">👁️</button>
+                    @can('deleteAny', \App\Models\Category::class)
+                        <button type="submit" form="category-bulk-form" name="bulk_action" value="delete" class="btn-icon text-danger" title="Xóa đã chọn" style="width: 28px; height: 28px;" onclick="return confirm('Xóa các danh mục đã chọn?');">🗑️</button>
+                    @endcan
+                </div>
             </form>
 
-            <form id="category-bulk-form" action="{{ route('admin.categories.bulk-action') }}" method="POST">
+            <!-- Table -->
+            <form id="category-bulk-form" action="{{ route('admin.categories.bulk-action') }}" method="POST" class="table-container">
                 @csrf
-                <div class="table-responsive">
-                    <table class="category-table">
-                        <thead>
+                <table class="compact-table">
+                    <thead>
                         <tr>
-                            <th style="width:30px;">
-                                <input type="checkbox" id="select-all-categories">
-                            </th>
-                            <th style="width:50px;">ID</th>
-                            <th style="width:50px;">Ảnh</th>
-                            <th>Tên</th>
-                            <th style="width:140px;">Slug</th>
-                            <th style="width:160px;">Danh mục cha</th>
-                            <th style="width:60px;text-align:center;">TT</th>
-                            <th style="width:70px;text-align:center;">Con</th>
-                            <th style="width:80px;">Trạng thái</th>
-                            <th style="width:100px;">Ngày tạo</th>
-                            <th style="width:120px;">Thao tác</th>
+                            <th class="col-checkbox"><input type="checkbox" id="select-all-categories"></th>
+                            <th class="col-id">ID</th>
+                            <th class="col-image">Ảnh</th>
+                            <th class="col-name">Tên danh mục</th>
+                            <th class="col-slug">Slug</th>
+                            <th class="col-parent">Danh mục cha</th>
+                            <th class="col-status">Trạng thái</th>
+                            <th class="col-order">TT</th>
+                            <th class="col-created">Ngày tạo</th>
+                            <th class="col-actions">Thao tác</th>
                         </tr>
-                        </thead>
-                        <tbody>
+                    </thead>
+                    <tbody>
                         @forelse($categories as $category)
                             <tr>
-                                <td>
-                                    @if($category->id === 1)
-                                        <input type="checkbox" disabled title="Không thể chọn danh mục mặc định (ID: 1)" style="opacity:0.5;cursor:not-allowed;">
+                                <td class="col-checkbox">
+                                    @if($category->id !== 1)
+                                        <input type="checkbox" name="selected[]" value="{{ $category->id }}" class="category-checkbox">
                                     @else
-                                        <input type="checkbox" name="selected[]" value="{{ $category->id }}" class="category-checkbox" form="category-bulk-form">
+                                        <input type="checkbox" disabled style="opacity: 0.3;">
                                     @endif
                                 </td>
-                                <td>{{ $category->id }}</td>
-                                <td>
+                                <td class="col-id">#{{ $category->id }}</td>
+                                <td class="col-image">
                                     @php
                                         $imagePath = 'clients/assets/img/categories/' . $category->image;
                                         $imageUrl = $category->image && file_exists(public_path($imagePath)) 
                                             ? asset($imagePath) 
                                             : asset('clients/assets/img/categories/no-image.webp');
                                     @endphp
-                                    <img src="{{ $imageUrl }}" 
-                                             alt="{{ $category->name }}" 
-                                             class="category-image"
-                                         onerror="this.src='{{ asset('clients/assets/img/categories/no-image.webp') }}';">
+                                    <img src="{{ $imageUrl }}" class="img-thumb" alt="{{ $category->name }}" loading="lazy" onerror="this.src='{{ asset('clients/assets/img/categories/no-image.webp') }}'">
                                 </td>
-                                <td>
-                                    <strong style="font-size:13px;">{{ $category->name }}</strong>
+                                <td class="col-name">
+                                    <div class="category-name-wrapper">
+                                        <a href="{{ route('admin.categories.edit', $category) }}" class="category-name text-decoration-none">
+                                            {{ \Illuminate\Support\Str::limit($category->name, 40) }}
+                                        </a>
+                                        @if($category->children_count > 0)
+                                            <span class="children-badge" title="{{ $category->children_count }} danh mục con">{{ $category->children_count }}</span>
+                                        @endif
+                                    </div>
                                 </td>
-                                <td>
-                                    <span class="slug-code" title="{{ $category->slug }}">{{ $category->slug }}</span>
+                                <td class="col-slug" title="{{ $category->slug }}">
+                                    {{ \Illuminate\Support\Str::limit($category->slug, 20) }}
                                 </td>
-                                <td>
+                                <td class="col-parent">
                                     @if($category->id === 1)
-                                        <span style="color:#94a3b8;font-size:11px;">Root</span>
+                                        <span class="text-muted" style="font-size: 11px;">-</span>
                                     @else
-                                        <form action="{{ route('admin.categories.update-parent', $category) }}" method="POST" style="display:inline;" class="parent-change-form">
-                                            @csrf
-                                            @method('PATCH')
-                                            <select name="parent_id" class="form-control parent-select" onchange="this.form.submit()">
-                                                <option value="" {{ !$category->parent_id ? 'selected' : '' }}>🏠 Root</option>
+                                        <form action="{{ route('admin.categories.update-parent', $category) }}" method="POST" class="parent-change-form">
+                                            @csrf @method('PATCH')
+                                            <select name="parent_id" class="parent-select" onchange="this.form.submit()">
+                                                <option value="">-- Root --</option>
                                                 @foreach(\App\Helpers\CategoryHelper::getDropdownOptions($category->id) as $option)
                                                     <option value="{{ $option['value'] }}" {{ $category->parent_id == $option['value'] ? 'selected' : '' }}>
                                                         {{ $option['label'] }}
@@ -368,35 +492,28 @@
                                         </form>
                                     @endif
                                 </td>
-                                <td style="text-align:center;font-size:11px;">{{ $category->order }}</td>
-                                <td style="text-align:center;">
-                                    <span class="badge badge-info">
-                                        {{ $category->children()->count() }}
-                                    </span>
-                                </td>
-                                <td>
+                                <td class="col-status">
                                     @if($category->is_active)
-                                        <span class="badge badge-success">Active</span>
+                                        <span class="status-dot status-active">Hiển thị</span>
                                     @else
-                                        <span class="badge badge-danger">Inactive</span>
+                                        <span class="status-dot status-inactive">Ẩn</span>
                                     @endif
                                 </td>
-                                <td style="font-size:11px;color:#64748b;">
-                                    {{ $category->created_at?->format('d/m/Y') ?? '-' }}
+                                <td class="col-order">{{ $category->order }}</td>
+                                <td class="col-created">
+                                    {{ $category->created_at?->format('d/m/y') }}
                                 </td>
-                                <td>
-                                    <div class="actions">
-                                        <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-secondary btn-sm" title="Sửa">✏️</a>
-                                        @if($category->id === 1)
-                                            <button type="button" class="btn btn-danger btn-sm" disabled 
-                                                    title="Không thể xóa" 
-                                                    style="opacity:0.5;cursor:not-allowed;">🗑️</button>
-                                        @else
-                                            <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" style="display:inline;" 
-                                                  onsubmit="return confirm('Xóa danh mục này?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm" title="Xóa">🗑️</button>
+                                <td class="col-actions">
+                                    <div style="display: flex; justify-content: flex-end; gap: 2px;">
+                                        <a href="{{ route('admin.categories.edit', $category) }}" class="btn-icon" title="Chỉnh sửa">
+                                            ✏️
+                                        </a>
+                                        @if($category->id !== 1)
+                                            <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" onsubmit="return confirm('Xóa danh mục này?');" style="display: inline;">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn-icon text-danger" title="Xóa">
+                                                    🗑️
+                                                </button>
                                             </form>
                                         @endif
                                     </div>
@@ -404,53 +521,66 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="11" style="text-align:center;padding:30px;color:#94a3b8;">
-                                    <div style="font-size:36px;margin-bottom:12px;">📁</div>
-                                    <div style="font-size:13px;">Chưa có danh mục nào</div>
+                                <td colspan="10" style="text-align:center; padding: 40px; color: #94a3b8;">
+                                    <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;">📭</div>
+                                    <p>Không tìm thấy danh mục nào</p>
                                 </td>
                             </tr>
                         @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                    <button type="submit" class="btn btn-secondary btn-sm" name="bulk_action" value="hide">Ẩn đã chọn</button>
-                    <button type="submit" class="btn btn-primary btn-sm" name="bulk_action" value="show">Hiển thị đã chọn</button>
-                    @can('deleteAny', \App\Models\Category::class)
-                        <button type="submit" class="btn btn-danger btn-sm" name="bulk_action" value="delete" 
-                                onclick="return confirm('Xóa các danh mục đã chọn?');">Xóa đã chọn</button>
-                    @endcan
-                </div>
+                    </tbody>
+                </table>
             </form>
 
-            <div style="margin-top:16px;">
-                {{ $categories->links() }}
+            <div class="pagination-wrapper">
+                {{ $categories->links('pagination::bootstrap-5') }}
             </div>
-        </div>
+            <div style="padding: 0 16px 12px; font-size: 11px; color: #9ca3af; text-align: right;">
+                Hiển thị {{ $categories->firstItem() ?? 0 }}-{{ $categories->lastItem() ?? 0 }} trên tổng số {{ $categories->total() }} danh mục
+            </div>
+        </main>
     </div>
 @endsection
 
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Select all checkbox
+            // Bulk Selection Logic
             const selectAll = document.getElementById('select-all-categories');
             const checkboxes = document.querySelectorAll('.category-checkbox');
-            const form = document.getElementById('category-bulk-form');
+            const bulkActions = document.getElementById('bulkActions');
+            const selectedCountDisplay = document.getElementById('selectedCount');
+
+            function updateBulkActions() {
+                const checkedCount = document.querySelectorAll('.category-checkbox:checked').length;
+                if (checkedCount > 0) {
+                    bulkActions.style.display = 'flex';
+                    selectedCountDisplay.textContent = checkedCount;
+                } else {
+                    bulkActions.style.display = 'none';
+                }
+            }
 
             if (selectAll) {
                 selectAll.addEventListener('change', () => {
                     checkboxes.forEach(cb => cb.checked = selectAll.checked);
+                    updateBulkActions();
                 });
             }
 
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', updateBulkActions);
+            });
+
+            // Prevent Action form submission if no selection
+            const form = document.getElementById('category-bulk-form');
             if (form) {
                 form.addEventListener('submit', (e) => {
-                    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-                    if (!anyChecked) {
-                        e.preventDefault();
-                        alert('Vui lòng chọn ít nhất một danh mục.');
+                    if (e.submitter && e.submitter.name === 'bulk_action') {
+                        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+                        if (!anyChecked) {
+                            e.preventDefault();
+                            alert('Vui lòng chọn ít nhất một danh mục.');
+                        }
                     }
                 });
             }
@@ -459,8 +589,8 @@
             document.querySelectorAll('.tree-toggle').forEach(toggle => {
                 toggle.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const children = toggle.closest('.tree-item').querySelector('.tree-children');
-                    if (children) {
+                    const children = toggle.closest('.tree-item').nextElementSibling;
+                    if (children && children.classList.contains('tree-children')) {
                         children.classList.toggle('expanded');
                         toggle.textContent = children.classList.contains('expanded') ? '▼' : '▶';
                     }
@@ -472,14 +602,9 @@
                 item.addEventListener('click', (e) => {
                     if (e.target.classList.contains('tree-toggle')) return;
                     
-                    // Update active state
-                    document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
-                    item.classList.add('active');
-                    
-                    // Filter by parent
                     const categoryId = item.dataset.categoryId;
                     if (categoryId) {
-                        window.location.href = '{{ route("admin.categories.index") }}?parent_id=' + categoryId;
+                        window.location.href = '?parent_id=' + categoryId;
                     }
                 });
             });

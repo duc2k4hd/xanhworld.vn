@@ -92,490 +92,17 @@
     @else
         <link rel="shortcut icon" href="{{ asset('admins/img/icons/create-product-icon.png') }}" type="image/x-icon">
     @endif
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 @endpush
 
 @push('styles')
-    <style>
-        .product-form-layout {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 20px;
-            align-items: start;
-        }
-        
-        .product-form-main {
-            min-width: 0; /* Prevent grid overflow */
-        }
-        
-        .product-form-sidebar {
-            position: sticky;
-            top: 20px;
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
-        }
-        
-        .sidebar-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border: 1px solid #e5e7eb;
-        }
-        
-        .sidebar-card h4 {
-            margin: 0 0 15px 0;
-            font-size: 16px;
-            font-weight: 600;
-            color: #1f2937;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f3f4f6;
-        }
-        
-        .sidebar-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .sidebar-actions .btn {
-            width: 100%;
-            justify-content: center;
-        }
-        
-        .sidebar-info-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #f3f4f6;
-        }
-        
-        .sidebar-info-item:last-child {
-            border-bottom: none;
-        }
-        
-        .sidebar-info-label {
-            font-size: 13px;
-            color: #6b7280;
-            font-weight: 500;
-        }
-        
-        .sidebar-info-value {
-            font-size: 13px;
-            color: #1f2937;
-            font-weight: 600;
-            text-align: right;
-            max-width: 60%;
-            word-break: break-word;
-        }
-        
-        .sidebar-status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .sidebar-status-badge.active {
-            background: #dcfce7;
-            color: #15803d;
-        }
-        
-        .sidebar-status-badge.inactive {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-        
-        @media (max-width: 1200px) {
-            .product-form-layout {
-                grid-template-columns: 1fr;
-            }
-            
-            .product-form-sidebar {
-                position: relative;
-                top: 0;
-                max-height: none;
-            }
-        }
-    </style>
-    <style>
-        .card {
-            background: #fff;
-            border-radius: 10px;
-            padding: 14px 16px;
-            box-shadow: 0 1px 6px rgba(15,23,42,0.06);
-            margin-bottom: 16px;
-        }
-        .card > h3 {
-            margin: 0 0 8px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #0f172a;
-        }
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 12px 16px;
-        }
-        .grid-3 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-            gap: 10px 14px;
-        }
-        .form-control,
-        textarea,
-        select {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #cbd5f5;
-            border-radius: 6px;
-            font-size: 13px;
-        }
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 4px;
-            color: #111827;
-        }
-        .repeater-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .repeater-item {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 10px 12px;
-            background: #f9fafb;
-        }
-        .repeater-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-        .btn-link {
-            background: none;
-            border: none;
-            color: #2563eb;
-            cursor: pointer;
-        }
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .image-library img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 6px;
-            display: block;
-        }
-        .image-library button[data-hidden="true"] {
-            display: none;
-        }
-        .image-preview {
-            margin-top: 10px;
-        }
-        .image-preview img {
-            width: 120px;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-        .steps-list, .supplies-list {
-            margin-top: 10px;
-        }
-        .step-item, .supply-item {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-            align-items: center;
-        }
-        .step-item input, .supply-item input {
-            flex: 1;
-        }
-        .step-item button, .supply-item button {
-            border: none;
-            background: none;
-            color: #ef4444;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 0 8px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('admins/css/product_form.css') }}">
 @endpush
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const counters = {};
-            let isDirty = false;
-            const markDirty = () => { isDirty = true; };
-            
-            // TinyMCE đã được thay bằng CKEditor 5 (khởi tạo trong admins/js/ckeditor-admin.js)
-
-            // Repeater handlers
-            document.querySelectorAll('[data-add]').forEach(btn => {
-                const targetSelector = btn.dataset.add;
-                const templateSelector = btn.dataset.template;
-                counters[targetSelector] = document.querySelectorAll(`${targetSelector} .repeater-item`).length;
-
-                btn.addEventListener('click', () => {
-                    const target = document.querySelector(targetSelector);
-                    const template = document.querySelector(templateSelector);
-                    if (!target || !template) return;
-
-                    let html = template.innerHTML.replace(/__INDEX__/g, counters[targetSelector]++);
-                    const wrapper = document.createElement('div');
-                    wrapper.innerHTML = html.trim();
-                    const newBlock = wrapper.firstElementChild;
-                    target.appendChild(newBlock);
-                    markDirty();
-                });
-            });
-
-            // Remove handlers
-            document.addEventListener('click', (e) => {
-                if (e.target.matches('[data-remove]')) {
-                    e.target.closest('.repeater-item')?.remove();
-                    markDirty();
-                }
-
-                // Open gallery picker for image selection
-                if (e.target.matches('[data-open-gallery-picker]')) {
-                    const btn = e.target;
-                    const targetSelector = btn.dataset.target;
-                    const previewSelector = btn.dataset.preview;
-                    const altInputSelector = btn.dataset.altInput;
-                    
-                    if (!targetSelector || !previewSelector) return;
-                    
-                    const targetInput = document.querySelector(targetSelector);
-                    const previewDiv = document.querySelector(previewSelector);
-                    const repeaterItem = btn.closest('.repeater-item');
-                    
-                    if (!targetInput || !previewDiv || !repeaterItem) return;
-                    
-                    // Mở media picker
-                    if (typeof openMediaPicker === 'function') {
-                        openMediaPicker({
-                            mode: 'single',
-                            scope: 'client',
-                            folder: 'clothes', // Chỉ lấy ảnh từ folder clothes
-                            onSelect: (file) => {
-                                if (file && file.url) {
-                                    // Lưu relative_path (path tương đối từ folder clothes, ví dụ: thumbs/filename.jpg)
-                                    // Nếu không có relative_path, fallback về filename
-                                    const pathToSave = file.relative_path || file.filename || file.name || '';
-                                    
-                                    // Set giá trị vào hidden input existing_path
-                                    targetInput.value = pathToSave;
-                                    
-                                    // Hiển thị preview
-                                    previewDiv.innerHTML = `<img src="${file.url}" alt="${file.alt || ''}" style="max-width:100%;height:auto;">`;
-                                    
-                                    // Set alt nếu có input alt
-                                    if (altInputSelector) {
-                                        const altInput = repeaterItem.querySelector(altInputSelector);
-                                        if (altInput && file.alt) {
-                                            altInput.value = file.alt;
-                                        }
-                                    }
-                                    
-                                    // Đảm bảo có hidden input id (nếu chưa có thì tạo mới)
-                                    let idInput = repeaterItem.querySelector('input[name*="[id]"]');
-                                    if (!idInput) {
-                                        const firstInput = repeaterItem.querySelector('input');
-                                        if (firstInput) {
-                                            idInput = document.createElement('input');
-                                            idInput.type = 'hidden';
-                                            idInput.name = targetInput.name.replace('[existing_path]', '[id]');
-                                            idInput.value = '';
-                                            firstInput.parentNode.insertBefore(idInput, firstInput);
-                                        }
-                                    }
-                                    
-                                    // Ẩn file input (không cần upload nữa)
-                                    const fileInput = repeaterItem.querySelector('.image-file-input');
-                                    if (fileInput) {
-                                        fileInput.value = '';
-                                    }
-                                    
-                                    markDirty();
-                                }
-                            }
-                        });
-                    } else {
-                        alert('Popup thư viện ảnh chưa được tải. Vui lòng F5 lại trang.');
-                    }
-                }
-
-
-                // Add step
-                if (e.target.matches('[data-add-step]')) {
-                    const container = e.target.closest('.repeater-item')?.querySelector('.steps-list');
-                    if (!container) return;
-                    const index = container.dataset.index;
-                    const stepIndex = container.querySelectorAll('.step-item').length;
-                    const html = `
-                        <div class="step-item">
-                            <input type="text" class="form-control" name="how_tos[${index}][steps][]" placeholder="Bước ${stepIndex + 1}">
-                            <button type="button" data-remove-step>&times;</button>
-                        </div>
-                    `;
-                    container.insertAdjacentHTML('beforeend', html);
-                    markDirty();
-                }
-
-                // Remove step
-                if (e.target.matches('[data-remove-step]')) {
-                    e.target.closest('.step-item')?.remove();
-                    markDirty();
-                }
-
-                // Add supply
-                if (e.target.matches('[data-add-supply]')) {
-                    const container = e.target.closest('.repeater-item')?.querySelector('.supplies-list');
-                    if (!container) return;
-                    const index = container.dataset.index;
-                    const supplyIndex = container.querySelectorAll('.supply-item').length;
-                    const html = `
-                        <div class="supply-item">
-                            <input type="text" class="form-control" name="how_tos[${index}][supplies][]" placeholder="Dụng cụ ${supplyIndex + 1}">
-                            <button type="button" data-remove-supply>&times;</button>
-                        </div>
-                    `;
-                    container.insertAdjacentHTML('beforeend', html);
-                    markDirty();
-                }
-
-                // Remove supply
-                if (e.target.matches('[data-remove-supply]')) {
-                    e.target.closest('.supply-item')?.remove();
-                    markDirty();
-                }
-            });
-
-            // Image file preview
-            document.addEventListener('change', (e) => {
-                if (e.target.matches('.image-file-input')) {
-                    const preview = e.target.closest('.repeater-item')?.querySelector('.image-preview');
-                    if (!preview || !e.target.files?.length) return;
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        preview.innerHTML = `<img src="${ev.target.result}" alt="" style="max-width:100%;height:auto;">`;
-                    };
-                    reader.readAsDataURL(e.target.files[0]);
-                }
-            });
-            
-
-            // TomSelect
-            if (document.querySelector('#primary-category')) {
-                new TomSelect('#primary-category', {create: false, allowEmptyOption: true});
-            }
-            if (document.querySelector('#included-categories')) {
-                new TomSelect('#included-categories', {plugins: ['remove_button'], persist: false});
-            }
-            if (document.querySelector('#extra-categories')) {
-                new TomSelect('#extra-categories', {plugins: ['remove_button'], persist: false});
-            }
-            if (document.querySelector('select[name="tag_ids[]"]')) {
-                new TomSelect('select[name="tag_ids[]"]', {
-                    placeholder: 'Chọn tags từ danh sách...',
-                    plugins: ['remove_button'],
-                    maxItems: null,
-                    create: false,
-                    sortField: {
-                        field: 'text',
-                        direction: 'asc'
-                    }
-                });
-            }
-
-            // ==== Media Picker (popup mới) ====
-            document.addEventListener('click', (e) => {
-                const btn = e.target.closest('[data-media-picker]');
-                if (!btn) return;
-                const targetSel = btn.dataset.target;
-                const previewSel = btn.dataset.preview;
-                const mode = btn.dataset.mode || 'single';
-                const targetInput = document.querySelector(targetSel);
-                const previewEl = document.querySelector(previewSel);
-                if (!targetInput || !previewEl || typeof window.openMediaPicker !== 'function') {
-                    return;
-                }
-                window.openMediaPicker({
-                    mode,
-                    scope: 'client',
-                    onSelect: (fileOrFiles) => {
-                        const files = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
-                        const first = files[0];
-                        if (!first) return;
-                        const filename = first.url ? first.url.split('/').pop() : first.filename;
-                        targetInput.value = filename || '';
-                        previewEl.innerHTML = `<img src="${first.url}" alt="${first.alt || ''}" style="max-width:100%;height:auto;">`;
-                        markDirty();
-                    }
-                });
-            });
-
-            // Form dirty guard
-            const form = document.querySelector('#product-form');
-            if (form) {
-                form.addEventListener('input', markDirty, true);
-                form.addEventListener('change', markDirty, true);
-
-                window.addEventListener('beforeunload', (event) => {
-                    if (!isDirty) {
-                        @if($isEdit)
-                            if (navigator.sendBeacon) {
-                                const formData = new FormData();
-                                formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
-                                navigator.sendBeacon('{{ route("admin.products.release-lock", $product) }}', formData);
-                            } else {
-                                const xhr = new XMLHttpRequest();
-                                xhr.open('POST', '{{ route("admin.products.release-lock", $product) }}', false);
-                                xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]')?.content || '');
-                                xhr.send();
-                            }
-                        @endif
-                        return;
-                    }
-                    event.preventDefault();
-                    event.returnValue = '';
-                });
-
-                form.addEventListener('submit', () => {
-                    isDirty = false;
-                });
-
-                document.addEventListener('visibilitychange', () => {
-                    if (document.hidden && !isDirty) {
-                        @if($isEdit)
-                            fetch('{{ route("admin.products.release-lock", $product) }}', {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                                    'Content-Type': 'application/json',
-                                },
-                            }).catch(() => {});
-                        @endif
-                    }
-                });
-            }
-        });
-    </script>
+    <script src="{{ asset('admins/js/products-form.js') }}"></script>
 @endpush
 
 @section('content')
@@ -583,6 +110,7 @@
         <div class="product-form-main">
             <form id="product-form" data-dirty-guard="true"
                   action="{{ $isEdit ? route('admin.products.update', $product) : route('admin.products.store') }}"
+                  @if($isEdit) data-release-lock-url="{{ route('admin.products.release-lock', $product) }}" @endif
                   method="POST" enctype="multipart/form-data">
                 @csrf
                 @if($isEdit)
@@ -590,9 +118,9 @@
                 @endif
 
                 @if($isEdit && $product->locked_by === auth('web')->id())
-                    <div style="margin-bottom:15px;padding:12px 14px;border-radius:8px;background:#e0f2fe;color:#0f172a;">
+                    <div class="alert-lock">
                         <strong>🔒 Đang chỉnh sửa:</strong>
-                        Bạn đang khóa sản phẩm này để chỉnh sửa. Hệ thống sẽ tự động mở khóa khi bạn lưu hoặc sau {{ config('app.editor_lock_minutes', 15) }} phút không hoạt động.
+                        <span>Bạn đang khóa sản phẩm này để chỉnh sửa. Hệ thống sẽ tự động mở khóa khi bạn lưu hoặc sau {{ config('app.editor_lock_minutes', 15) }} phút không hoạt động.</span>
                     </div>
                 @endif
 
@@ -636,13 +164,13 @@
                 </div>
                 <div>
                     <label>Sản phẩm nổi bật</label>
-                    <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                    <div class="d-flex-center gap-2 mt-2">
                         <input type="checkbox" name="is_featured" value="1" {{ old('is_featured', $product->is_featured ?? false) ? 'checked' : '' }}>
                         <span>Hiển thị tại mục "Sản phẩm nổi bật"</span>
                     </div>
                 </div>
             </div>
-            <div style="margin-top:15px;">
+            <div class="mt-3">
                 <label>Mô tả ngắn</label>
                 <textarea
                     class="form-control tinymce-editor"
@@ -651,14 +179,26 @@
                     data-media-folder="clothes"
                 >{{ old('short_description', $product->short_description) }}</textarea>
             </div>
-            <div style="margin-top:15px;">
-                <label>Mô tả chi tiết</label>
-                <textarea
-                    class="form-control tinymce-editor"
-                    name="description"
-                    rows="4"
-                    data-media-folder="clothes"
-                >{{ old('description', $product->description) }}</textarea>
+            <div class="card">
+                <div class="repeater-header">
+                    <h3>Mô tả chi tiết (JSON)</h3>
+                    <button type="button" class="btn btn-secondary" id="add-description-section" data-template="#description-section-template">+ Thêm section</button>
+                </div>
+                
+                <div class="repeater-list" id="description-sections-list">
+                    @php
+                        $description = old('description', $product->description);
+                        $sections = $description['sections'] ?? [];
+                    @endphp
+
+                    @foreach($sections as $index => $section)
+                        @include('admins.products.partials.description-section', ['index' => $index, 'section' => $section])
+                    @endforeach
+                </div>
+                
+                <template id="description-section-template">
+                    @include('admins.products.partials.description-section', ['index' => '__INDEX__', 'section' => []])
+                </template>
             </div>
         </div>
 
@@ -701,7 +241,7 @@
                     </select>
                 </div>
             </div>
-            <div style="margin-top:15px;">
+            <div class="mt-3">
                 <label>Tags</label>
                 <div class="mb-2">
                     <label class="small text-muted">Chọn từ danh sách có sẵn:</label>
@@ -756,7 +296,7 @@
                            placeholder="từ khóa 1, từ khóa 2">
                 </div>
             </div>
-            <div style="margin-top:10px;">
+            <div class="mt-2">
                 <label>Meta Description</label>
                 <textarea class="form-control" rows="2" name="meta_description"
                           placeholder="Mô tả ngắn hiển thị trên Google">{{ old('meta_description', $product->meta_description) }}</textarea>
@@ -794,7 +334,7 @@
                                 <input type="number" class="form-control" name="images[{{ $index }}][order]" value="{{ $image['order'] ?? $index }}">
                             </div>
                         </div>
-                        <div style="margin-top:10px;">
+                        <div class="mt-2">
                             <label>File ảnh</label>
                             <input type="file" name="images[{{ $index }}][file]" class="form-control image-file-input">
                             @php
@@ -809,7 +349,7 @@
                                     <img src="{{ $imageFullUrl }}" alt="" style="max-width:100%;height:auto;">
                                 @endif
                             </div>
-                            <div class="d-flex gap-2 mt-2">
+                            <div class="d-flex-center gap-2 mt-2">
                                 <button type="button"
                                         class="btn btn-sm btn-outline-primary"
                                         data-media-picker
@@ -820,7 +360,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div style="margin-top:10px;">
+                        <div class="mt-2">
                             <label><input type="checkbox" name="images[{{ $index }}][is_primary]" value="1" {{ !empty($image['is_primary']) ? 'checked' : '' }}> Ảnh chính</label>
                         </div>
                     </div>
@@ -845,7 +385,7 @@
                             <label>Câu hỏi</label>
                             <input type="text" class="form-control" name="faqs[{{ $index }}][question]" value="{{ $faq['question'] ?? '' }}" required>
                         </div>
-                        <div style="margin-top:10px;">
+                        <div class="mt-2">
                             <label>Trả lời</label>
                             <textarea class="form-control" name="faqs[{{ $index }}][answer]" rows="2">{{ $faq['answer'] ?? '' }}</textarea>
                         </div>
@@ -897,12 +437,12 @@
                                 </select>
                             </div>
                         </div>
-                        <div style="margin-top:10px;">
+                        <div class="mt-2">
                             <label>Mô tả</label>
                             <textarea class="form-control" name="how_tos[{{ $index }}][description]" rows="2">{{ $howTo['description'] ?? '' }}</textarea>
                         </div>
-                        <div style="margin-top:10px;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div class="mt-2">
+                            <div class="d-flex-center justify-content-between">
                                 <label>Danh sách bước</label>
                                 <button type="button" class="btn btn-secondary btn-sm" data-add-step>+ Thêm bước</button>
                             </div>
@@ -921,8 +461,8 @@
                                 @endif
                             </div>
                         </div>
-                        <div style="margin-top:10px;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div class="mt-2">
+                            <div class="d-flex-center justify-content-between">
                                 <label>Dụng cụ cần thiết</label>
                                 <button type="button" class="btn btn-secondary btn-sm" data-add-supply>+ Thêm dụng cụ</button>
                             </div>
@@ -961,7 +501,7 @@
                         <input type="hidden" name="variants[{{ $index }}][id]" value="{{ $variant['id'] ?? null }}">
                         <div class="grid-2">
                             <div>
-                                <label>Tên biến thể <span style="color:red;">*</span> (VD: 1m, 2m có chậu, Combo 3 cây)</label>
+                                <label>Tên biến thể <span class="text-danger">*</span> (VD: 1m, 2m có chậu, Combo 3 cây)</label>
                                 <input type="text" class="form-control" name="variants[{{ $index }}][name]" value="{{ $variant['name'] ?? '' }}" required placeholder="1m có chậu">
                             </div>
                             <div>
@@ -993,7 +533,7 @@
                                 <input type="text" class="form-control" name="variants[{{ $index }}][notes]" value="{{ old("variants.{$index}.notes", $variant['attributes']['notes'] ?? '') }}" placeholder="Thông tin bổ sung">
                             </div>
                             <div>
-                                <label>Giá gốc <span style="color:red;">*</span></label>
+                                <label>Giá gốc <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" name="variants[{{ $index }}][price]" value="{{ $variant['price'] ?? 0 }}" min="0" step="1000" required>
                             </div>
                             <div>
@@ -1128,7 +668,7 @@
                     <input type="number" class="form-control" name="images[__INDEX__][order]" value="__INDEX__">
                 </div>
             </div>
-            <div style="margin-top:10px;">
+            <div class="mt-2">
                 <label>File ảnh</label>
                 <input type="file" name="images[__INDEX__][file]" class="form-control image-file-input">
                 <input type="hidden" id="image-path-__INDEX__" name="images[__INDEX__][existing_path]">
@@ -1139,11 +679,11 @@
                         data-target="#image-path-__INDEX__"
                         data-preview="#image-preview-__INDEX__"
                         data-alt-input="input[name='images[__INDEX__][alt]']"
-                        style="margin-top: 8px;">
+                        class="mt-2">
                     📷 Chọn ảnh từ thư viện
                 </button>
             </div>
-            <div style="margin-top:10px;">
+            <div class="mt-2">
                 <label><input type="checkbox" name="images[__INDEX__][is_primary]" value="1"> Ảnh chính</label>
             </div>
         </div>
@@ -1160,7 +700,7 @@
                 <label>Câu hỏi</label>
                 <input type="text" class="form-control" name="faqs[__INDEX__][question]" required>
             </div>
-            <div style="margin-top:10px;">
+            <div class="mt-2">
                 <label>Trả lời</label>
                 <textarea class="form-control" name="faqs[__INDEX__][answer]" rows="2"></textarea>
             </div>
@@ -1177,7 +717,7 @@
             <input type="hidden" name="variants[__INDEX__][id]">
             <div class="grid-2">
                 <div>
-                    <label>Tên biến thể <span style="color:red;">*</span> (VD: 1m, 2m có chậu, Combo 3 cây)</label>
+                    <label>Tên biến thể <span class="text-danger">*</span> (VD: 1m, 2m có chậu, Combo 3 cây)</label>
                     <input type="text" class="form-control" name="variants[__INDEX__][name]" required placeholder="1m có chậu">
                 </div>
                 <div>
@@ -1205,7 +745,7 @@
                     <input type="text" class="form-control" name="variants[__INDEX__][notes]" placeholder="Thông tin bổ sung">
                 </div>
                 <div>
-                    <label>Giá gốc <span style="color:red;">*</span></label>
+                    <label>Giá gốc <span class="text-danger">*</span></label>
                     <input type="number" class="form-control" name="variants[__INDEX__][price]" value="0" min="0" step="1000" required>
                 </div>
                 <div>
@@ -1255,31 +795,31 @@
                     </select>
                 </div>
             </div>
-            <div style="margin-top:10px;">
+            <div class="mt-2">
                 <label>Mô tả</label>
                 <textarea class="form-control" name="how_tos[__INDEX__][description]" rows="2"></textarea>
             </div>
-            <div style="margin-top:10px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="mt-2">
+                <div class="d-flex-center justify-content-between">
                     <label>Danh sách bước</label>
                     <button type="button" class="btn btn-secondary btn-sm" data-add-step>+ Thêm bước</button>
                 </div>
                 <div class="steps-list" data-index="__INDEX__">
                     <div class="step-item">
                         <input type="text" class="form-control" name="how_tos[__INDEX__][steps][]" placeholder="Bước 1">
-                        <button type="button" data-remove-step>&times;</button>
+                        <button type="button" class="btn-link" data-remove-step>&times;</button>
                     </div>
                 </div>
             </div>
-            <div style="margin-top:10px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="mt-2">
+                <div class="d-flex-center justify-content-between">
                     <label>Dụng cụ cần thiết</label>
                     <button type="button" class="btn btn-secondary btn-sm" data-add-supply>+ Thêm dụng cụ</button>
                 </div>
                 <div class="supplies-list" data-index="__INDEX__">
                     <div class="supply-item">
                         <input type="text" class="form-control" name="how_tos[__INDEX__][supplies][]" placeholder="Dụng cụ 1">
-                        <button type="button" data-remove-supply>&times;</button>
+                        <button type="button" class="btn-link" data-remove-supply>&times;</button>
                     </div>
                 </div>
             </div>

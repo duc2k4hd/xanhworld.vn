@@ -59,6 +59,9 @@ class ImportExcelController extends Controller
         // Sheet 1: Products
         $this->buildProductsSheet($spreadsheet, $products, $categoryMap, $tagMap, $images);
 
+        // Sheet 1b: Product Descriptions (Separate Sheet)
+        $this->buildDescriptionSheet($spreadsheet, $products);
+
         // Sheet 2: Images
         $this->buildImagesSheet($spreadsheet, $products, $images);
 
@@ -103,6 +106,9 @@ class ImportExcelController extends Controller
 
             // Import Products (Sheet 1)
             $this->importProducts($spreadsheet, $errors);
+
+            // Import Product Descriptions (Sheet 1b)
+            $this->importDescriptionSheet($spreadsheet, $errors);
 
             // Import Images (Sheet 2)
             $this->importImages($spreadsheet, $errors);
@@ -198,7 +204,7 @@ class ImportExcelController extends Controller
                 $product->sku,
                 $product->name,
                 $product->slug,
-                $product->description,
+                is_array($product->description) ? json_encode($product->description, JSON_UNESCAPED_UNICODE) : $product->description,
                 $product->short_description,
                 $product->price,
                 $product->sale_price,
@@ -379,7 +385,30 @@ class ImportExcelController extends Controller
             $sku = trim($row[0] ?? '');
             $name = trim($row[1] ?? '');
             $slug = trim($row[2] ?? '') ?: Str::slug($name);
-            $description = trim($row[3] ?? '');
+
+            $descriptionRaw = trim($row[3] ?? '');
+            $description = null;
+            if (!empty($descriptionRaw)) {
+                // 1. Try JSON
+                $decoded = json_decode($descriptionRaw, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $description = $decoded;
+                }
+                // 2. Check for HTML tags to trigger parser
+                elseif (strip_tags($descriptionRaw) !== $descriptionRaw || preg_match('/<(h2|h3)/i', $descriptionRaw)) {
+                    $parsed = \App\Services\ProductDescriptionService::parseHtmlToSections($descriptionRaw);
+                     if (!empty($parsed['sections']) && count($parsed['sections']) > 0) {
+                         $description = $parsed;
+                     } else {
+                         // Fallback to text migration
+                         $description = \App\Services\ProductDescriptionService::migrateFromText($descriptionRaw);
+                     }
+                }
+                // 3. Plain text
+                else {
+                    $description = \App\Services\ProductDescriptionService::migrateFromText($descriptionRaw);
+                }
+            }
             $shortDescription = trim($row[4] ?? '');
             $price = (float) ($row[5] ?? 0);
             $salePrice = ! empty($row[6]) ? (float) $row[6] : null;
@@ -1152,5 +1181,153 @@ class ImportExcelController extends Controller
                     Cache::forget('vouchers_for_product_'.$product->id);
                 }
             });
+    }
+    /**
+     * Build Product Descriptions Sheet
+     */
+    private function buildDescriptionSheet(Spreadsheet $spreadsheet, $products)
+    {
+        $sheet = $spreadsheet->createSheet();
+        $sheet->setTitle('product_descriptions');
+
+        // Columns: SKU + 5 Standard Sections (Title, Content, Image)
+        $headers = [
+            'sku',
+        ];
+
+        $keys = ['intro', 'feature', 'use', 'meaning', 'care'];
+        foreach ($keys as $key) {
+            $headers[] = $key . '_title';
+            $headers[] = $key . '_content';
+            $headers[] = $key . '_image';
+        }
+
+        $sheet->fromArray($headers, null, 'A1');
+
+        $row = 2;
+
+        foreach ($products as $product) {
+            $rowData = [$product->sku];
+            $description = is_array($product->description) ? $product->description : [];
+
+            foreach ($keys as $key) {
+                // Find section by key or default to empty
+                // We need a helper to find section by key in the array
+                $section = null;
+                if (!empty($description['sections'])) {
+                    foreach ($description['sections'] as $s) {
+                        if (($s['key'] ?? '') === $key) {
+                            $section = $s;
+                            break;
+                        }
+                    }
+                }
+
+                $rowData[] = $section['title'] ?? '';
+                $rowData[] = $section['content'] ?? '';
+                // Check if media is array or object, based on how it's stored
+                $mediaUrl = '';
+                if (!empty($section['media']) && is_array($section['media'])) {
+                    $mediaUrl = $section['media']['url'] ?? '';
+                }
+                $rowData[] = $mediaUrl;
+            }
+
+            $sheet->fromArray($rowData, null, 'A' . $row);
+            $row++;
+        }
+    }
+
+    /**
+     * Import Product Descriptions Sheet
+     */
+    private function importDescriptionSheet($spreadsheet, &$errors)
+    {
+        $sheet = $spreadsheet->getSheetByName('product_descriptions');
+        if (!$sheet) {
+            return;
+        }
+
+        $rows = $sheet->toArray();
+        $headers = array_shift($rows); // Remove header
+
+        foreach ($rows as $rowIndex => $row) {
+            if (empty($row[0])) {
+                continue;
+            } // Skip empty SKU
+
+            $sku = trim($row[0]);
+            $product = Product::where('sku', $sku)->first();
+
+            if (!$product) {
+                $errors[] = [
+                    'type' => 'PRODUCT_NOT_FOUND',
+                    'sku' => $sku,
+                    'message' => "Không tìm thấy sản phẩm với SKU '{$sku}' trong sheet product_descriptions.",
+                    'row' => $rowIndex + 2,
+                    'sheet' => 'product_descriptions',
+                ];
+                continue;
+            }
+
+            // Construct sections array
+            // Merge Strategy:
+            // 1. Get current description (which might have been set by importProducts or exists in DB)
+            //    Note: importProducts runs first in the transaction. If it updated the product, strictly speaking we should reload it.
+            //    But we only fetched $product at the start of this loop.
+            $product->refresh(); // Ensure we have the latest description from importProducts
+            $currentDescription = $product->description ?? ['sections' => []];
+
+            $keys = ['intro', 'feature', 'use', 'meaning', 'care'];
+            $colIndex = 1; // Start after SKU
+            $hasChanges = false;
+
+            foreach ($keys as $key) {
+                $title = isset($row[$colIndex]) ? trim($row[$colIndex]) : '';
+                $colIndex++;
+                $content = isset($row[$colIndex]) ? trim($row[$colIndex]) : '';
+                $colIndex++;
+                $imageUrl = isset($row[$colIndex]) ? trim($row[$colIndex]) : '';
+                $colIndex++;
+
+                // If row has data, Update/Add section
+                if (!empty($title) || !empty($content) || !empty($imageUrl)) {
+                    $media = null;
+                    if (!empty($imageUrl)) {
+                        $media = ['type' => 'image', 'url' => $imageUrl];
+                    }
+
+                    $sectionData = [
+                        'title' => $title,
+                        'content' => $content,
+                        'media' => $media
+                    ];
+                    
+                    // Use Service to update (merges if exists, adds if new)
+                    $currentDescription = \App\Services\ProductDescriptionService::updateSection($currentDescription, $key, $sectionData);
+                    $hasChanges = true;
+                } else {
+                    // If row is empty, Remove section (if it exists)
+                    // This allows users to delete a specific section via Excel by clearing values
+                    $newDesc = \App\Services\ProductDescriptionService::removeSection($currentDescription, $key);
+                    if ($newDesc !== $currentDescription) {
+                         $currentDescription = $newDesc;
+                         $hasChanges = true;
+                    }
+                }
+            }
+
+            if ($hasChanges) {
+                // Determine if we need to call createDescription to re-validate? 
+                // updateSection already returns a structured array.
+                // But let's run it through createDescription to be sure of structure sanitization if needed.
+                // Actually updateSection keeps it clean. 
+                
+                $product->update(['description' => $currentDescription]);
+                
+                // Clear cache
+                Cache::forget('product_detail_' . $product->slug);
+            }
+        }
     }
 }

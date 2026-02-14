@@ -23,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
 
         Blade::if('mobile', function () {
             return (new Agent)->isMobile();

@@ -855,8 +855,19 @@ class ProductService
      * Normalize image URLs in HTML content: convert relative URLs to absolute URLs
      * Format: site_url/clients/assets/img/clothes/filename.webp
      */
-    private function normalizeImageUrls(?string $content): ?string
+    private function normalizeImageUrls(string|array|null $content): string|array|null
     {
+        if (is_array($content)) {
+            if (isset($content['sections']) && is_array($content['sections'])) {
+                foreach ($content['sections'] as $key => $section) {
+                    if (isset($section['content'])) {
+                        $content['sections'][$key]['content'] = $this->normalizeImageUrls($section['content']);
+                    }
+                }
+            }
+            return $content;
+        }
+
         if (empty($content)) {
             return $content;
         }

@@ -58,79 +58,114 @@
                         <span>🗑️ Xóa ảnh</span>
                     </div>
                 </div>
-                <div class="media-picker d-flex">
-                    <div class="media-picker-main flex-grow-1">
-                        <div class="p-3 border-bottom">
-                            <div class="alert alert-info mb-3" style="padding: 12px; background: #e0f2fe; border: 1px solid #3b82f6; border-radius: 8px;">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <strong style="color: #1e40af;">📂 Chọn thư mục lưu ảnh:</strong>
-                                </div>
-                                <div class="input-group">
-                                    <span class="input-group-text" style="background: #fff;">📁</span>
-                                    <select class="form-select" id="mediaPickerFolder" style="font-weight: 500;">
-                                        <option value="">-- Chọn folder --</option>
+                <div class="media-picker">
+                    <div class="media-picker-main">
+                        <div class="media-picker-toolbar-wrapper">
+                            <div class="media-picker-toolbar">
+                                <div class="folder-select-group">
+                                    <strong>📂 Thư mục:</strong>
+                                    <select id="mediaPickerFolder">
+                                        <option value="">-- Tất cả --</option>
                                     </select>
                                 </div>
-                                <div class="form-text mt-1" style="color: #1e40af; font-size: 12px;">
-                                    <strong>Lưu ý:</strong> Ảnh sẽ được lưu vào <code>/clients/assets/img/[folder]</code>. Bạn <strong>PHẢI</strong> chọn folder trước khi upload!
-                                </div>
-                            </div>
-                            <div class="media-picker-toolbar d-flex align-items-center gap-2 flex-wrap">
-                            <button class="btn btn-primary btn-sm" id="mediaPickerUploadBtn">📤 Upload</button>
-                            <button class="btn btn-outline-secondary btn-sm" id="mediaPickerRefreshBtn">🔄 Reload</button>
-                                <button class="btn btn-danger btn-sm d-none" id="mediaPickerBulkDeleteBtn">🗑️ Xóa đã chọn (<span id="mediaPickerSelectedCount">0</span>)</button>
-                            <input type="text" class="form-control form-control-sm" style="max-width: 320px;" id="mediaPickerSearch" placeholder="Tìm kiếm theo tên/alt/title...">
-                            <div class="ms-auto d-flex align-items-center gap-2">
-                                <span class="small text-muted" id="mediaPickerCount"></span>
+                                <button class="btn btn-primary btn-sm" id="mediaPickerUploadBtn">
+                                    <i class="fas fa-upload me-1"></i> Upload
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" id="mediaPickerRefreshBtn">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm d-none" id="mediaPickerBulkDeleteBtn">
+                                    <i class="fas fa-trash me-1"></i> Xóa (<span id="mediaPickerSelectedCount">0</span>)
+                                </button>
+                                <div class="input-group input-group-sm" style="width: 200px; margin-left: auto;">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="mediaPickerSearch" placeholder="Tìm tên/alt...">
                                 </div>
                             </div>
                         </div>
-                        <div class="media-picker-grid p-3" id="mediaPickerGrid">
+
+                        <div class="media-picker-grid" id="mediaPickerGrid">
                             <div class="text-center text-muted py-5">Đang tải...</div>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center px-3 pb-3">
-                            <button class="btn btn-outline-secondary btn-sm" id="mediaPickerPrevPage">← Trang trước</button>
-                            <button class="btn btn-outline-secondary btn-sm" id="mediaPickerNextPage">Trang tiếp →</button>
+                        
+                        <div class="media-picker-footer">
+                            <button class="btn btn-outline-secondary btn-sm" id="mediaPickerPrevPage">
+                                <i class="fas fa-chevron-left"></i> Trước
+                            </button>
+                            <span class="small text-muted" id="mediaPickerCount">0 ảnh</span>
+                            <button class="btn btn-outline-secondary btn-sm" id="mediaPickerNextPage">
+                                Sau <i class="fas fa-chevron-right"></i>
+                            </button>
                         </div>
                     </div>
-                    <div class="media-picker-preview border-start" style="width: 360px; min-width: 320px; max-width: 420px;">
+
+                    <div class="media-picker-preview">
                         <div class="p-3" id="mediaPickerPreviewEmpty">
-                            <p class="text-muted mb-0">Chọn một ảnh để xem chi tiết</p>
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-image fa-3x mb-3 text-gray-300"></i>
+                                <p class="mb-0">Chọn ảnh để xem chi tiết</p>
+                            </div>
                         </div>
                         <div class="p-3 d-none" id="mediaPickerPreview">
-                            <div class="mb-3 text-center">
-                                <img id="mediaPickerPreviewImg" src="" alt="" class="img-fluid rounded" style="max-height: 280px; object-fit: contain;">
+                            <div class="mb-3 text-center bg-light rounded p-2 d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <img id="mediaPickerPreviewImg" src="" alt="" class="img-fluid" style="max-height: 100%; object-fit: contain;">
                             </div>
-                            <div class="mb-2">
-                                <label class="form-label small mb-1">Tên file</label>
-                                <div class="form-control form-control-sm" id="mediaPickerFilename" readonly></div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted mb-1 text-uppercase fw-bold">Tên file</label>
+                                <div class="form-control form-control-sm bg-light" id="mediaPickerFilename" readonly></div>
                             </div>
-                            <div class="mb-2">
-                                <label class="form-label small mb-1">Title</label>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted mb-1 text-uppercase fw-bold">Tiêu đề (Title)</label>
                                 <input type="text" class="form-control form-control-sm" id="mediaPickerTitle">
                             </div>
-                            <div class="mb-2">
-                                <label class="form-label small mb-1">Alt</label>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted mb-1 text-uppercase fw-bold">Văn bản thay thế (Alt)</label>
                                 <input type="text" class="form-control form-control-sm" id="mediaPickerAlt">
                             </div>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-outline-primary btn-sm flex-grow-1" id="mediaPickerUpdateMeta">Lưu alt/title</button>
-                                <button class="btn btn-outline-danger btn-sm" id="mediaPickerDelete">Xoá</button>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary btn-sm" id="mediaPickerUpdateMeta">
+                                    <i class="fas fa-save me-1"></i> Lưu thông tin
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" id="mediaPickerDelete">
+                                    <i class="fas fa-trash me-1"></i> Xoá ảnh này
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer d-flex justify-content-between">
-                <div class="text-muted small" id="mediaPickerSelectionInfo">Chưa chọn ảnh</div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary" id="mediaPickerUseBtn">Dùng ảnh này</button>
-                </div>
+            <div class="modal-footer bg-light py-2">
+                <div class="me-auto text-muted small" id="mediaPickerSelectionInfo">Chưa chọn ảnh</div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary btn-sm px-4" id="mediaPickerUseBtn">
+                    <i class="fas fa-check me-1"></i> Dùng ảnh này
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('admins/css/media.css') }}?v={{ time() }}">
+    <style>
+        /* Fallback critical styles */
+        .media-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+        }
+        .media-picker-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            aspect-ratio: 1;
+        }
+        .folder-select-group select {
+            width: auto !important;
+            min-width: 100px;
+        }
+    </style>
+@endpush
 
 @push('scripts')
     <script>
@@ -541,14 +576,22 @@
             useBtn.addEventListener('click', () => {
                 if (!state.selected.size || !state.onSelect) return;
                 const selectedFiles = state.files.filter(f => state.selected.has(f.path || f.url || f.filename));
-                const payload = selectedFiles.map(f => ({
-                    url: f.url,
-                    filename: f.filename || f.name,
-                    alt: f.alt || '',
-                    title: f.title || '',
-                    path: f.path || '',
-                    relative_path: f.relative_path || f.filename || f.name || '', // Path tương đối từ folder clothes
-                }));
+                const payload = selectedFiles.map(f => {
+                    let relPath = f.relative_path;
+                    if (!relPath) {
+                        const folder = state.folder ? state.folder.trim() : '';
+                        const filename = f.filename || f.name;
+                        relPath = folder ? `${folder}/${filename}` : filename;
+                    }
+                    return {
+                        url: f.url,
+                        filename: f.filename || f.name,
+                        alt: f.alt || '',
+                        title: f.title || '',
+                        path: f.path || '',
+                        relative_path: relPath, // Path tương đối từ folder clothes
+                    };
+                });
                 state.onSelect(state.mode === 'single' ? payload[0] : payload);
                 modal.hide();
             });

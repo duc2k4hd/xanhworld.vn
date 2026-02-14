@@ -138,6 +138,11 @@ class ProductController extends Controller
         }
 
         try {
+            Log::info('Product Update Request Data', [
+                'id' => $product->id,
+                'description_raw' => $request->input('description'),
+            ]);
+
             $oldData = $product->toArray();
             $this->productService->update($product, $request->validated());
             $this->releaseEditingLock($product);

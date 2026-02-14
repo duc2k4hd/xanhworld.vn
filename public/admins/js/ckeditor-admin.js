@@ -565,6 +565,9 @@
         }
     }
 
+    // Expose init function globally
+    window.initCkEditorFor = initEditorFor;
+
     document.addEventListener('DOMContentLoaded', () => {
         const postEditor = document.getElementById('post-content-editor');
         if (postEditor) {

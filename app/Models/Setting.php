@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 class Setting extends Model
 {
     use HasFactory;
+    use \App\Traits\ClearsResponseCache;
 
     // Constants for types
     public const TYPE_STRING = 'string';
@@ -105,14 +106,10 @@ class Setting extends Model
         return $setting ? $setting->getParsedValue() : $default;
     }
 
-    protected static function booted()
+    public function responseCacheKeys(): array
     {
-        static::saved(function () {
-            Cache::forget('settings');
-        });
-
-        static::deleted(function () {
-            Cache::forget('settings');
-        });
+        return [
+            'settings',
+        ];
     }
 }

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Voucher extends Model
 {
     use HasFactory;
+    use \App\Traits\ClearsResponseCache;
 
     // ==============================
     // CONSTANTS
@@ -372,14 +373,11 @@ class Voucher extends Model
         }
     }
 
-    protected static function booted(): void
+    public function responseCacheKeys(): array
     {
-        static::saved(function (self $banner) {
-            Cache::forget('vouchers_home');
-        });
-
-        static::deleted(function (self $banner) {
-            Cache::forget('vouchers_home');
-        });
+        return [
+            'vouchers_home',
+            'vouchers_for_product_' . $this->id, // If needed (check plan)
+        ];
     }
 }

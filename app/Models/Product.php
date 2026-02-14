@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\ProductDescriptionCast;
 use App\Models\Concerns\HasImageIds;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,6 +13,7 @@ class Product extends Model
 {
     use HasFactory;
     use HasImageIds;
+    use \App\Traits\ClearsResponseCache;
 
     protected $table = 'products';
 
@@ -45,6 +47,7 @@ class Product extends Model
     ];
 
     protected $casts = [
+        'description' => ProductDescriptionCast::class,
         'category_ids' => 'array',
         'tag_ids' => 'array',
         'image_ids' => 'array',
@@ -539,6 +542,55 @@ class Product extends Model
         static::preloadImages($collection);
 
         return $collection;
+    }
+
+    /**
+     * Increment view counter.
+     */
+    public function incrementViews(int $by = 1): bool
+    {
+        $this->views = ($this->views ?? 0) + $by;
+        return $this->save();
+    }
+
+    /**
+     * Get a specific description section by key.
+     */
+    public function getDescriptionSection(string $key): ?array
+    {
+        $service = app(\App\Services\ProductDescriptionService::class);
+        return $service->getSection($this->description, $key);
+    }
+
+    /**
+     * Get all description sections.
+     */
+    public function getDescriptionSections(): array
+    {
+        $service = app(\App\Services\ProductDescriptionService::class);
+        return $service->getSections($this->description);
+    }
+
+    /**
+     * Export description to HTML.
+     */
+    public function descriptionToHtml(): string
+    {
+        $service = app(\App\Services\ProductDescriptionService::class);
+        return $service->toHtml($this->description);
+    }
+
+    public function responseCacheKeys(): array
+    {
+        return [
+            'product_detail_' . $this->slug,
+            'vouchers_for_product_' . $this->id,
+            'related_products_' . $this->id,
+            'new_products',
+            'products_featured_home',
+            'products_random_home',
+            'flash_sale_data',
+        ];
     }
 
     protected static function booted(): void

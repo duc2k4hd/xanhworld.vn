@@ -14,6 +14,7 @@ class Post extends Model
 {
     use HasFactory, SoftDeletes;
     use HasImageIds;
+    use \App\Traits\ClearsResponseCache;
 
     protected $table = 'posts';
 
@@ -234,20 +235,22 @@ class Post extends Model
         return 'clients/assets/img/posts/'.$value;
     }
 
+    public function responseCacheKeys(): array
+    {
+        return [
+            'blog_related_posts_' . $this->id,
+            'blog_internal_links_' . $this->id,
+        ];
+    }
+
     protected static function booted(): void
     {
         static::saved(function (self $post) {
             app(\App\Services\SitemapService::class)->clearCache();
-
-            Cache::forget('blog_related_posts_'.$post->id);
-            Cache::forget('blog_internal_links_'.$post->id);
         });
 
         static::deleted(function (self $post) {
             app(\App\Services\SitemapService::class)->clearCache();
-
-            Cache::forget('blog_related_posts_'.$post->id);
-            Cache::forget('blog_internal_links_'.$post->id);
         });
     }
 }

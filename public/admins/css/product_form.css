@@ -1,0 +1,302 @@
+/* Product Form Layout */
+.product-form-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px; /* Reduced sidebar width */
+    gap: 15px; /* Reduced gap */
+    align-items: start;
+}
+
+.product-form-main {
+    min-width: 0;
+}
+
+.product-form-sidebar {
+    position: sticky;
+    top: 10px; /* Reduced top */
+    max-height: calc(100vh - 20px);
+    overflow-y: auto;
+}
+
+/* Cards */
+.card {
+    background: #fff;
+    border-radius: 6px; /* Reduced radius */
+    padding: 12px 15px; /* Reduced padding */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Softer shadow */
+    margin-bottom: 15px; /* Reduced margin */
+    border: 1px solid #e2e8f0;
+}
+
+.card > h3 {
+    margin: 0 0 10px;
+    font-size: 15px; /* Reduced font size */
+    font-weight: 600;
+    color: var(--text-color, #1e293b);
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+}
+
+/* Sidebar Cards */
+.sidebar-card {
+    background: #fff;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.sidebar-card h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+/* Grids */
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 10px 15px; /* Reduced gap */
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px 15px;
+}
+
+/* Form Controls */
+.form-control,
+textarea,
+select,
+.tom-select .ts-control {
+    width: 100%;
+    padding: 6px 10px; /* Compact padding */
+    border: 1px solid #cbd5e1;
+    border-radius: 4px; /* Reduced radius */
+    font-size: 13px;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color, #3b82f6);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+label {
+    display: block;
+    font-size: 12px; /* Smaller label */
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #475569;
+}
+
+/* Sidebar Info Items */
+.sidebar-info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0; /* Compact padding */
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.sidebar-info-item:last-child {
+    border-bottom: none;
+}
+
+.sidebar-info-label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.sidebar-info-value {
+    font-size: 12px;
+    color: #1e293b;
+    font-weight: 600;
+    text-align: right;
+    max-width: 65%;
+    word-break: break-word;
+}
+
+/* Status Badges */
+.sidebar-status-badge {
+    display: inline-block;
+    padding: 2px 8px; /* Compact padding */
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.sidebar-status-badge.active { background: #dcfce7; color: #166534; }
+.sidebar-status-badge.inactive { background: #fee2e2; color: #991b1b; }
+
+/* Repeaters (Description, FAQ, How-to) */
+.repeater-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.repeater-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px;
+    background: #f8fafc;
+}
+
+.repeater-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+/* Image Library/Picker */
+.image-library {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); /* Smaller images */
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.image-library-item {
+    position: relative;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.image-library-item:hover {
+    border-color: var(--primary-color, #3b82f6);
+}
+
+.image-library-item.selected {
+    border-color: var(--primary-color, #3b82f6);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.image-library img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+}
+
+/* Buttons */
+.btn-compact {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 4px;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #ef4444; /* Red for delete actions */
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.btn-link:hover {
+    color: #b91c1c;
+}
+
+/* Alerts */
+.alert-lock {
+    margin-bottom: 15px;
+    padding: 10px 14px; /* Compact */
+    border-radius: 6px;
+    background: #e0f2fe;
+    color: #0c4a6e;
+    font-size: 13px;
+    border: 1px solid #bae6fd;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Utilities */
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+
+.d-flex-center {
+    display: flex;
+    align-items: center;
+}
+
+.gap-2 { gap: 0.5rem; }
+
+.text-muted { color: #64748b; }
+.text-danger { color: #ef4444; }
+.small { font-size: 0.875rem; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .product-form-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .product-form-sidebar {
+        position: relative;
+        top: 0;
+        max-height: none;
+    }
+}
+
+/* TomSelect Overrides */
+.ts-wrapper .ts-control {
+    border-radius: 4px;
+    border-color: #cbd5e1;
+    padding: 6px 10px;
+    min-height: 38px;
+    box-shadow: none;
+}
+
+.ts-wrapper.focus .ts-control {
+    border-color: var(--primary-color, #3b82f6);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.ts-dropdown {
+    border-radius: 0 0 4px 4px;
+    border-color: #cbd5e1;
+    margin-top: 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.ts-dropdown .option {
+    padding: 6px 10px;
+}
+
+.ts-dropdown .option.active {
+    background-color: #f1f5f9;
+    color: inherit;
+}
+
+/* Hide fallback selects visually but keep accessible if needed */
+select[multiple][hidden] {
+    display: none;
+}
+
+/* Ensure clean chips */
+.ts-wrapper.multi .ts-control > div {
+    background: #e0f2fe;
+    color: #0c4a6e;
+    border: 1px solid #bae6fd;
+    border-radius: 3px;
+    padding: 2px 6px;
+}
+
+.ts-wrapper.multi .ts-control > div.active {
+    background: #bae6fd;
+}

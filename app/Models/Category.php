@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Category extends Model
 {
     use HasFactory;
+    use \App\Traits\ClearsResponseCache;
 
     protected $table = 'categories';
 
@@ -106,5 +107,13 @@ class Category extends Model
 
         return $this->hasMany(Post::class, 'category_id');
 
+    }
+
+    public function responseCacheKeys(): array
+    {
+        return [
+            'xanhworld_header_main_nav_category_lists',
+            'products_random_home',
+        ];
     }
 }

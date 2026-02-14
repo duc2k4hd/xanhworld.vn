@@ -395,7 +395,7 @@
         </div>
 
         <div class="xanhworld_header_main_nav_links">
-            @foreach ($categories as $category)
+            @foreach ($categories->take(4) as $category)
                 @php
                     // Nếu danh mục có con → lấy sản phẩm của chính nó + các con
                     if ($category->children->isNotEmpty()) {

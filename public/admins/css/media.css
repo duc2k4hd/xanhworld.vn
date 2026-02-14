@@ -1,0 +1,229 @@
+/* Media Modal Layout */
+.media-picker {
+    display: flex;
+    height: 70vh; /* Fixed height for scrollable content */
+    overflow: hidden;
+}
+
+.media-picker-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    border-right: 1px solid #e2e8f0;
+}
+
+/* Toolbar Area */
+.media-picker-toolbar-wrapper {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.media-picker-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.folder-select-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.folder-select-group strong {
+    font-size: 13px;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.folder-select-group select {
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    padding-right: 24px;
+    cursor: pointer;
+    width: auto !important; /* Override global select styles */
+    min-width: 100px;
+}
+
+.folder-select-group select:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+/* Grid Area */
+.media-picker-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: #f1f5f9;
+    
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    align-content: start;
+}
+
+/* Media Card */
+.media-picker-card {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.media-picker-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.media-picker-card.selected {
+    border-color: var(--primary-color, #3b82f6);
+    background-color: #eff6ff;
+}
+
+.media-picker-thumb {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.media-picker-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.media-picker-card:hover .media-picker-thumb img {
+    transform: scale(1.05);
+}
+
+.media-picker-meta {
+    padding: 8px;
+}
+
+.media-picker-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.media-picker-size {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+/* Checkbox */
+.media-picker-checkbox-wrapper {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.media-picker-card:hover .media-picker-checkbox-wrapper,
+.media-picker-card.selected .media-picker-checkbox-wrapper {
+    opacity: 1;
+}
+
+.media-picker-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Context Menu */
+.media-picker-context-menu {
+    position: fixed;
+    z-index: 9999;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    min-width: 160px;
+    padding: 4px 0;
+}
+
+.media-picker-context-menu-item {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #334155;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.media-picker-context-menu-item:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.media-picker-context-menu-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 4px 0;
+}
+
+/* Sidebar Preview */
+.media-picker-preview {
+    width: 300px;
+    flex-shrink: 0;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-left: 1px solid #e2e8f0;
+}
+
+/* Scrollbar */
+.media-picker-grid::-webkit-scrollbar,
+.media-picker-preview::-webkit-scrollbar {
+    width: 6px;
+}
+
+.media-picker-grid::-webkit-scrollbar-track,
+.media-picker-preview::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.media-picker-grid::-webkit-scrollbar-thumb,
+.media-picker-preview::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 3px;
+}
+
+/* Footer Pagination */
+.media-picker-footer {
+    padding: 10px 16px;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
