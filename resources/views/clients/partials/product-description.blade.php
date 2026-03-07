@@ -22,7 +22,7 @@
             <div class="description-section {{ $rowClass }} {{ !$hasMedia ? 'no-media' : '' }}">
                 <div class="description-content">
                     @if(!empty($section['title']))
-                        <h3 class="section-title text-uppercase">{{ $section['title'] }}</h3>
+                        <h3 class="section-title">{{ $section['title'] }}</h3>
                     @endif
                     <div class="section-body">
                         {!! $section['content'] ?? '' !!}

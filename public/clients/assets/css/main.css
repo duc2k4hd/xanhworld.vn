@@ -2173,6 +2173,191 @@ input:focus, textarea:focus {
 }
 
 @media (max-width: 768px) {
+    /* Hide back to top on mobile */
+    .xanhworld_back_to_top {
+        display: none !important;
+    }
+    
+    /* Transform chat to bottom navigation bar */
+    .xanhworld_chat {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 60px;
+        background: #fff;
+        border-top: 1px solid #e5e5e5;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        gap: 0;
+        padding: 0;
+        z-index: 1000;
+    }
+    
+    .xanhworld_chat a,
+    .xanhworld_chat .xanhworld_back_to_top {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 25%;
+        height: 100%;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 8px 5px;
+        gap: 3px;
+        position: relative;
+    }
+    
+    /* Phone button - center above nav bar with animation */
+    .xanhworld_chat_phone {
+        width: 65px !important;
+        height: 56px !important;
+        background: linear-gradient(135deg, #ff4d4d, #ff6347) !important;
+        border-radius: 50% !important;
+        position: fixed;
+        box-shadow: 0 6px 20px rgba(255, 77, 77, 0.5) !important;
+        z-index: 1001;
+        animation: phonePulse 2s ease-in-out infinite;
+        padding: 0 !important;
+        flex-direction: row;
+        bottom: 30px;
+    }
+    
+    @keyframes phonePulse {
+        0%, 100% {
+            box-shadow: 0 6px 20px rgba(255, 77, 77, 0.5), 0 0 0 0 rgba(255, 77, 77, 0.4);
+        }
+        50% {
+            box-shadow: 0 6px 20px rgba(255, 77, 77, 0.5), 0 0 0 10px rgba(255, 77, 77, 0);
+        }
+    }
+    
+    .xanhworld_chat_phone svg {
+        width: 26px !important;
+        height: 26px !important;
+        fill: #fff !important;
+    }
+    
+    /* Hide phone label */
+    .xanhworld_chat_phone::after {
+        display: none !important;
+    }
+    
+    /* Facebook button - normal nav button */
+    .xanhworld_chat_facebook {
+        width: 25% !important;
+        height: 100% !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+        position: relative !important;
+        bottom: auto !important;
+        left: auto !important;
+        transform: none !important;
+        box-shadow: none !important;
+        z-index: auto !important;
+        animation: none !important;
+        padding: 8px 5px !important;
+        flex-direction: column !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 3px !important;
+    }
+    
+    .xanhworld_chat_facebook svg {
+        width: 22px !important;
+        height: 22px !important;
+        fill: #8b5cf6 !important;
+        transition: all 0.2s ease;
+    }
+    
+    /* Show AI assistant label */
+    .xanhworld_chat_facebook::after {
+        content: "Trợ lý AI" !important;
+        display: block !important;
+        font-size: 9px;
+        color: #555;
+        font-weight: 500;
+        margin-top: 2px;
+    }
+    
+    /* Other buttons */
+    .xanhworld_chat a:not(.xanhworld_chat_phone):not(.xanhworld_chat_facebook) svg {
+        width: 22px;
+        height: 22px;
+        fill: #555;
+        transition: all 0.2s ease;
+    }
+    
+    /* Labels for buttons */
+    .xanhworld_chat a::after {
+        content: attr(aria-label);
+        font-size: 9px;
+        color: #555;
+        font-weight: 500;
+        white-space: nowrap;
+        margin-top: 2px;
+    }
+    
+    /* Zalo button specific */
+    .xanhworld_chat_zalo::after {
+        content: "Zalo";
+    }
+    
+    .xanhworld_chat_zalo svg {
+        fill: #0068ff !important;
+    }
+    
+    /* Home button specific */
+    .xanhworld_chat_home::after {
+        content: "Trang chủ";
+    }
+    
+    .xanhworld_chat_home svg {
+        fill: #555;
+    }
+    
+    /* Cart button specific */
+    .xanhworld_chat_cart::after {
+        content: "Giỏ hàng";
+    }
+    
+    .xanhworld_chat_cart svg {
+        fill: #555;
+    }
+    
+    /* Hover states */
+    .xanhworld_chat a:not(.xanhworld_chat_phone):not(.xanhworld_chat_facebook) svg {
+        fill: #555;
+    }
+    
+    .xanhworld_chat a:not(.xanhworld_chat_phone):hover {
+        transform: none;
+        box-shadow: none;
+        background: #f5f5f5;
+    }
+    
+    .xanhworld_chat a:not(.xanhworld_chat_phone):hover svg {
+        fill: #ee4d2d;
+        transform: scale(1.1);
+    }
+    
+    .xanhworld_chat_facebook:hover svg {
+        fill: #0a58ca !important;
+    }
+    
+    /* Hide sr-only text */
+    .xanhworld_chat .sr-only {
+        display: none;
+    }
+    
+    /* Chat popup adjustments */
     .xanhworld_chat_popup {
         left: 0;
         top: 0;
@@ -2181,6 +2366,8 @@ input:focus, textarea:focus {
         height: 100vh;
         max-height: 100vh;
         border-radius: 0;
+        bottom: auto;
+        right: auto;
     }
 
     .xanhworld_chat_panel {

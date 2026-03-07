@@ -878,8 +878,21 @@ if (tabButtons[0]) {
 }
 
 function tabReview() {
+    // Activate review tab (third tab, index 2)
     if (tabButtons[2]) {
-        tabButtons[2]?.click();
+        tabButtons[2].click();
+    }
+    
+    // Scroll to reviews section
+    const reviewsSection = document.getElementById('reviews');
+    if (reviewsSection) {
+        // Wait a bit for tab transition, then scroll
+        setTimeout(() => {
+            reviewsSection.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
     }
 }
 
@@ -1232,9 +1245,12 @@ document.addEventListener("DOMContentLoaded", () => {
     xanhworldBtnClose.className = "xanhworld_close_btn";
     xanhworldBtnClose.textContent = "✕";
 
-    xanhworldOverlay.appendChild(xanhworldBtnPrev);
-    xanhworldOverlay.appendChild(xanhworldBtnNext);
-    xanhworldOverlay.appendChild(xanhworldBtnClose);
+    // Check if overlay exists before appending
+    if (xanhworldOverlay) {
+        xanhworldOverlay.appendChild(xanhworldBtnPrev);
+        xanhworldOverlay.appendChild(xanhworldBtnNext);
+        xanhworldOverlay.appendChild(xanhworldBtnClose);
+    }
 
     // === LOCK/UNLOCK BODY SCROLL ===
     let scrollPosition = 0;
@@ -1262,112 +1278,133 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // === CLICK THUMBNAIL TO OPEN OVERLAY (TÍCH HỢP VÀO CODE CŨ) ===
-    document
-        .querySelectorAll(".xanhworld_single_info_images_main img")
-        .forEach((thumb, index) => {
-            thumb.addEventListener("click", () => {
-                xanhworldCurrentIndex = index;
-                xanhworldOverlay.style.display = "flex";
-                lockBodyScroll(); // Lock scroll khi mở overlay
+    if (xanhworldOverlay) {
+        document
+            .querySelectorAll(".xanhworld_single_info_images_main img")
+            .forEach((thumb, index) => {
+                thumb.addEventListener("click", () => {
+                    xanhworldCurrentIndex = index;
+                    xanhworldOverlay.style.display = "flex";
+                    lockBodyScroll(); // Lock scroll khi mở overlay
 
-                setTimeout(() => {
-                    xanhworldOverlay.classList.add("xanhworld_show");
-                }, 10);
+                    setTimeout(() => {
+                        xanhworldOverlay.classList.add("xanhworld_show");
+                    }, 10);
 
-                xanhworldUpdatePosition();
+                    xanhworldUpdatePosition();
+                });
             });
-        });
+    }
+    
     // === OPEN OVERLAY ===
-    document
-        .querySelectorAll(
-            ".xanhworld_single_info_images_main_overlay_image"
-        )
-        .forEach((xanhworldImg, i) => {
-            xanhworldImg.addEventListener("click", () => {
-                xanhworldCurrentIndex = i;
-                xanhworldOverlay.style.display = "flex";
-                lockBodyScroll(); // Lock scroll khi mở overlay
-                setTimeout(
-                    () => xanhworldOverlay.classList.add("xanhworld_show"),
-                    10
-                );
-                xanhworldUpdatePosition();
+    if (xanhworldOverlay) {
+        document
+            .querySelectorAll(
+                ".xanhworld_single_info_images_main_overlay_image"
+            )
+            .forEach((xanhworldImg, i) => {
+                xanhworldImg.addEventListener("click", () => {
+                    xanhworldCurrentIndex = i;
+                    xanhworldOverlay.style.display = "flex";
+                    lockBodyScroll(); // Lock scroll khi mở overlay
+                    setTimeout(
+                        () => xanhworldOverlay.classList.add("xanhworld_show"),
+                        10
+                    );
+                    xanhworldUpdatePosition();
+                });
             });
-        });
+    }
 
     // === UPDATE POSITION ===
     function xanhworldUpdatePosition() {
-        xanhworldOverlayImagesWrapper.style.transform = `translateX(-${
-            xanhworldCurrentIndex * 100
-        }vw)`;
+        if (xanhworldOverlayImagesWrapper) {
+            xanhworldOverlayImagesWrapper.style.transform = `translateX(-${
+                xanhworldCurrentIndex * 100
+            }vw)`;
+        }
     }
 
     // === NEXT / PREV ===
-    xanhworldBtnNext.addEventListener("click", () => {
-        xanhworldCurrentIndex =
-            (xanhworldCurrentIndex + 1) % xanhworldOverlayImageItems.length;
-        xanhworldUpdatePosition();
-    });
+    if (xanhworldBtnNext) {
+        xanhworldBtnNext.addEventListener("click", () => {
+            xanhworldCurrentIndex =
+                (xanhworldCurrentIndex + 1) % xanhworldOverlayImageItems.length;
+            xanhworldUpdatePosition();
+        });
+    }
 
-    xanhworldBtnPrev.addEventListener("click", () => {
-        xanhworldCurrentIndex =
-            (xanhworldCurrentIndex - 1 + xanhworldOverlayImageItems.length) %
-            xanhworldOverlayImageItems.length;
-        xanhworldUpdatePosition();
-    });
+    if (xanhworldBtnPrev) {
+        xanhworldBtnPrev.addEventListener("click", () => {
+            xanhworldCurrentIndex =
+                (xanhworldCurrentIndex - 1 + xanhworldOverlayImageItems.length) %
+                xanhworldOverlayImageItems.length;
+            xanhworldUpdatePosition();
+        });
+    }
 
     // === CLOSE ===
-    xanhworldBtnClose.addEventListener("click", xanhworldCloseOverlay);
-
-    xanhworldOverlay.addEventListener("click", (e) => {
-        if (e.target === xanhworldOverlay) xanhworldCloseOverlay();
-    });
-
     function xanhworldCloseOverlay() {
-        xanhworldOverlay.classList.remove("xanhworld_show");
-        unlockBodyScroll(); // Unlock scroll khi đóng overlay
-        setTimeout(() => (xanhworldOverlay.style.display = "none"), 200);
+        if (xanhworldOverlay) {
+            xanhworldOverlay.classList.remove("xanhworld_show");
+            unlockBodyScroll(); // Unlock scroll khi đóng overlay
+            setTimeout(() => (xanhworldOverlay.style.display = "none"), 200);
+        }
+    }
+
+    if (xanhworldBtnClose) {
+        xanhworldBtnClose.addEventListener("click", xanhworldCloseOverlay);
+    }
+
+    if (xanhworldOverlay) {
+        xanhworldOverlay.addEventListener("click", (e) => {
+            if (e.target === xanhworldOverlay) xanhworldCloseOverlay();
+        });
     }
 
     // === ESC TO CLOSE ===
     document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") xanhworldCloseOverlay();
+        if (e.key === "Escape" && xanhworldOverlay) xanhworldCloseOverlay();
     });
 
     // === MOBILE SWIPE ===
-    xanhworldOverlayImagesWrapper.addEventListener("touchstart", (e) => {
-        xanhworldTouchStartX = e.touches[0].clientX;
-    });
+    if (xanhworldOverlayImagesWrapper) {
+        xanhworldOverlayImagesWrapper.addEventListener("touchstart", (e) => {
+            xanhworldTouchStartX = e.touches[0].clientX;
+        });
 
-    xanhworldOverlayImagesWrapper.addEventListener("touchend", (e) => {
-        let touchEndX = e.changedTouches[0].clientX;
-        let touchDiff = xanhworldTouchStartX - touchEndX;
+        xanhworldOverlayImagesWrapper.addEventListener("touchend", (e) => {
+            let touchEndX = e.changedTouches[0].clientX;
+            let touchDiff = xanhworldTouchStartX - touchEndX;
 
-        if (touchDiff > 50) {
-            xanhworldCurrentIndex =
-                (xanhworldCurrentIndex + 1) % xanhworldOverlayImageItems.length;
-            xanhworldUpdatePosition();
-        }
-        if (touchDiff < -50) {
-            xanhworldCurrentIndex =
-                (xanhworldCurrentIndex -
-                    1 +
-                    xanhworldOverlayImageItems.length) %
-                xanhworldOverlayImageItems.length;
-            xanhworldUpdatePosition();
-        }
-    });
+            if (touchDiff > 50) {
+                xanhworldCurrentIndex =
+                    (xanhworldCurrentIndex + 1) % xanhworldOverlayImageItems.length;
+                xanhworldUpdatePosition();
+            }
+            if (touchDiff < -50) {
+                xanhworldCurrentIndex =
+                    (xanhworldCurrentIndex -
+                        1 +
+                        xanhworldOverlayImageItems.length) %
+                    xanhworldOverlayImageItems.length;
+                xanhworldUpdatePosition();
+            }
+        });
+    }
 
     // === DOUBLE TAP TO ZOOM ===
     let xanhworldLastTap = 0;
 
-    xanhworldOverlay.addEventListener("touchend", () => {
-        const now = Date.now();
-        if (now - xanhworldLastTap < 250) {
-            xanhworldOverlay.classList.toggle("xanhworld_zoom_active");
-        }
-        xanhworldLastTap = now;
-    });
+    if (xanhworldOverlay) {
+        xanhworldOverlay.addEventListener("touchend", () => {
+            const now = Date.now();
+            if (now - xanhworldLastTap < 250) {
+                xanhworldOverlay.classList.toggle("xanhworld_zoom_active");
+            }
+            xanhworldLastTap = now;
+        });
+    }
 
     initAccessoryDragScroll();
     initAccessoryQuickAdd();
@@ -2280,33 +2317,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ===== QUANTITY CONTROLS =====
     const qtyInput = document.querySelector('.qty-input');
-    const minusBtn = document.querySelector('.qty-btn.minus');
-    const plusBtn = document.querySelector('.qty-btn.plus');
     const formQtyInput = document.getElementById('form_quantity_input');
     
     if (qtyInput) {
         const maxStock = parseInt(qtyInput.getAttribute('data-max-stock')) || 999;
         
-        if (minusBtn) {
-            minusBtn.addEventListener('click', function() {
-                let val = parseInt(qtyInput.value) || 1;
-                if (val > 1) {
-                    qtyInput.value = val - 1;
-                    if (formQtyInput) formQtyInput.value = qtyInput.value;
-                }
-            });
-        }
-        
-        if (plusBtn) {
-            plusBtn.addEventListener('click', function() {
-                let val = parseInt(qtyInput.value) || 1;
-                if (val < maxStock) {
-                    qtyInput.value = val + 1;
-                    if (formQtyInput) formQtyInput.value = qtyInput.value;
-                }
-            });
-        }
-        
+        // Input validation only - buttons use onclick in HTML
         qtyInput.addEventListener('input', function() {
             let val = parseInt(this.value);
             if (isNaN(val) || val < 1) this.value = 1;

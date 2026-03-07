@@ -78,7 +78,7 @@
 .media-picker-card {
     background: #fff;
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     cursor: pointer;
     border: 2px solid transparent;
@@ -104,6 +104,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    border-radius: 8px;
 }
 
 .media-picker-thumb img {
@@ -111,6 +112,7 @@
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease;
+
 }
 
 .media-picker-card:hover .media-picker-thumb img {

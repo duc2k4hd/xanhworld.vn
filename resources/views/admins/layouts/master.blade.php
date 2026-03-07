@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="{{ asset('admins/css/custom.css') }}">
     <link rel="stylesheet" href="{{ asset('admins/css/layout.css') }}">
-    @stack('styles')
+    <link rel="stylesheet" href="{{ asset('admins/css/media.css') }}?v={{ time() }}">
+    @stack('styles')    
     @stack('head')
 </head>
 <body>
@@ -382,6 +383,10 @@
         .ck.ck-editor__editable_inline>:last-child {
             min-height: 500px !important;
             max-height: 1000px !important;
+        }
+
+        .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
+            max-height: 600px !important;
         }
     </style>
 

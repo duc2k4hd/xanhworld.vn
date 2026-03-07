@@ -706,8 +706,9 @@
                 if (replace) {
                     grid.innerHTML = '';
                     grid.appendChild(fragment);
-                } else if (prepend && grid.firstChild) {
-                    grid.prepend(fragment);
+                } else if (prepend) {
+                    // Prepend works even if grid is empty
+                    grid.insertBefore(fragment, grid.firstChild);
                 } else {
                     grid.appendChild(fragment);
                 }

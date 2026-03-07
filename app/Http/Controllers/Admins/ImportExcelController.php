@@ -140,17 +140,20 @@ class ImportExcelController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            $friendlyMessage = $this->parseFriendlyMessage($e);
+            
             $errors[] = [
                 'type' => 'SYSTEM_ERROR',
                 'sku' => 'N/A',
                 'message' => $e->getMessage(),
+                'friendly_message' => $friendlyMessage,
                 'line' => $e->getLine(),
                 'file' => basename($e->getFile()),
             ];
             $logFile = $this->writeErrorLog($errors, $request->file('excel_file')->getClientOriginalName());
 
             return redirect()->back()
-                ->with('error', 'Lỗi import: '.$e->getMessage())
+                ->with('error', 'Lỗi import: ' . $friendlyMessage)
                 ->with('log_file', $logFile);
         }
     }
@@ -164,7 +167,7 @@ class ImportExcelController extends Controller
         $sheet->setTitle('products');
 
         $headers = [
-            'sku', 'name', 'slug', 'description', 'short_description',
+            'sku', 'name', 'slug', 'short_description',
             'price', 'sale_price', 'cost_price', 'stock_quantity',
             'meta_title', 'meta_description', 'meta_keywords',
             'meta_canonical', 'primary_category_slug', 'category_slugs', 'tag_slugs',
@@ -192,19 +195,22 @@ class ImportExcelController extends Controller
                 $tagNames = implode(',', array_filter($names));
             }
 
-            // Format image_ids: IMG1,IMG2,IMG3
-            $imageIds = '';
+            // Format image_ids: url1,url2,url3 (previously IMG1,IMG2)
+            $imageUrls = '';
             if (! empty($product->image_ids) && is_array($product->image_ids)) {
-                $imageIds = implode(',', array_map(function ($id) {
-                    return 'IMG'.$id;
-                }, $product->image_ids));
+                $productImages = [];
+                foreach ($product->image_ids as $id) {
+                    if ($images->has($id)) {
+                        $productImages[] = $images->get($id)->url;
+                    }
+                }
+                $imageUrls = implode(',', $productImages);
             }
 
             $sheet->fromArray([
                 $product->sku,
                 $product->name,
                 $product->slug,
-                is_array($product->description) ? json_encode($product->description, JSON_UNESCAPED_UNICODE) : $product->description,
                 $product->short_description,
                 $product->price,
                 $product->sale_price,
@@ -217,7 +223,7 @@ class ImportExcelController extends Controller
                 $primarySlug,
                 $categorySlugs,
                 $tagNames,
-                $imageIds,
+                $imageUrls, // Use URLs instead of IDs
                 $product->is_featured ? 1 : 0,
                 $product->is_active ? 1 : 0,
                 $product->created_by,
@@ -245,7 +251,7 @@ class ImportExcelController extends Controller
                     if ($image) {
                         $sheet->fromArray([
                             $product->sku ?? '',
-                            'IMG'.$image->id,
+                            $image->url, // Use URL as key
                             $image->url,
                             $image->title,
                             $image->notes,
@@ -351,7 +357,7 @@ class ImportExcelController extends Controller
                     $variant->sale_price,
                     $variant->cost_price,
                     $variant->stock_quantity,
-                    $variant->image_id,
+                    $variant->image ? $variant->image->url : null, // Use URL instead of ID
                     $variant->attributes ? json_encode($variant->attributes, JSON_UNESCAPED_UNICODE) : null,
                     $variant->is_active ? 1 : 0,
                     $variant->sort_order,
@@ -376,6 +382,7 @@ class ImportExcelController extends Controller
 
         $categoryMap = [];
         $tagCache = [];
+        $slugsInImport = []; // Theo dõi slug trong cùng một lần import để tránh trùng lặp nội bộ
 
         foreach ($rows as $rowIndex => $row) {
             if (empty($row[0])) {
@@ -386,45 +393,50 @@ class ImportExcelController extends Controller
             $name = trim($row[1] ?? '');
             $slug = trim($row[2] ?? '') ?: Str::slug($name);
 
-            $descriptionRaw = trim($row[3] ?? '');
-            $description = null;
-            if (!empty($descriptionRaw)) {
-                // 1. Try JSON
-                $decoded = json_decode($descriptionRaw, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    $description = $decoded;
-                }
-                // 2. Check for HTML tags to trigger parser
-                elseif (strip_tags($descriptionRaw) !== $descriptionRaw || preg_match('/<(h2|h3)/i', $descriptionRaw)) {
-                    $parsed = \App\Services\ProductDescriptionService::parseHtmlToSections($descriptionRaw);
-                     if (!empty($parsed['sections']) && count($parsed['sections']) > 0) {
-                         $description = $parsed;
-                     } else {
-                         // Fallback to text migration
-                         $description = \App\Services\ProductDescriptionService::migrateFromText($descriptionRaw);
-                     }
-                }
-                // 3. Plain text
-                else {
-                    $description = \App\Services\ProductDescriptionService::migrateFromText($descriptionRaw);
-                }
+            // Tìm product theo SKU
+            $product = Product::where('sku', $sku)->first();
+
+            // Kiểm tra trùng lặp slug với sản phẩm khác trong DB
+            $slugExistsInDb = Product::where('slug', $slug)
+                ->when($product, function($q) use ($product) {
+                    return $q->where('id', '!=', $product->id);
+                })
+                ->exists();
+            
+            // Kiểm tra trùng lặp slug với các dòng khác trong cùng file Excel
+            $slugExistsInImport = in_array($slug, $slugsInImport);
+
+            if ($slugExistsInDb || $slugExistsInImport) {
+                $errors[] = [
+                    'type' => 'DUPLICATE_SLUG',
+                    'sku' => $sku ?: 'N/A',
+                    'slug' => $slug,
+                    'message' => "Đường dẫn (Slug) '{$slug}' đã tồn tại hoặc bị trùng lặp trong file. Đã bỏ qua sản phẩm này.",
+                    'row' => $rowIndex + 2,
+                    'sheet' => 'products',
+                ];
+                continue;
             }
-            $shortDescription = trim($row[4] ?? '');
-            $price = (float) ($row[5] ?? 0);
-            $salePrice = ! empty($row[6]) ? (float) $row[6] : null;
-            $costPrice = ! empty($row[7]) ? (float) $row[7] : null;
-            $stockQuantity = (int) ($row[8] ?? 0);
-            $metaTitle = trim($row[9] ?? '');
-            $metaDescription = trim($row[10] ?? '');
-            $metaKeywordsRaw = trim($row[11] ?? '');
-            $metaCanonical = trim($row[12] ?? '');
-            $primaryCategorySlug = trim($row[13] ?? '');
-            $categorySlugs = trim($row[14] ?? '');
-            $tagSlugs = trim($row[15] ?? '');
-            $imageIdsRaw = trim($row[16] ?? '');
-            $isFeatured = isset($row[17]) ? (bool) $row[17] : false;
-            $isActive = isset($row[18]) ? (bool) $row[18] : true;
-            $createdBy = (int) ($row[19] ?? (Auth::check() ? Auth::id() : 1));
+
+            // Lưu lại slug để kiểm tra cho các dòng tiếp theo
+            $slugsInImport[] = $slug;
+
+            $shortDescription = trim($row[3] ?? '');
+            $price = (float) ($row[4] ?? 0);
+            $salePrice = ! empty($row[5]) ? (float) $row[5] : null;
+            $costPrice = ! empty($row[6]) ? (float) $row[6] : null;
+            $stockQuantity = (int) ($row[7] ?? 0);
+            $metaTitle = trim($row[8] ?? '');
+            $metaDescription = trim($row[9] ?? '');
+            $metaKeywordsRaw = trim($row[10] ?? '');
+            $metaCanonical = trim($row[11] ?? '');
+            $primaryCategorySlug = trim($row[12] ?? '');
+            $categorySlugs = trim($row[13] ?? '');
+            $tagSlugs = trim($row[14] ?? '');
+            $imageIdsRaw = trim($row[15] ?? '');
+            $isFeatured = isset($row[16]) ? (bool) $row[16] : false;
+            $isActive = isset($row[17]) ? (bool) $row[17] : true;
+            $createdBy = (int) ($row[18] ?? (Auth::check() ? Auth::id() : 1));
 
             if (empty($name)) {
                 continue;
@@ -530,18 +542,40 @@ class ImportExcelController extends Controller
                 }
             }
 
-            // Xử lý image_ids (sẽ được xử lý sau trong importImages)
-            // Tạm thời để null, sẽ cập nhật sau khi import images
-            $imageIds = null;
+            // Xử lý image_ids trực tiếp từ sheet products
+            $imageIds = [];
+            if (! empty($imageIdsRaw)) {
+                $imageKeys = array_map('trim', explode(',', $imageIdsRaw));
+                foreach ($imageKeys as $imageKey) {
+                    $imageKey = $this->sanitizeImageKey($imageKey);
+                    if (empty($imageKey)) continue;
 
-            // Tìm product theo SKU
-            $product = Product::where('sku', $sku)->first();
+                    if (preg_match('/^IMG(\d+)$/i', $imageKey, $matches)) {
+                        $imageIds[] = (int) $matches[1];
+                    } else {
+                        // Sử dụng updateOrCreate để luôn cập nhật title/alt theo tên sản phẩm mới nhất
+                        $img = Image::updateOrCreate(
+                            ['url' => $imageKey],
+                            [
+                                'title' => $name,
+                                'alt' => $name,
+                                'is_primary' => empty($imageIds), // Ảnh đầu tiên là primary
+                            ]
+                        );
+                        $imageIds[] = $img->id;
+                    }
+                }
+            }
+            $imageIds = array_unique($imageIds);
+
+
+
+            // $product đã được tìm ở đầu loop để xử lý slug unique
 
             // Chuẩn bị data để update/create
             $data = [
                 'name' => $name,
                 'slug' => $slug,
-                'description' => $description ?: null,
                 'short_description' => $shortDescription ?: null,
                 'price' => $price,
                 'sale_price' => $salePrice,
@@ -555,6 +589,7 @@ class ImportExcelController extends Controller
                 'primary_category_id' => $primaryCategoryId,
                 'category_ids' => ! empty($categoryIds) ? $categoryIds : null,
                 'tag_ids' => ! empty($tagIds) ? $tagIds : null,
+                'image_ids' => ! empty($imageIds) ? $imageIds : null, // Gán ảnh ngay tại đây
                 'is_featured' => $isFeatured,
                 'is_active' => $isActive,
                 'created_by' => $createdBy,
@@ -662,6 +697,10 @@ class ImportExcelController extends Controller
                 $order = (int) ($row[6] ?? 0);
             }
 
+            // Sanitize image key and URL (it should be just the filename)
+            $imageKey = $this->sanitizeImageKey($imageKey);
+            $url = $this->sanitizeImageKey($url);
+
             if (empty($imageKey) || empty($url)) {
                 continue;
             }
@@ -673,40 +712,31 @@ class ImportExcelController extends Controller
             }
 
             if ($imageId) {
-                // Update existing image
+                // Update existing image by ID
                 $image = Image::find($imageId);
                 if ($image) {
-                    $image->update([
-                        'url' => $url,
-                        'title' => $title ?: null,
-                        'notes' => $notes ?: null,
-                        'alt' => $alt ?: null,
-                        'is_primary' => $isPrimary,
-                        'order' => $order,
-                    ]);
+                    $updateData = ['url' => $url, 'is_primary' => $isPrimary, 'order' => $order];
+                    if (!empty($title)) $updateData['title'] = $title;
+                    if (!empty($notes)) $updateData['notes'] = $notes;
+                    if (!empty($alt)) $updateData['alt'] = $alt;
+                    $image->update($updateData);
                     $imageMap[$imageKey] = $image->id;
                 } else {
-                    // Create new image
-                    $image = Image::create([
-                        'url' => $url,
-                        'title' => $title ?: null,
-                        'notes' => $notes ?: null,
-                        'alt' => $alt ?: null,
-                        'is_primary' => $isPrimary,
-                        'order' => $order,
-                    ]);
+                    // Falls back to creating or updating by URL
+                    $updateData = ['is_primary' => $isPrimary, 'order' => $order];
+                    if (!empty($title)) $updateData['title'] = $title;
+                    if (!empty($notes)) $updateData['notes'] = $notes;
+                    if (!empty($alt)) $updateData['alt'] = $alt;
+                    $image = Image::updateOrCreate(['url' => $url], $updateData);
                     $imageMap[$imageKey] = $image->id;
                 }
             } else {
-                // Create new image without ID
-                $image = Image::create([
-                    'url' => $url,
-                    'title' => $title ?: null,
-                    'notes' => $notes ?: null,
-                    'alt' => $alt ?: null,
-                    'is_primary' => $isPrimary,
-                    'order' => $order,
-                ]);
+                // No ID provided, find by URL or create
+                $updateData = ['is_primary' => $isPrimary, 'order' => $order];
+                if (!empty($title)) $updateData['title'] = $title;
+                if (!empty($notes)) $updateData['notes'] = $notes;
+                if (!empty($alt)) $updateData['alt'] = $alt;
+                $image = Image::updateOrCreate(['url' => $url], $updateData);
                 $imageMap[$imageKey] = $image->id;
             }
 
@@ -738,69 +768,6 @@ class ImportExcelController extends Controller
                     $product->update(['image_ids' => $newImageIds]);
                     // Xóa cache vì image_ids đã thay đổi
                     Cache::forget('product_detail_'.$product->slug);
-                }
-            } else {
-                $errors[] = [
-                    'type' => 'PRODUCT_NOT_FOUND',
-                    'sku' => $sku,
-                    'message' => "Không tìm thấy sản phẩm với SKU '{$sku}' trong sheet images. Đã bỏ qua ảnh này.",
-                    'row' => null,
-                    'sheet' => 'images',
-                ];
-            }
-        }
-
-        // Fallback: Cập nhật image_ids từ sheet products (nếu không có SKU trong sheet images)
-        if (empty($productImageMap)) {
-            $sheet = $spreadsheet->getSheetByName('products');
-            if ($sheet) {
-                $rows = $sheet->toArray();
-                array_shift($rows); // Bỏ header
-
-                foreach ($rows as $row) {
-                    if (empty($row[0])) {
-                        continue;
-                    }
-                    $sku = trim($row[0] ?? '');
-                    $imageIdsRaw = trim($row[16] ?? '');
-
-                    if (empty($sku) || empty($imageIdsRaw)) {
-                        continue;
-                    }
-
-                    $product = Product::where('sku', $sku)->first();
-                    if (! $product) {
-                        continue;
-                    }
-
-                    // Parse image_ids: IMG1,IMG2,IMG3 -> [1,2,3]
-                    $imageKeys = array_map('trim', explode(',', $imageIdsRaw));
-                    $imageIds = [];
-                    foreach ($imageKeys as $imageKey) {
-                        if (isset($imageMap[$imageKey])) {
-                            $imageIds[] = $imageMap[$imageKey];
-                        } elseif (preg_match('/^IMG(\d+)$/i', $imageKey, $matches)) {
-                            $imageIds[] = (int) $matches[1];
-                        }
-                    }
-
-                    if (! empty($imageIds)) {
-                        $oldImageIds = $product->image_ids ?? [];
-                        $newImageIds = array_unique($imageIds);
-
-                        // So sánh image_ids cũ và mới
-                        $oldArray = is_array($oldImageIds) ? $oldImageIds : [];
-                        $newArray = is_array($newImageIds) ? $newImageIds : [];
-                        sort($oldArray);
-                        sort($newArray);
-
-                        // Chỉ update nếu có thay đổi
-                        if ($oldArray !== $newArray) {
-                            $product->update(['image_ids' => $newImageIds]);
-                            // Xóa cache vì image_ids đã thay đổi
-                            Cache::forget('product_detail_'.$product->slug);
-                        }
-                    }
                 }
             }
         }
@@ -969,6 +936,32 @@ class ImportExcelController extends Controller
             }
             $variant = $variantQuery->first();
 
+            // Handle image_id: can be numeric ID or URL/Filename
+            $finalImageId = null;
+            if ($imageId !== null && $imageId !== '') {
+                if (is_numeric($imageId)) {
+                    $finalImageId = (int) $imageId;
+                } else {
+                    $imageId = $this->sanitizeImageKey($imageId);
+                    if (! empty($imageId)) {
+                        // Try lookup by IMG123
+                        if (preg_match('/^IMG(\d+)$/i', $imageId, $matches)) {
+                            $finalImageId = (int) $matches[1];
+                        } else {
+                            // Sử dụng updateOrCreate để luôn cập nhật title/alt theo tên biến thể
+                            $img = Image::updateOrCreate(
+                                ['url' => $imageId],
+                                [
+                                    'title' => $variantName,
+                                    'alt' => $variantName,
+                                ]
+                            );
+                            $finalImageId = $img->id;
+                        }
+                    }
+                }
+            }
+
             // Chuẩn bị data
             $variantData = [
                 'name' => $variantName,
@@ -977,7 +970,7 @@ class ImportExcelController extends Controller
                 'sale_price' => $salePrice !== null && $salePrice !== '' ? (float) $salePrice : null,
                 'cost_price' => $costPrice !== null && $costPrice !== '' ? (float) $costPrice : null,
                 'stock_quantity' => $stockQuantity !== null && $stockQuantity !== '' ? (int) $stockQuantity : null,
-                'image_id' => $imageId && is_numeric($imageId) ? (int) $imageId : null,
+                'image_id' => $finalImageId,
                 'attributes' => $attributes,
                 'is_active' => (bool) $isActive,
                 'sort_order' => $sortOrder,
@@ -1294,7 +1287,10 @@ class ImportExcelController extends Controller
                 if (!empty($title) || !empty($content) || !empty($imageUrl)) {
                     $media = null;
                     if (!empty($imageUrl)) {
-                        $media = ['type' => 'image', 'url' => $imageUrl];
+                        $imageUrl = $this->sanitizeImageKey($imageUrl);
+                        if (!empty($imageUrl)) {
+                            $media = ['type' => 'image', 'url' => $imageUrl];
+                        }
                     }
 
                     $sectionData = [
@@ -1329,5 +1325,59 @@ class ImportExcelController extends Controller
                 Cache::forget('product_detail_' . $product->slug);
             }
         }
+    }
+    /**
+     * Parse technical exception into human-readable Vietnamese message
+     */
+    private function parseFriendlyMessage(\Exception $e)
+    {
+        $message = $e->getMessage();
+
+        if (str_contains($message, 'Duplicate entry')) {
+            if (str_contains($message, 'products_slug_unique')) {
+                preg_match("/Duplicate entry '(.*)' for key/", $message, $matches);
+                $val = $matches[1] ?? 'không xác định';
+                return "Đường dẫn (Slug) '{$val}' đã được sử dụng bởi một sản phẩm khác. Vui lòng kiểm tra lại.";
+            }
+            if (str_contains($message, 'products_sku_unique')) {
+                preg_match("/Duplicate entry '(.*)' for key/", $message, $matches);
+                $val = $matches[1] ?? 'không xác định';
+                return "Mã SKU '{$val}' đã tồn tại. Mỗi sản phẩm phải có một mã SKU duy nhất.";
+            }
+            return "Dữ liệu bị trùng lặp: " . $message;
+        }
+
+        if (str_contains($message, 'Integrity constraint violation')) {
+            return "Lỗi ràng buộc dữ liệu (có thể do thiếu thông tin bắt buộc hoặc sai định dạng).";
+        }
+
+        if (str_contains($message, 'Column not found')) {
+            return "Cấu trúc file Excel không đúng (thiếu cột hoặc sai tên cột). Vui lòng dùng file mẫu.";
+        }
+
+        return "Có lỗi hệ thống xảy ra: " . $message;
+    }
+    /**
+     * Sanitize image key/URL to extract only the filename.
+     * Removes non-printable characters and directory prefixes.
+     */
+    private function sanitizeImageKey($key)
+    {
+        if (empty($key)) return '';
+        
+        // 1. Remove non-printable characters (control chars, etc.)
+        $key = preg_replace('/[\x00-\x1F\x7F]/', '', $key);
+        
+        // 2. Trim whitespace
+        $key = trim($key);
+        
+        // 3. Extract filename if it looks like a path or URL
+        if (str_contains($key, '/') || str_contains($key, '\\')) {
+            // Remove query string if any (for URLs)
+            $key = explode('?', $key)[0];
+            $key = basename(str_replace('\\', '/', $key));
+        }
+        
+        return $key;
     }
 }
