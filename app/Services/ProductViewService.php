@@ -42,8 +42,10 @@ class ProductViewService
             'viewed_at' => now(),
         ]);
 
-        // Giữ tối đa 50 bản ghi gần nhất cho mỗi user
-        $this->cleanupOldViews($accountId, $sessionId);
+        // Giữ tối đa 50 bản ghi gần nhất cho mỗi user - Chạy với xác suất 1/50 để giảm tải DB
+        if (rand(1, 50) === 1) {
+            $this->cleanupOldViews($accountId, $sessionId);
+        }
     }
 
     /**

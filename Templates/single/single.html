@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meant to Bee® Royal Raspberry Agastache Plant</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #333; background: #fff; }
+  a { text-decoration: none; color: inherit; }
+  img { max-width: 100%; display: block; }
+
+  /* TOP BANNER */
+  .xanhworld_single_topbanner {
+    background: #2d6a4f;
+    color: #fff;
+    text-align: center;
+    font-size: 13px;
+    padding: 7px 15px;
+  }
+  .xanhworld_single_topbanner span { font-weight: 600; }
+
+  /* HEADER */
+  .xanhworld_single_header {
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .xanhworld_single_logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2d6a4f;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .xanhworld_single_logo span { color: #f4a435; }
+  .xanhworld_single_search {
+    flex: 1;
+    max-width: 500px;
+    display: flex;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .xanhworld_single_search input {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    outline: none;
+    font-size: 13px;
+  }
+  .xanhworld_single_search button {
+    background: #2d6a4f;
+    border: none;
+    color: #fff;
+    padding: 0 14px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .xanhworld_single_header_right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 12px;
+    color: #555;
+  }
+  .xanhworld_single_header_right a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    color: #555;
+    transition: color 0.2s;
+  }
+  .xanhworld_single_header_right a:hover { color: #2d6a4f; }
+  .xanhworld_single_header_right .xanhworld_single_icon { font-size: 18px; }
+
+  /* NAV */
+  .xanhworld_single_nav {
+    background: #fff;
+    border-bottom: 2px solid #2d6a4f;
+    padding: 0 20px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .xanhworld_single_nav a {
+    padding: 11px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  .xanhworld_single_nav a:hover, .xanhworld_single_nav a.active {
+    color: #2d6a4f;
+    border-bottom-color: #2d6a4f;
+  }
+
+  /* BREADCRUMB */
+  .xanhworld_single_breadcrumb {
+    padding: 10px 20px;
+    font-size: 12px;
+    color: #888;
+  }
+  .xanhworld_single_breadcrumb a { color: #2d6a4f; }
+  .xanhworld_single_breadcrumb span { margin: 0 5px; }
+
+  /* MAIN PRODUCT */
+  .xanhworld_single_main { max-width: 1200px; margin: 0 auto; padding: 15px 20px; }
+
+  .xanhworld_single_product_top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+  }
+
+  /* GALLERY */
+  .xanhworld_single_gallery_main {
+    position: relative;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    cursor: zoom-in;
+  }
+  .xanhworld_single_gallery_main img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  .xanhworld_single_gallery_main:hover img { transform: scale(1.04); }
+  .xanhworld_single_gallery_badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+  .xanhworld_single_gallery_wishlist {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    color: #999;
+    transition: all 0.2s;
+  }
+  .xanhworld_single_gallery_wishlist:hover { color: #e74c3c; border-color: #e74c3c; }
+  .xanhworld_single_gallery_thumbs {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .xanhworld_single_gallery_thumbs img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .xanhworld_single_gallery_thumbs img.active,
+  .xanhworld_single_gallery_thumbs img:hover { border-color: #2d6a4f; }
+
+  /* PRODUCT INFO */
+  .xanhworld_single_product_info { display: flex; flex-direction: column; gap: 14px; }
+
+  .xanhworld_single_brand { font-size: 12px; color: #2d6a4f; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .xanhworld_single_title { font-size: 22px; font-weight: 700; color: #222; line-height: 1.3; }
+
+  .xanhworld_single_badges { display: flex; flex-direction: column; gap: 5px; }
+  .xanhworld_single_badge_item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    color: #444;
+  }
+  .xanhworld_single_badge_item .xanhworld_single_check { color: #2d6a4f; font-weight: 700; font-size: 14px; }
+
+  .xanhworld_single_price_block { display: flex; align-items: baseline; gap: 10px; }
+  .xanhworld_single_price { font-size: 26px; font-weight: 800; color: #e74c3c; }
+  .xanhworld_single_price_old { font-size: 15px; color: #999; text-decoration: line-through; }
+
+  .xanhworld_single_promo_box {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+  }
+  .xanhworld_single_promo_box strong { color: #e74c3c; }
+
+  .xanhworld_single_meta { display: flex; flex-direction: column; gap: 7px; font-size: 13px; color: #555; }
+  .xanhworld_single_meta_item { display: flex; align-items: center; gap: 8px; }
+  .xanhworld_single_meta_icon { width: 20px; text-align: center; font-size: 15px; }
+
+  .xanhworld_single_size_label { font-size: 13px; font-weight: 600; color: #333; }
+  .xanhworld_single_size_options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
+  .xanhworld_single_size_btn {
+    padding: 7px 18px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .xanhworld_single_size_btn.active,
+  .xanhworld_single_size_btn:hover { border-color: #2d6a4f; color: #2d6a4f; background: #f0faf4; }
+
+  .xanhworld_single_qty_row { display: flex; align-items: center; gap: 10px; }
+  .xanhworld_single_qty_control {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .xanhworld_single_qty_control button {
+    width: 34px;
+    height: 38px;
+    background: #f5f5f5;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.15s;
+    line-height: 1;
+  }
+  .xanhworld_single_qty_control button:hover { background: #e0e0e0; }
+  .xanhworld_single_qty_control input {
+    width: 52px;
+    height: 38px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    font-size: 15px;
+    outline: none;
+  }
+
+  .xanhworld_single_add_btn {
+    flex: 1;
+    background: #f4a435;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+  .xanhworld_single_add_btn:hover { background: #e0932a; }
+  .xanhworld_single_add_btn:active { transform: scale(0.98); }
+
+  .xanhworld_single_save_btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #2d6a4f;
+    background: none;
+    border: 1px solid #2d6a4f;
+    border-radius: 4px;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+  }
+  .xanhworld_single_save_btn:hover { background: #f0faf4; }
+
+  .xanhworld_single_limited_badge {
+    background: #fff3cd;
+    border-left: 3px solid #f4a435;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #b8860b;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .xanhworld_single_discount_table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .xanhworld_single_discount_table th {
+    background: #f5f5f5;
+    padding: 6px 10px;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 1px solid #ddd;
+  }
+  .xanhworld_single_discount_table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #444;
+  }
+  .xanhworld_single_discount_table tr:last-child td { border-bottom: none; }
+
+  .xanhworld_single_shopnow_link { font-size: 12px; color: #2d6a4f; text-decoration: underline; cursor: pointer; }
+
+  /* ALSO VIEWED */
+  .xanhworld_single_section { max-width: 1200px; margin: 0 auto 40px; padding: 0 20px; }
+  .xanhworld_single_section_title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+  }
+  .xanhworld_single_products_grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+  .xanhworld_single_product_card {
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+    cursor: pointer;
+    background: #fff;
+  }
+  .xanhworld_single_product_card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+  }
+  .xanhworld_single_product_card_img {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1;
+  }
+  .xanhworld_single_product_card_img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  .xanhworld_single_product_card:hover .xanhworld_single_product_card_img img { transform: scale(1.07); }
+  .xanhworld_single_product_card_badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .xanhworld_single_product_card_body { padding: 8px; }
+  .xanhworld_single_product_card_name { font-size: 12px; color: #333; font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
+  .xanhworld_single_product_card_stars { color: #f4a435; font-size: 11px; margin-bottom: 3px; }
+  .xanhworld_single_product_card_price { font-size: 13px; font-weight: 700; color: #e74c3c; }
+  .xanhworld_single_product_card_oldprice { font-size: 11px; color: #aaa; text-decoration: line-through; }
+  .xanhworld_single_product_card_shipping { font-size: 10px; color: #2d6a4f; font-weight: 600; }
+
+  /* DESCRIPTION */
+  .xanhworld_single_desc_section {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 30px;
+  }
+  .xanhworld_single_desc_title { font-size: 20px; font-weight: 700; color: #222; margin-bottom: 14px; }
+  .xanhworld_single_desc_text { font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 12px; }
+
+  .xanhworld_single_accordions { margin-top: 20px; }
+  .xanhworld_single_accordion_item {
+    border-top: 1px solid #ddd;
+  }
+  .xanhworld_single_accordion_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    user-select: none;
+    transition: color 0.2s;
+  }
+  .xanhworld_single_accordion_header:hover { color: #2d6a4f; }
+  .xanhworld_single_accordion_arrow { font-size: 18px; transition: transform 0.3s; }
+  .xanhworld_single_accordion_item.open .xanhworld_single_accordion_arrow { transform: rotate(180deg); }
+  .xanhworld_single_accordion_body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+  }
+  .xanhworld_single_accordion_body_inner { padding: 0 0 15px; }
+
+  /* PLANT SPECS SIDEBAR */
+  .xanhworld_single_specs_card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    align-self: start;
+  }
+  .xanhworld_single_specs_header {
+    background: #2d6a4f;
+    color: #fff;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-content: center;
+  }
+  .xanhworld_single_specs_badge {
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    text-align: center;
+  }
+  .xanhworld_single_specs_table { width: 100%; }
+  .xanhworld_single_specs_row {
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 12.5px;
+  }
+  .xanhworld_single_specs_row:last-child { border-bottom: none; }
+  .xanhworld_single_specs_row .xanhworld_single_specs_key { color: #888; }
+  .xanhworld_single_specs_row .xanhworld_single_specs_val { font-weight: 600; color: #333; text-align: right; max-width: 60%; }
+  .xanhworld_single_specs_map {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+    background: #f8f8f8;
+  }
+  .xanhworld_single_specs_map img { width: 100%; max-width: 200px; }
+
+  /* REVIEWS */
+  .xanhworld_single_reviews_section {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+  }
+  .xanhworld_single_reviews_summary {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 20px;
+  }
+  .xanhworld_single_reviews_score { font-size: 48px; font-weight: 800; color: #333; }
+  .xanhworld_single_reviews_stars { color: #ddd; font-size: 20px; }
+  .xanhworld_single_reviews_count { font-size: 12px; color: #888; }
+  .xanhworld_single_reviews_bars { flex: 1; }
+  .xanhworld_single_bar_row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: #888;
+  }
+  .xanhworld_single_bar_track {
+    flex: 1;
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .xanhworld_single_bar_fill { height: 100%; background: #f4a435; border-radius: 4px; }
+  .xanhworld_single_write_review_btn {
+    padding: 10px 20px;
+    background: #2d6a4f;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .xanhworld_single_write_review_btn:hover { background: #245e44; }
+  .xanhworld_single_reviews_empty { text-align: center; font-size: 14px; color: #aaa; padding: 30px 0; }
+
+  /* TRUST SECTION */
+  .xanhworld_single_trust_section {
+    background: #f9f9f9;
+    padding: 40px 20px;
+    margin-bottom: 40px;
+  }
+  .xanhworld_single_trust_inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: center;
+  }
+  .xanhworld_single_trust_stat { text-align: center; }
+  .xanhworld_single_trust_score_stars { color: #f4a435; font-size: 28px; }
+  .xanhworld_single_trust_number { font-size: 20px; font-weight: 800; color: #333; }
+  .xanhworld_single_trust_sub { font-size: 13px; color: #888; }
+  .xanhworld_single_trust_chat {
+    background: #2d6a4f;
+    border-radius: 8px;
+    padding: 20px;
+    color: #fff;
+    text-align: center;
+  }
+  .xanhworld_single_trust_chat .xanhworld_single_trust_chat_tag {
+    background: #f4a435;
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .xanhworld_single_trust_chat h3 { font-size: 16px; margin-bottom: 8px; }
+  .xanhworld_single_trust_chat p { font-size: 12px; opacity: 0.85; margin-bottom: 12px; }
+  .xanhworld_single_trust_chat_btn {
+    background: #f4a435;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .xanhworld_single_trust_chat_btn:hover { background: #e0932a; }
+
+  /* YARD SUPPORT */
+  .xanhworld_single_yard_section {
+    background: #1e4d34;
+    color: #fff;
+    padding: 40px 20px;
+    margin-bottom: 40px;
+  }
+  .xanhworld_single_yard_inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: center;
+  }
+  .xanhworld_single_yard_content h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .xanhworld_single_yard_content p { font-size: 13px; opacity: 0.85; margin-bottom: 15px; }
+  .xanhworld_single_yard_btn {
+    background: #f4a435;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 11px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: inline-block;
+  }
+  .xanhworld_single_yard_btn:hover { background: #e0932a; }
+  .xanhworld_single_yard_phone { font-size: 12px; margin-top: 10px; opacity: 0.8; }
+  .xanhworld_single_yard_imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .xanhworld_single_yard_imgs img { border-radius: 8px; width: 100%; height: 120px; object-fit: cover; }
+
+  /* FEATURES GRID */
+  .xanhworld_single_features_section {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+  }
+  .xanhworld_single_features_title { font-size: 20px; font-weight: 700; color: #222; margin-bottom: 20px; text-align: center; }
+  .xanhworld_single_features_grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .xanhworld_single_feature_card { text-align: center; }
+  .xanhworld_single_feature_icon {
+    width: 60px;
+    height: 60px;
+    background: #e8f5e9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 26px;
+  }
+  .xanhworld_single_feature_name { font-size: 13px; font-weight: 700; color: #333; margin-bottom: 5px; }
+  .xanhworld_single_feature_desc { font-size: 12px; color: #777; line-height: 1.5; }
+
+  /* COMMUNITY */
+  .xanhworld_single_community_section {
+    background: #f9f9f9;
+    padding: 40px 20px;
+    margin-bottom: 40px;
+  }
+  .xanhworld_single_community_inner { max-width: 1200px; margin: 0 auto; }
+  .xanhworld_single_community_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .xanhworld_single_community_header h2 { font-size: 20px; font-weight: 700; color: #222; }
+  .xanhworld_single_community_header a { font-size: 13px; color: #2d6a4f; font-weight: 600; }
+  .xanhworld_single_community_grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .xanhworld_single_community_item { border-radius: 8px; overflow: hidden; aspect-ratio: 1; cursor: pointer; }
+  .xanhworld_single_community_item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+  .xanhworld_single_community_item:hover img { transform: scale(1.05); }
+
+  /* STATS BANNER */
+  .xanhworld_single_stats_section {
+    background: #2d6a4f;
+    color: #fff;
+    text-align: center;
+    padding: 30px 20px;
+    margin-bottom: 40px;
+  }
+  .xanhworld_single_stats_number { font-size: 36px; font-weight: 900; }
+  .xanhworld_single_stats_sub { font-size: 16px; opacity: 0.9; }
+
+  /* FOOTER */
+  .xanhworld_single_footer {
+    background: #1a1a1a;
+    color: #ccc;
+    padding: 40px 20px 20px;
+  }
+  .xanhworld_single_footer_inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    margin-bottom: 30px;
+  }
+  .xanhworld_single_footer_col h4 { font-size: 14px; color: #fff; font-weight: 700; margin-bottom: 14px; }
+  .xanhworld_single_footer_col a {
+    display: block;
+    font-size: 12.5px;
+    color: #aaa;
+    margin-bottom: 8px;
+    transition: color 0.2s;
+  }
+  .xanhworld_single_footer_col a:hover { color: #fff; }
+  .xanhworld_single_footer_contact { font-size: 12.5px; color: #aaa; line-height: 1.7; }
+  .xanhworld_single_footer_contact a { color: #f4a435; font-weight: 600; }
+  .xanhworld_single_footer_bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    border-top: 1px solid #333;
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .xanhworld_single_footer_bottom_left { font-size: 12px; color: #888; }
+  .xanhworld_single_footer_logo { font-size: 16px; font-weight: 700; color: #f4a435; }
+  .xanhworld_single_footer_social { display: flex; gap: 12px; }
+  .xanhworld_single_footer_social a {
+    width: 32px;
+    height: 32px;
+    background: #333;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .xanhworld_single_footer_social a:hover { background: #2d6a4f; color: #fff; }
+
+  /* Reviews gallery */
+  .xanhworld_single_reviews_gallery {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .xanhworld_single_reviews_gallery_item { border-radius: 6px; overflow: hidden; aspect-ratio: 1; }
+  .xanhworld_single_reviews_gallery_item img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1199px) {
+    .xanhworld_single_products_grid { grid-template-columns: repeat(4, 1fr); }
+    .xanhworld_single_reviews_gallery { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (max-width: 991px) {
+    .xanhworld_single_product_top { grid-template-columns: 1fr; gap: 20px; }
+    .xanhworld_single_gallery_main { max-width: 480px; margin: 0 auto; }
+    .xanhworld_single_gallery_thumbs { justify-content: center; }
+    .xanhworld_single_products_grid { grid-template-columns: repeat(3, 1fr); }
+    .xanhworld_single_desc_section { grid-template-columns: 1fr; }
+    .xanhworld_single_trust_inner { grid-template-columns: 1fr; }
+    .xanhworld_single_yard_inner { grid-template-columns: 1fr; }
+    .xanhworld_single_features_grid { grid-template-columns: repeat(2, 1fr); }
+    .xanhworld_single_community_grid { grid-template-columns: repeat(2, 1fr); }
+    .xanhworld_single_footer_inner { grid-template-columns: repeat(2, 1fr); }
+    .xanhworld_single_header_right a span { display: none; }
+    .xanhworld_single_reviews_gallery { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 767px) {
+    .xanhworld_single_header { flex-wrap: wrap; }
+    .xanhworld_single_search { order: 3; max-width: 100%; width: 100%; }
+    .xanhworld_single_nav a { padding: 9px 10px; font-size: 12px; }
+    .xanhworld_single_products_grid { grid-template-columns: repeat(2, 1fr); }
+    .xanhworld_single_features_grid { grid-template-columns: repeat(2, 1fr); }
+    .xanhworld_single_footer_inner { grid-template-columns: 1fr 1fr; }
+    .xanhworld_single_footer_bottom { flex-direction: column; text-align: center; }
+    .xanhworld_single_reviews_gallery { grid-template-columns: repeat(3, 1fr); }
+    .xanhworld_single_reviews_summary { flex-wrap: wrap; }
+    .xanhworld_single_title { font-size: 18px; }
+    .xanhworld_single_qty_row { flex-wrap: wrap; }
+    .xanhworld_single_yard_imgs { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BANNER -->
+<div class="xanhworld_single_topbanner">
+  Free shipping on orders over <span>$99</span>
+</div>
+
+<!-- HEADER -->
+<header class="xanhworld_single_header">
+  <div class="xanhworld_single_logo">
+    🌿 Fast<span>Growing</span>Trees
+  </div>
+  <div class="xanhworld_single_search">
+    <input type="text" placeholder="Find the perfect plant...">
+    <button>🔍</button>
+  </div>
+  <div class="xanhworld_single_header_right">
+    <a href="#"><span class="xanhworld_single_icon">📍</span><span>Delivery<br>Location</span></a>
+    <a href="#"><span class="xanhworld_single_icon">👤</span><span>Sign In /<br>Register</span></a>
+    <a href="#"><span class="xanhworld_single_icon">❤️</span><span>Saved<br>Items</span></a>
+    <a href="#"><span class="xanhworld_single_icon">🛒</span><span>Cart<br>(0)</span></a>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="xanhworld_single_nav">
+  <a href="#">Sale</a>
+  <a href="#" class="active">Trees</a>
+  <a href="#">Fruit Trees</a>
+  <a href="#">Evergreen Trees</a>
+  <a href="#">Shrubs</a>
+  <a href="#">Flowering Trees</a>
+  <a href="#">Climber Trees</a>
+  <a href="#">Tropical Plants</a>
+  <a href="#">Perennials</a>
+  <a href="#">Indoor Plants</a>
+  <a href="#">Garden Supplies</a>
+  <a href="#">Email Shop</a>
+  <a href="#">Expert Advice</a>
+</nav>
+
+<!-- BREADCRUMB -->
+<div class="xanhworld_single_breadcrumb">
+  <a href="#">Home</a>
+  <span>›</span>
+  <a href="#">Perennials</a>
+  <span>›</span>
+  <span>Meant to Bee® Royal Raspberry Agastache Plant</span>
+</div>
+
+<!-- MAIN PRODUCT -->
+<main class="xanhworld_single_main">
+  <div class="xanhworld_single_product_top">
+
+    <!-- LEFT: GALLERY -->
+    <div class="xanhworld_single_gallery">
+      <div class="xanhworld_single_gallery_main" id="xanhworld_main_img">
+        <img src="https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=600&q=80" alt="Agastache Plant" id="xanhworld_main_img_src">
+        <div class="xanhworld_single_gallery_badge">NEW</div>
+        <div class="xanhworld_single_gallery_wishlist" id="xanhworld_wish_btn" title="Save for later">♡</div>
+      </div>
+      <div class="xanhworld_single_gallery_thumbs">
+        <img src="https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=200&q=80" alt="thumb1" class="active" onclick="xanhworld_changeImg(this, 'https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=600&q=80')">
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200&q=80" alt="thumb2" onclick="xanhworld_changeImg(this, 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&q=80')">
+        <img src="https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=200&q=80" alt="thumb3" onclick="xanhworld_changeImg(this, 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=600&q=80')">
+      </div>
+    </div>
+
+    <!-- RIGHT: PRODUCT INFO -->
+    <div class="xanhworld_single_product_info">
+      <div class="xanhworld_single_brand">Fast Growing Trees Exclusive</div>
+      <h1 class="xanhworld_single_title">Meant to Bee® Royal Raspberry Agastache Plant</h1>
+
+      <div class="xanhworld_single_badges">
+        <div class="xanhworld_single_badge_item"><span class="xanhworld_single_check">✔</span> Instant pollinator attraction with stunning raspberry blooms</div>
+        <div class="xanhworld_single_badge_item"><span class="xanhworld_single_check">✔</span> Blooms all summer long – from June through September</div>
+        <div class="xanhworld_single_badge_item"><span class="xanhworld_single_check">✔</span> Deer/rabbit resistant and easy to grow</div>
+      </div>
+
+      <div class="xanhworld_single_price_block">
+        <span class="xanhworld_single_price">$31.10</span>
+        <span class="xanhworld_single_price_old">$42.00</span>
+      </div>
+
+      <div class="xanhworld_single_promo_box">
+        💰 Get an extra <strong>30% OFF</strong> all orders over $200 with <strong>SAVE30</strong> &nbsp;<a class="xanhworld_single_shopnow_link">Shop Now →</a>
+      </div>
+
+      <div class="xanhworld_single_meta">
+        <div class="xanhworld_single_meta_item"><span class="xanhworld_single_meta_icon">🛡️</span> Holds a 1-Year Guarantee</div>
+        <div class="xanhworld_single_meta_item"><span class="xanhworld_single_meta_icon">🚚</span> Free shipping on orders over $99</div>
+        <div class="xanhworld_single_meta_item"><span class="xanhworld_single_meta_icon">📦</span> In Stock</div>
+      </div>
+
+      <div>
+        <div class="xanhworld_single_size_label">Select size</div>
+        <div class="xanhworld_single_size_options">
+          <button class="xanhworld_single_size_btn active" onclick="xanhworld_selectSize(this)">1 gallon</button>
+          <button class="xanhworld_single_size_btn" onclick="xanhworld_selectSize(this)">2 gallon</button>
+          <button class="xanhworld_single_size_btn" onclick="xanhworld_selectSize(this)">3 gallon</button>
+        </div>
+      </div>
+
+      <div class="xanhworld_single_qty_row">
+        <div class="xanhworld_single_qty_control">
+          <button onclick="xanhworld_changeQty(-1)">−</button>
+          <input type="number" id="xanhworld_qty" value="1" min="1" max="99">
+          <button onclick="xanhworld_changeQty(1)">+</button>
+        </div>
+        <button class="xanhworld_single_add_btn">🛒 Add to Cart</button>
+      </div>
+
+      <button class="xanhworld_single_save_btn">♡ Save for later</button>
+
+      <div class="xanhworld_single_limited_badge">⏰ Limited time only – In 30% off your order</div>
+
+      <table class="xanhworld_single_discount_table">
+        <tr>
+          <th>Discount level</th>
+          <th>Cart total</th>
+        </tr>
+        <tr><td>15% OFF</td><td>$100 – $199</td></tr>
+        <tr><td>20% OFF</td><td>$200 – $299</td></tr>
+        <tr><td>25% OFF</td><td>$300 – $499</td></tr>
+        <tr><td>30% OFF</td><td>$500+</td></tr>
+      </table>
+
+      <div style="font-size:12px;color:#888;">Pay in 4 interest-free installments of <strong>$12.75</strong> with Shop Pay. <a href="#" style="color:#2d6a4f;">Learn more</a></div>
+      <div style="font-size:12px;color:#2d6a4f;font-weight:600;">❓ Questions? Call our plant experts: <a href="tel:8009738555" style="color:#2d6a4f;">(800) 973-8555</a></div>
+    </div>
+  </div>
+</main>
+
+<!-- CUSTOMERS ALSO VIEWED -->
+<section class="xanhworld_single_section">
+  <h2 class="xanhworld_single_section_title">Customers Also Viewed</h2>
+  <div class="xanhworld_single_products_grid">
+    <!-- Card 1 -->
+    <div class="xanhworld_single_product_card">
+      <div class="xanhworld_single_product_card_img">
+        <img src="https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=300&q=80" alt="Pink Dogwood">
+      </div>
+      <div class="xanhworld_single_product_card_body">
+        <div class="xanhworld_single_product_card_name">Pink Dogwood Tree</div>
+        <div class="xanhworld_single_product_card_stars">★★★★★</div>
+        <div class="xanhworld_single_product_card_price">$82.95</div>
+        <div class="xanhworld_single_product_card_shipping">Up to 14% off</div>
+      </div>
+    </div>
+    <!-- Card 2 -->
+    <div class="xanhworld_single_product_card">
+      <div class="xanhworld_single_product_card_img">
+        <img src="https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?w=300&q=80" alt="Dissectum Maple">
+        <span class="xanhworld_single_product_card_badge">SALE</span>
+      </div>
+      <div class="xanhworld_single_product_card_body">
+        <div class="xanhworld_single_product_card_name">Dissectum Japanese Maple Tree</div>
+        <div class="xanhworld_single_product_card_stars">★★★★★</div>
+        <div class="xanhworld_single_product_card_price">$12.95</div>
+        <div class="xanhworld_single_product_card_oldprice">$17.95</div>
+        <div class="xanhworld_single_product_card_shipping">Up to 14% off</div>
+      </div>
+    </div>
+    <!-- Card 3 -->
+    <div class="xanhworld_single_product_card">
+      <div class="xanhworld_single_product_card_img">
+        <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=300&q=80" alt="Ginkgo Tree">
+      </div>
+      <div class="xanhworld_single_product_card_body">
+        <div class="xanhworld_single_product_card_name">Ginkgo Japanese Tree</div>
+        <div class="xanhworld_single_product_card_stars">★★★★★</div>
+        <div class="xanhworld_single_product_card_price">$12.95</div>
+        <div class="xanhworld_single_product_card_shipping">Up to 14% off</div>
+      </div>
+    </div>
+    <!-- Card 4 -->
+    <div class="xanhworld_single_product_card">
+      <div class="xanhworld_single_product_card_img">
+        <img src="https://images.unsplash.com/photo-1490750967868-88df5691cc45?w=300&q=80" alt="Pink Cocktail">
+        <span class="xanhworld_single_product_card_badge">NEW</span>
+      </div>
+      <div class="xanhworld_single_product_card_body">
+        <div class="xanhworld_single_product_card_name">Pink Cocktail Rose Tree</div>
+        <div class="xanhworld_single_product_card_stars">★★★★★</div>
+        <div class="xanhworld_single_product_card_price">$119.95</div>
+        <div class="xanhworld_single_product_card_shipping">Up to 14% off</div>
+      </div>
+    </div>
+    <!-- Card 5 -->
+    <div class="xanhworld_single_product_card">
+      <div class="xanhworld_single_product_card_img">
+        <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=300&q=80" alt="Alberta Spruce">
+      </div>
+      <div class="xanhworld_single_product_card_body">
+        <div class="xanhworld_single_product_card_name">Alberta Dwarf Spruce Tree</div>
+        <div class="xanhworld_single_product_card_stars">★★★★★</div>
+        <div class="xanhworld_single_product_card_price">$51.95</div>
+        <div class="xanhworld_single_product_card_shipping">Up to 14% off</div>
+      </div>
+    </div>
+    <!-- Card 6 -->
+    <div class="xanhworld_single_product_card">
+      <div class="xanhworld_single_product_card_img">
+        <img src="https://images.unsplash.com/photo-1511735111819-9a3efd16269e?w=300&q=80" alt="Autumn Cherry">
+        <span class="xanhworld_single_product_card_badge">SALE</span>
+      </div>
+      <div class="xanhworld_single_product_card_body">
+        <div class="xanhworld_single_product_card_name">Autumn Cherry Tree</div>
+        <div class="xanhworld_single_product_card_stars">★★★★★</div>
+        <div class="xanhworld_single_product_card_price">$78.5</div>
+        <div class="xanhworld_single_product_card_oldprice">$104.95</div>
+        <div class="xanhworld_single_product_card_shipping">Up to 14% off</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DESCRIPTION + SPECS -->
+<div class="xanhworld_single_desc_section">
+  <div>
+    <h2 class="xanhworld_single_desc_title">Bold blooms that attract pollinators and thrive in tough conditions</h2>
+    <p class="xanhworld_single_desc_text">
+      Agastache x 'Meant to Bee Royal Raspberry' is a standout choice for gardeners looking to add vibrant color and life to their landscapes. With its strong, raspberry-scented blooms, this plant not only brightens up any garden from June through September but also attracts a plethora of pollinators, including bees and butterflies. It's also quite deer-tolerant, meaning it can withstand and defy spots while maintaining its great appearance, making it a superb option for those looking to conserve water.
+    </p>
+    <p class="xanhworld_single_desc_text">
+      As both beauty and ecological benefits, this hardy plant is also excellent for cover browsing. This means you can enjoy its vibrant presence without the worry of it becoming a deer snack for local wildlife. Planting 'Royal Raspberry' in your garden is a smart choice for both aesthetics and sustainability, as it also must adapt to its surrounding thriving as a local ecosystem.
+    </p>
+
+    <div class="xanhworld_single_accordions">
+      <div class="xanhworld_single_accordion_item" id="xanhworld_acc1">
+        <div class="xanhworld_single_accordion_header" onclick="xanhworld_toggleAcc('xanhworld_acc1')">
+          <span>Planting &amp; Care</span>
+          <span class="xanhworld_single_accordion_arrow">⌄</span>
+        </div>
+        <div class="xanhworld_single_accordion_body">
+          <div class="xanhworld_single_accordion_body_inner">
+            Plant in full sun to partial shade in well-drained soil. Water regularly during the first growing season to establish a deep root system. Once established, this plant is drought-tolerant and low-maintenance. Deadhead spent blooms to encourage continuous flowering throughout the season.
+          </div>
+        </div>
+      </div>
+      <div class="xanhworld_single_accordion_item" id="xanhworld_acc2">
+        <div class="xanhworld_single_accordion_header" onclick="xanhworld_toggleAcc('xanhworld_acc2')">
+          <span>Shipping Details</span>
+          <span class="xanhworld_single_accordion_arrow">⌄</span>
+        </div>
+        <div class="xanhworld_single_accordion_body">
+          <div class="xanhworld_single_accordion_body_inner">
+            Ships within 3-5 business days. Free shipping on orders over $99. We ship to all 50 states. Plants are packed carefully to ensure they arrive healthy and ready to grow. Tracking info will be emailed upon shipment.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPECS SIDEBAR -->
+  <div class="xanhworld_single_specs_card">
+    <div class="xanhworld_single_specs_header">
+      <div class="xanhworld_single_specs_badge">🦌<br>Deer Resistant</div>
+      <div class="xanhworld_single_specs_badge">🦋<br>Attracts Pollinators</div>
+    </div>
+    <div class="xanhworld_single_specs_table">
+      <div class="xanhworld_single_specs_row"><span class="xanhworld_single_specs_key">Mature height</span><span class="xanhworld_single_specs_val">24-32 in.</span></div>
+      <div class="xanhworld_single_specs_row"><span class="xanhworld_single_specs_key">Mature width</span><span class="xanhworld_single_specs_val">24 in.</span></div>
+      <div class="xanhworld_single_specs_row"><span class="xanhworld_single_specs_key">Sunlight</span><span class="xanhworld_single_specs_val">Full Sun, Part Shade</span></div>
+      <div class="xanhworld_single_specs_row"><span class="xanhworld_single_specs_key">Flower Season</span><span class="xanhworld_single_specs_val">Summer Blooming</span></div>
+      <div class="xanhworld_single_specs_row"><span class="xanhworld_single_specs_key">Resistance Notes</span><span class="xanhworld_single_specs_val">Drought &amp; Deer Resistant</span></div>
+      <div class="xanhworld_single_specs_row"><span class="xanhworld_single_specs_key">Does Well With</span><span class="xanhworld_single_specs_val">All Soils &amp; More</span></div>
+      <div class="xanhworld_single_specs_row"><span class="xanhworld_single_specs_key">Botanical name</span><span class="xanhworld_single_specs_val">Agastache x 'Royal Raspberry'</span></div>
+      <div class="xanhworld_single_specs_row"><span class="xanhworld_single_specs_key">Does Not Do Well In</span><span class="xanhworld_single_specs_val">Wet &amp; Boggy</span></div>
+    </div>
+    <div class="xanhworld_single_specs_map">
+      <svg width="200" height="120" viewBox="0 0 200 120" style="opacity:0.7">
+        <rect width="200" height="120" fill="#e8f5e9" rx="4"/>
+        <text x="100" y="50" text-anchor="middle" fill="#2d6a4f" font-size="11" font-weight="600">Growing Zones 5-9 outdoors</text>
+        <text x="100" y="68" text-anchor="middle" fill="#555" font-size="10">Find your growing zone →</text>
+        <ellipse cx="100" cy="90" rx="80" ry="20" fill="#c8e6c9" opacity="0.6"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMER REVIEWS -->
+<section class="xanhworld_single_reviews_section">
+  <h2 class="xanhworld_single_section_title">Customer Reviews &amp; Photos</h2>
+
+  <div class="xanhworld_single_reviews_summary">
+    <div>
+      <div class="xanhworld_single_reviews_score">0.0</div>
+      <div class="xanhworld_single_reviews_stars">★★★★★</div>
+      <div class="xanhworld_single_reviews_count">0 reviews</div>
+    </div>
+    <div class="xanhworld_single_reviews_bars">
+      <div class="xanhworld_single_bar_row"><span>5★</span><div class="xanhworld_single_bar_track"><div class="xanhworld_single_bar_fill" style="width:0%"></div></div><span>0</span></div>
+      <div class="xanhworld_single_bar_row"><span>4★</span><div class="xanhworld_single_bar_track"><div class="xanhworld_single_bar_fill" style="width:0%"></div></div><span>0</span></div>
+      <div class="xanhworld_single_bar_row"><span>3★</span><div class="xanhworld_single_bar_track"><div class="xanhworld_single_bar_fill" style="width:0%"></div></div><span>0</span></div>
+      <div class="xanhworld_single_bar_row"><span>2★</span><div class="xanhworld_single_bar_track"><div class="xanhworld_single_bar_fill" style="width:0%"></div></div><span>0</span></div>
+      <div class="xanhworld_single_bar_row"><span>1★</span><div class="xanhworld_single_bar_track"><div class="xanhworld_single_bar_fill" style="width:0%"></div></div><span>0</span></div>
+    </div>
+    <button class="xanhworld_single_write_review_btn">Write a review</button>
+  </div>
+
+  <div class="xanhworld_single_reviews_empty">Be the first to review this item!</div>
+</section>
+
+<!-- TRUST STATS -->
+<section class="xanhworld_single_trust_section">
+  <div class="xanhworld_single_trust_inner">
+    <div class="xanhworld_single_trust_stat">
+      <div class="xanhworld_single_trust_score_stars">★★★★★</div>
+      <div class="xanhworld_single_trust_number">Over 2.6 million happy customers</div>
+      <div class="xanhworld_single_trust_sub">70,000+ 5-star reviews</div>
+    </div>
+    <div class="xanhworld_single_trust_chat">
+      <div class="xanhworld_single_trust_chat_tag">TREE &amp; PLANT EXPERTS</div>
+      <h3>Hey – quick question!</h3>
+      <p>We want to get to know you better. Answer a quick question about how you buy plants.</p>
+      <button class="xanhworld_single_trust_chat_btn">How Do You Buy? →</button>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS GALLERY (customer photos) -->
+<section class="xanhworld_single_section">
+  <h2 class="xanhworld_single_section_title">See All Reviews</h2>
+  <div class="xanhworld_single_reviews_gallery">
+    <div class="xanhworld_single_reviews_gallery_item"><img src="https://images.unsplash.com/photo-1487530811015-780d9f27049b?w=200&q=80" alt="review1"></div>
+    <div class="xanhworld_single_reviews_gallery_item"><img src="https://images.unsplash.com/photo-1463154545680-d59320fd685d?w=200&q=80" alt="review2"></div>
+    <div class="xanhworld_single_reviews_gallery_item"><img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=200&q=80" alt="review3"></div>
+    <div class="xanhworld_single_reviews_gallery_item"><img src="https://images.unsplash.com/photo-1444930694458-01babf71870c?w=200&q=80" alt="review4"></div>
+    <div class="xanhworld_single_reviews_gallery_item"><img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&q=80" alt="review5"></div>
+    <div class="xanhworld_single_reviews_gallery_item"><img src="https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=200&q=80" alt="review6"></div>
+  </div>
+</section>
+
+<!-- YARD SUPPORT -->
+<section class="xanhworld_single_yard_section">
+  <div class="xanhworld_single_yard_inner">
+    <div class="xanhworld_single_yard_content">
+      <h2>Personalized yard support</h2>
+      <p>Get Plant Expert advice for your landscape. Schedule your consultation today!</p>
+      <button class="xanhworld_single_yard_btn">Book Free Consultation</button>
+      <div class="xanhworld_single_yard_phone">📞 (800) 973-8555</div>
+    </div>
+    <div class="xanhworld_single_yard_imgs">
+      <img src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=300&q=80" alt="Expert 1">
+      <img src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=300&q=80" alt="Expert 2">
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="xanhworld_single_features_section">
+  <h2 class="xanhworld_single_features_title">Your dream yard, without the hassle</h2>
+  <div class="xanhworld_single_features_grid">
+    <div class="xanhworld_single_feature_card">
+      <div class="xanhworld_single_feature_icon">🚚</div>
+      <div class="xanhworld_single_feature_name">Skip the trip</div>
+      <div class="xanhworld_single_feature_desc">Order your plants and trees online</div>
+    </div>
+    <div class="xanhworld_single_feature_card">
+      <div class="xanhworld_single_feature_icon">🌳</div>
+      <div class="xanhworld_single_feature_name">Extensive selection</div>
+      <div class="xanhworld_single_feature_desc">At the biggest in your local nurseries</div>
+    </div>
+    <div class="xanhworld_single_feature_card">
+      <div class="xanhworld_single_feature_icon">⭐</div>
+      <div class="xanhworld_single_feature_name">Enduring quality</div>
+      <div class="xanhworld_single_feature_desc">Grown with care, delivered to thrive</div>
+    </div>
+    <div class="xanhworld_single_feature_card">
+      <div class="xanhworld_single_feature_icon">💬</div>
+      <div class="xanhworld_single_feature_name">Support and expertise</div>
+      <div class="xanhworld_single_feature_desc">Advice to get you growing, keep you growing</div>
+    </div>
+  </div>
+</section>
+
+<!-- COMMUNITY -->
+<section class="xanhworld_single_community_section">
+  <div class="xanhworld_single_community_inner">
+    <div class="xanhworld_single_community_header">
+      <h2>Join our growing community</h2>
+      <a href="#">Follow @FastGrowingTrees 🌿</a>
+    </div>
+    <div class="xanhworld_single_community_grid">
+      <div class="xanhworld_single_community_item"><img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=300&q=80" alt="community1"></div>
+      <div class="xanhworld_single_community_item"><img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&q=80" alt="community2"></div>
+      <div class="xanhworld_single_community_item"><img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=300&q=80" alt="community3"></div>
+      <div class="xanhworld_single_community_item"><img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&q=80" alt="community4"></div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BANNER -->
+<div class="xanhworld_single_stats_section">
+  <div class="xanhworld_single_stats_number">22,449,510+</div>
+  <div class="xanhworld_single_stats_sub">Plants and trees delivered</div>
+</div>
+
+<!-- FOOTER -->
+<footer class="xanhworld_single_footer">
+  <div class="xanhworld_single_footer_inner">
+    <div class="xanhworld_single_footer_col">
+      <h4>Contact Us</h4>
+      <div class="xanhworld_single_footer_contact">
+        <p>Phone: <a href="tel:8009738555">(800) 973-8555</a></p>
+        <p>Email: <a href="mailto:support@fgt.com">support@fgt.com</a></p>
+        <br>
+        <a href="#">Fast Growing Trees Gift</a>
+        <a href="#">Gift Cards</a>
+        <a href="#">Plant Care Expert Guide</a>
+        <a href="#">Shop Trees by BBB</a>
+        <a href="#">Garden Reviews</a>
+        <a href="#">Our Growing Environment</a>
+        <a href="#">Trade/Business/Partners</a>
+      </div>
+    </div>
+    <div class="xanhworld_single_footer_col">
+      <h4>Our Company</h4>
+      <a href="#">About Us</a>
+      <a href="#">Careers</a>
+      <a href="#">Press</a>
+      <a href="#">Plant Care Expert Guide</a>
+      <a href="#">Shop Trees by BBB</a>
+      <a href="#">Garden Reviews</a>
+      <a href="#">Our Certifications</a>
+    </div>
+    <div class="xanhworld_single_footer_col">
+      <h4>Customer Service</h4>
+      <a href="#">Order Status</a>
+      <a href="#">Contact</a>
+      <a href="#">Help Center</a>
+      <a href="#">Hardiness Zone Map</a>
+      <a href="#">Press</a>
+      <a href="#">Tree Calculator & Tables</a>
+    </div>
+    <div class="xanhworld_single_footer_col">
+      <h4>Our Policies</h4>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Cookie Settings</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Smooth-Up</a>
+      <a href="#">Your California Privacy Rights</a>
+      <br>
+      <div style="font-size:11px;color:#666;margin-top:10px;">NOT OPEN TO PUBLIC</div>
+    </div>
+  </div>
+
+  <div class="xanhworld_single_footer_bottom">
+    <div class="xanhworld_single_footer_bottom_left">© 2024 Fast Growing Trees. All Rights Reserved.</div>
+    <div class="xanhworld_single_footer_logo">🌿 FastGrowingTrees</div>
+    <div class="xanhworld_single_footer_social">
+      <a href="#" title="Instagram">📷</a>
+      <a href="#" title="TikTok">🎵</a>
+      <a href="#" title="Facebook">📘</a>
+      <a href="#" title="Pinterest">📌</a>
+      <a href="#" title="YouTube">▶️</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // GALLERY THUMBNAIL SWITCH
+  function xanhworld_changeImg(thumb, src) {
+    document.getElementById('xanhworld_main_img_src').src = src;
+    document.querySelectorAll('.xanhworld_single_gallery_thumbs img').forEach(t => t.classList.remove('active'));
+    thumb.classList.add('active');
+  }
+
+  // WISHLIST TOGGLE
+  document.getElementById('xanhworld_wish_btn').addEventListener('click', function() {
+    this.classList.toggle('xanhworld_single_wished');
+    this.textContent = this.classList.contains('xanhworld_single_wished') ? '♥' : '♡';
+    this.style.color = this.classList.contains('xanhworld_single_wished') ? '#e74c3c' : '#999';
+  });
+
+  // QUANTITY CONTROL
+  function xanhworld_changeQty(delta) {
+    const input = document.getElementById('xanhworld_qty');
+    let val = parseInt(input.value) + delta;
+    if (val < 1) val = 1;
+    if (val > 99) val = 99;
+    input.value = val;
+  }
+
+  // SIZE SELECTION
+  function xanhworld_selectSize(btn) {
+    document.querySelectorAll('.xanhworld_single_size_btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // ACCORDION
+  function xanhworld_toggleAcc(id) {
+    const item = document.getElementById(id);
+    const body = item.querySelector('.xanhworld_single_accordion_body');
+    const isOpen = item.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.xanhworld_single_accordion_item').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.xanhworld_single_accordion_body').style.maxHeight = '0';
+    });
+    // Open clicked if was closed
+    if (!isOpen) {
+      item.classList.add('open');
+      body.style.maxHeight = body.scrollHeight + 'px';
+    }
+  }
+
+  // ADD TO CART
+  document.querySelector('.xanhworld_single_add_btn').addEventListener('click', function() {
+    this.textContent = '✓ Added to Cart!';
+    this.style.background = '#2d6a4f';
+    setTimeout(() => {
+      this.textContent = '🛒 Add to Cart';
+      this.style.background = '#f4a435';
+    }, 2000);
+  });
+
+  // SAVE FOR LATER
+  document.querySelector('.xanhworld_single_save_btn').addEventListener('click', function() {
+    this.textContent = '✓ Saved!';
+    this.style.background = '#f0faf4';
+    setTimeout(() => {
+      this.textContent = '♡ Save for later';
+    }, 2000);
+  });
+
+  // WRITE REVIEW
+  document.querySelector('.xanhworld_single_write_review_btn').addEventListener('click', function() {
+    alert('Review form would open here in the full version!');
+  });
+</script>
+</body>
+</html>

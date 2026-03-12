@@ -103,7 +103,7 @@
 
 <style>
 .comments-section {
-    margin: 30px 0;
+    margin: 10px 0;
 }
 
 .comments-section h3 {
@@ -397,12 +397,12 @@
     right: -3px;
     background: #d32f2f;
     color: #fff;
-    font-size: 10px;
+    font-size: 10px !important;
     font-weight: 700;
     padding: 3px 5px;
     border-radius: 4px;
     border: 2px solid #fff;
-    line-height: 1;
+    line-height: 1 !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 

@@ -88,7 +88,6 @@
 @endsection
 
 @section('content')
-
     <main @class(['xanhworld_main'])>
         <!-- Hero: Left categories + Center slider + Right side banners -->
         <section @class(['xanhworld_main_slider_main_hero'])>
@@ -136,6 +135,7 @@
                     @foreach($banners_home_parent as $i => $banner)
                         <div @class(['xanhworld_main_slider_main_slide'])>
                             <img {{ $i === 0 ? 'loading=eager fetchpriority=high' : 'loading=lazy' }}
+                                onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                                 src="{{ asset('clients/assets/img/banners/' . ($banner->image ?? 'no-banner.webp')) }}"
                                 alt="{{ $banner->title ?? 'Banner' }}">
                         </div>
@@ -165,6 +165,7 @@
                 @foreach($banners_home_children as $banner)
                     <a href="{{ $banner->link }}" target="{{ $banner->taget }}" rel="noopener">
                         <img src="{{ asset('clients/assets/img/banners/' . ($banner->image ?? 'no-banner.webp')) }}"
+                            onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                             alt="{{ $banner->title ?? 'Banner' }}">
                     </a>
                 @endforeach
@@ -242,6 +243,7 @@
 
                                     <a href="/san-pham/{{ $productSale->product->slug ?? '' }}">
                                         <img src="{{ asset('clients/assets/img/clothes/' . ($productSale->product->primaryImage->url ?? 'no-image.webp')) }}"
+                                            onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                                             alt="{{ $productSale->product->primaryImage->alt ?? $productSale->product->name ?? 'Sản phẩm thời trang' }}"
                                             class="xanhworld_flash_sale_img">
                                     </a>
@@ -355,17 +357,12 @@
                     @foreach ($categories as $category)
                         @foreach ($category->children as $child)
                             @php
-                                $productCount = App\Models\Product::active()
-                                    ->where(function ($q) use ($child) {
-                                        $q->where('primary_category_id', $child->id)
-                                            ->orWhereJsonContains('category_ids', (int) $child->id)
-                                            ->orWhereJsonContains('category_ids', (string) $child->id);
-                                    })
-                                    ->count();
+                                $productCount = $categoryCounts[$child->id] ?? 0;
                             @endphp
                             <div @class(['xanhworld_main_categories_item'])> 
                                 <a href="/{{ $child->slug }}">
                                     <img loading="lazy" draggable="false" @class(['xanhworld_main_categories_item_img'])
+                                        onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                                         src="{{ asset('clients/assets/img/categories/' . ($child->image ?? 'no-image.webp')) }}"
                                         alt="{{ $child->name }}">
                                     <h3 @class(['xanhworld_main_categories_item_title'])>{{ $child->name }}</h3>
@@ -406,6 +403,7 @@
                             }
                         @endphp
                         <img draggable="false" loading="lazy" @class(['xanhworld_main_promotion_item_img'])
+                            onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                             src="{{ $voucherImageUrl }}"
                             alt="{{ $voucher->name ?? 'Khuyến mãi' }}">
                         <div @class(['xanhworld_main_promotion_item_info'])>
@@ -450,11 +448,13 @@
                                 <div @class(['xanhworld_main_popular_products_item_img'])>
                                     <img draggable="false" loading="lazy"
                                         @class(['xanhworld_main_popular_products_item_img_img'])
+                                        onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                                         src="{{ asset('clients/assets/img/clothes/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}"
                                         alt="{{ $product?->primary_image?->alt ?? $product?->name ?? 'Sản phẩm thời trang' }}">
                                     <a @class(['xanhworld_main_popular_products_item_img_khung'])
                                         href="/san-pham/{{ $product?->slug ?? '' }}">
                                         <img draggable="false" loading="lazy"
+                                            onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                                             src="{{ asset('clients/assets/img/frame/' . ($product?->frame ?? 'frame-default.webp')) }}"
                                             alt="Khung ảnh sản phẩm" title="{{ $product?->name ?? 'Sản phẩm thời trang' }}">
                                     </a>
@@ -502,30 +502,7 @@
                                         @endif
                                     </div>
                                     @php
-                                        // Chuẩn bị variants data cho modal
-                                        $variantsData = [];
-                                        if ($product->variants && $product->variants->isNotEmpty()) {
-                                            foreach ($product->variants as $v) {
-                                                $attrs = is_array($v->attributes) ? $v->attributes : (is_string($v->attributes) ? json_decode($v->attributes, true) : []);
-                                                $details = [];
-                                                if (!empty($attrs['size'])) $details[] = $attrs['size'];
-                                                if (!empty($attrs['has_pot']) && $attrs['has_pot']) $details[] = 'Có chậu';
-                                                if (!empty($attrs['combo_type'])) $details[] = $attrs['combo_type'];
-                                                if (!empty($attrs['notes'])) $details[] = $attrs['notes'];
-                                                $variantsData[] = [
-                                                    'id' => $v->id,
-                                                    'name' => $v->name,
-                                                    'price' => $v->price,
-                                                    'sale_price' => $v->sale_price,
-                                                    'display_price' => $v->display_price,
-                                                    'stock_quantity' => $v->stock_quantity,
-                                                    'is_active' => $v->is_active,
-                                                    'details' => $details,
-                                                    'is_on_sale' => $v->isOnSale(),
-                                                    'discount_percent' => $v->discount_percent,
-                                                ];
-                                            }
-                                        }
+                                        $variantsData = $product->variants_json_data ?? [];
                                         $hasVariants = !empty($variantsData);
                                     @endphp
                                     @if($hasVariants)
@@ -612,7 +589,7 @@
             <div @class(['xanhworld_main_product_category'])>
                 <!-- Banner bên trái -->
                 <div @class(['xanhworld_main_product_category_banner'])>
-                    <img loading="lazy" src="{{ asset('clients/assets/img/banners/banner-product-related.png') }}"
+                    <img loading="lazy" onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'" src="{{ asset('clients/assets/img/banners/banner-product-related.png') }}"
                             alt="Banner Cây xanh phong thủy" />
                 </div>
                 <!-- Sản phẩm bên phải -->
@@ -623,7 +600,7 @@
                                 <div @class(['xanhworld_main_product_category_item'])>
                                     <a class="xanhworld_main_product_category_item_link"
                                         href="/san-pham/{{ $product?->slug ?? '' }}">
-                                        <img loading="lazy"
+                                        <img loading="lazy" onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                                             src="{{ asset('clients/assets/img/clothes/' . ($product?->primaryImage?->url ?? 'no-image.webp')) }}"
                                             alt="{{ $product?->primary_image?->alt ?? $product?->name ?? 'Sản phẩm thời trang' }}">
                                     </a>
@@ -636,30 +613,7 @@
                                             đ</span>
                                     </div>
                                     @php
-                                        // Chuẩn bị variants data cho modal
-                                        $variantsDataRandom = [];
-                                        if ($product->variants && $product->variants->isNotEmpty()) {
-                                            foreach ($product->variants as $v) {
-                                                $attrs = is_array($v->attributes) ? $v->attributes : (is_string($v->attributes) ? json_decode($v->attributes, true) : []);
-                                                $details = [];
-                                                if (!empty($attrs['size'])) $details[] = $attrs['size'];
-                                                if (!empty($attrs['has_pot']) && $attrs['has_pot']) $details[] = 'Có chậu';
-                                                if (!empty($attrs['combo_type'])) $details[] = $attrs['combo_type'];
-                                                if (!empty($attrs['notes'])) $details[] = $attrs['notes'];
-                                                $variantsDataRandom[] = [
-                                                    'id' => $v->id,
-                                                    'name' => $v->name,
-                                                    'price' => $v->price,
-                                                    'sale_price' => $v->sale_price,
-                                                    'display_price' => $v->display_price,
-                                                    'stock_quantity' => $v->stock_quantity,
-                                                    'is_active' => $v->is_active,
-                                                    'details' => $details,
-                                                    'is_on_sale' => $v->isOnSale(),
-                                                    'discount_percent' => $v->discount_percent,
-                                                ];
-                                            }
-                                        }
+                                        $variantsDataRandom = $product->variants_json_data ?? [];
                                         $hasVariantsRandom = !empty($variantsDataRandom);
                                     @endphp
                                     <div @class(['xanhworld_main_product_category_actions'])> 
@@ -704,7 +658,7 @@
                 <div class="xanhworld_main_features_highlight_items">
 
                     <div class="xanhworld_main_features_highlight_items_item">
-                        <img draggable="false" loading="lazy"
+                        <img draggable="false" loading="lazy" onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                             src="{{ asset('clients/assets/img/other/giao-hang-free-re8243t34.png') }}"
                             alt="🚚 Miễn phí vận chuyển">
 
@@ -713,12 +667,12 @@
                         </h3>
 
                         <p class="xanhworld_main_features_highlight_items_item_desc">
-                            Miễn phí giao hàng cho đơn từ 1.000.000đ tại NOBI FASHION.
+                            Miễn phí giao hàng cho đơn từ 4.999.000đ tại {{ $settings->site_name ?? 'XWorld' }}.
                         </p>
                     </div>
 
                     <div class="xanhworld_main_features_highlight_items_item">
-                        <img draggable="false" loading="lazy"
+                        <img draggable="false" loading="lazy" onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                             src="{{ asset('clients/assets/img/other/ho-tro-24-7-398fhf384hf.jpg') }}"
                             alt="🤝 Hỗ trợ khách hàng 24/7">
 
@@ -732,7 +686,7 @@
                     </div>
 
                     <div class="xanhworld_main_features_highlight_items_item">
-                        <img draggable="false" loading="lazy"
+                        <img draggable="false" loading="lazy" onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                             src="{{ asset('clients/assets/img/other/chinh_sach_doi_tra_hang-3489yfurhf34.jpg') }}"
                             alt="🔁 Chính sách đổi trả linh hoạt">
 
@@ -746,7 +700,7 @@
                     </div>
 
                     <div class="xanhworld_main_features_highlight_items_item">
-                        <img draggable="false" loading="lazy"
+                        <img draggable="false" loading="lazy" onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                             src="{{ asset('clients/assets/img/other/cam-ket-hang-chinh-hang-4387fy8734.png') }}"
                             alt="🏷️ Cam kết chính hãng">
 
@@ -760,7 +714,7 @@
                     </div>
 
                     <div class="xanhworld_main_features_highlight_items_item">
-                        <img draggable="false" loading="lazy"
+                        <img draggable="false" loading="lazy" onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'"
                             src="{{ asset('clients/assets/img/other/hinh-thuc-thanh-toan-an-toan-348yy82y4rf.jpg') }}"
                             alt="💳 Thanh toán an toàn">
 
@@ -790,7 +744,7 @@
             <div class="xanhworld_variant_modal_body">
                 <div class="xanhworld_variant_modal_product">
                     <div class="xanhworld_variant_modal_product_image">
-                        <img id="modal-product-image" src="" alt="">
+                        <img onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'" id="modal-product-image" src="" alt="">
                     </div>
                     <div class="xanhworld_variant_modal_product_info">
                         <h3 id="modal-product-name" class="xanhworld_variant_modal_product_name"></h3>
@@ -823,285 +777,285 @@
     </div>
 
     @section('foot')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Xử lý modal chọn variant
-            const modal = document.getElementById('variant-modal');
-            if (!modal) {
-                console.error('[Variant Modal] Modal element not found!');
-                return;
-            }
-
-            const modalOverlay = modal.querySelector('.xanhworld_variant_modal_overlay');
-            const modalClose = modal.querySelector('.xanhworld_variant_modal_close');
-            const modalCancel = document.getElementById('modal-cancel-btn');
-            const openModalBtns = document.querySelectorAll('.open-variant-modal-btn');
-            const variantsList = document.getElementById('modal-variants-list');
-            const quantityInput = document.getElementById('modal-quantity');
-            const addToCartBtn = document.getElementById('modal-add-to-cart-btn');
-            
-            let currentProductId = null;
-            let currentVariantId = null;
-            let currentVariants = [];
-            let maxStock = 999;
-            let isBuyNow = false;
-
-            // Hàm format currency
-            function formatCurrencyVND(amount) {
-                if (isNaN(amount)) return '0';
-                return Number(amount).toLocaleString('vi-VN');
-            }
-
-            // Mở modal
-            openModalBtns.forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    const productId = btn.dataset.productId;
-                    const productName = btn.dataset.productName;
-                    const productImage = btn.dataset.productImage;
-                    const productPrice = parseFloat(btn.dataset.productPrice);
-                    const productSalePrice = btn.dataset.productSalePrice ? parseFloat(btn.dataset.productSalePrice) : null;
-                    isBuyNow = btn.dataset.buyNow === 'true';
-                    let variants = [];
-                    
-                    try {
-                        variants = JSON.parse(btn.dataset.variants || '[]');
-                    } catch (e) {
-                        console.error('Error parsing variants:', e);
-                        variants = [];
-                    }
-
-                    currentProductId = productId;
-                    currentVariants = variants;
-                    
-                    // Hiển thị thông tin sản phẩm
-                    document.getElementById('modal-product-image').src = productImage;
-                    document.getElementById('modal-product-image').alt = productName;
-                    document.getElementById('modal-product-name').textContent = productName;
-                    
-                    // Hiển thị giá (lấy từ variant đầu tiên nếu có)
-                    if (variants.length > 0) {
-                        const firstVariant = variants[0];
-                        updatePriceDisplay(firstVariant.display_price, firstVariant.price, firstVariant.sale_price);
-                        currentVariantId = firstVariant.id;
-                        maxStock = firstVariant.stock_quantity !== null ? firstVariant.stock_quantity : 999;
-                        quantityInput.max = maxStock;
-                    } else {
-                        const displayPrice = productSalePrice && productSalePrice < productPrice ? productSalePrice : productPrice;
-                        updatePriceDisplay(displayPrice, productPrice, productSalePrice);
-                        currentVariantId = null;
-                    }
-
-                    // Render variants
-                    renderVariants(variants);
-
-                    // Reset quantity
-                    quantityInput.value = 1;
-
-                    // Update button text if buy now
-                    if (isBuyNow) {
-                        addToCartBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18" height="18" style="margin-right: 8px;"><path fill="currentColor" d="M0 24C0 10.7 10.7 0 24 0L69.5 0c22 0 41.5 12.8 50.6 32l411 0c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3l-288.5 0 5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5L488 336c13.3 0 24 10.7 24 24s-10.7 24-24 24l-288.3 0c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5L24 48C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>Mua ngay';
-                    } else {
-                        addToCartBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18" height="18" style="margin-right: 8px;"><path fill="currentColor" d="M0 24C0 10.7 10.7 0 24 0L69.5 0c22 0 41.5 12.8 50.6 32l411 0c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3l-288.5 0 5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5L488 336c13.3 0 24 10.7 24 24s-10.7 24-24 24l-288.3 0c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5L24 48C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>Thêm vào giỏ hàng';
-                    }
-
-                    // Hiển thị modal
-                    modal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                });
-            });
-
-            // Đóng modal
-            function closeModal() {
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
-                currentProductId = null;
-                currentVariantId = null;
-                currentVariants = [];
-                isBuyNow = false;
-            }
-
-            if (modalOverlay) modalOverlay.addEventListener('click', closeModal);
-            if (modalClose) modalClose.addEventListener('click', closeModal);
-            if (modalCancel) modalCancel.addEventListener('click', closeModal);
-
-            // Render variants
-            function renderVariants(variants) {
-                if (!variantsList) return;
-                
-                variantsList.innerHTML = '';
-                
-                if (variants.length === 0) {
-                    variantsList.innerHTML = '<p style="color: #999; padding: 20px; text-align: center;">Không có biến thể nào</p>';
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Xử lý modal chọn variant
+                const modal = document.getElementById('variant-modal');
+                if (!modal) {
+                    console.error('[Variant Modal] Modal element not found!');
                     return;
                 }
 
-                variants.forEach(function(variant, index) {
-                    const variantBtn = document.createElement('button');
-                    variantBtn.type = 'button';
-                    variantBtn.className = 'xanhworld_variant_modal_variant_item' + (index === 0 ? ' active' : '');
-                    variantBtn.dataset.variantId = variant.id;
-                    variantBtn.dataset.variantPrice = variant.display_price;
-                    variantBtn.dataset.variantOriginalPrice = variant.price;
-                    variantBtn.dataset.variantSalePrice = variant.sale_price || '';
-                    variantBtn.dataset.variantStock = variant.stock_quantity !== null ? variant.stock_quantity : 'null';
-                    
-                    if (variant.stock_quantity !== null && variant.stock_quantity <= 0) {
-                        variantBtn.classList.add('disabled');
-                        variantBtn.disabled = true;
-                    }
-
-                    let variantHtml = '<span class="variant-name">' + (variant.name || '') + '</span>';
-                    if (variant.details && variant.details.length > 0) {
-                        variantHtml += '<span class="variant-details">(' + variant.details.join(', ') + ')</span>';
-                    }
-                    variantHtml += '<span class="variant-price">' + formatCurrencyVND(variant.display_price) + '₫</span>';
-                    
-                    if (variant.is_on_sale && variant.discount_percent) {
-                        variantHtml += '<span class="variant-discount">-' + variant.discount_percent + '%</span>';
-                    }
-                    
-                    if (variant.stock_quantity !== null && variant.stock_quantity <= 0) {
-                        variantHtml += '<span class="variant-out-of-stock">Hết hàng</span>';
-                    }
-
-                    variantBtn.innerHTML = variantHtml;
-
-                    variantBtn.addEventListener('click', function() {
-                        if (this.classList.contains('disabled')) return;
-                        
-                        // Update active state
-                        variantsList.querySelectorAll('.xanhworld_variant_modal_variant_item').forEach(function(btn) {
-                            btn.classList.remove('active');
-                        });
-                        this.classList.add('active');
-
-                        // Update variant
-                        currentVariantId = parseInt(this.dataset.variantId);
-                        const variantPrice = parseFloat(this.dataset.variantPrice);
-                        const variantOriginalPrice = parseFloat(this.dataset.variantOriginalPrice);
-                        const variantSalePrice = this.dataset.variantSalePrice ? parseFloat(this.dataset.variantSalePrice) : null;
-                        const variantStock = this.dataset.variantStock === 'null' ? null : parseInt(this.dataset.variantStock);
-
-                        updatePriceDisplay(variantPrice, variantOriginalPrice, variantSalePrice);
-                        
-                        maxStock = variantStock !== null ? variantStock : 999;
-                        quantityInput.max = maxStock;
-                        
-                        // Adjust quantity if exceeds max
-                        if (parseInt(quantityInput.value) > maxStock) {
-                            quantityInput.value = maxStock;
-                        }
-                    });
-
-                    variantsList.appendChild(variantBtn);
-                });
-            }
-
-            // Update price display
-            function updatePriceDisplay(displayPrice, originalPrice, salePrice) {
-                const priceContainer = document.getElementById('modal-product-price');
-                if (!priceContainer) return;
+                const modalOverlay = modal.querySelector('.xanhworld_variant_modal_overlay');
+                const modalClose = modal.querySelector('.xanhworld_variant_modal_close');
+                const modalCancel = document.getElementById('modal-cancel-btn');
+                const openModalBtns = document.querySelectorAll('.open-variant-modal-btn');
+                const variantsList = document.getElementById('modal-variants-list');
+                const quantityInput = document.getElementById('modal-quantity');
+                const addToCartBtn = document.getElementById('modal-add-to-cart-btn');
                 
-                if (salePrice && salePrice < originalPrice) {
-                    priceContainer.innerHTML = '<span class="price-new">' + formatCurrencyVND(displayPrice) + '₫</span><span class="price-old">' + formatCurrencyVND(originalPrice) + '₫</span>';
-                } else {
-                    priceContainer.innerHTML = '<span class="price-new">' + formatCurrencyVND(displayPrice) + '₫</span>';
+                let currentProductId = null;
+                let currentVariantId = null;
+                let currentVariants = [];
+                let maxStock = 999;
+                let isBuyNow = false;
+
+                // Hàm format currency
+                function formatCurrencyVND(amount) {
+                    if (isNaN(amount)) return '0';
+                    return Number(amount).toLocaleString('vi-VN');
                 }
-            }
 
-            // Quantity controls
-            document.querySelectorAll('.xanhworld_variant_modal_quantity_btn').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    if (!quantityInput) return;
-                    const action = this.dataset.action;
-                    const currentValue = parseInt(quantityInput.value) || 1;
-                    
-                    if (action === 'increase') {
-                        const newValue = Math.min(currentValue + 1, maxStock);
-                        quantityInput.value = newValue;
-                    } else if (action === 'decrease') {
-                        const newValue = Math.max(currentValue - 1, 1);
-                        quantityInput.value = newValue;
-                    }
+                // Mở modal
+                openModalBtns.forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        const productId = btn.dataset.productId;
+                        const productName = btn.dataset.productName;
+                        const productImage = btn.dataset.productImage;
+                        const productPrice = parseFloat(btn.dataset.productPrice);
+                        const productSalePrice = btn.dataset.productSalePrice ? parseFloat(btn.dataset.productSalePrice) : null;
+                        isBuyNow = btn.dataset.buyNow === 'true';
+                        let variants = [];
+                        
+                        try {
+                            variants = JSON.parse(btn.dataset.variants || '[]');
+                        } catch (e) {
+                            console.error('Error parsing variants:', e);
+                            variants = [];
+                        }
+
+                        currentProductId = productId;
+                        currentVariants = variants;
+                        
+                        // Hiển thị thông tin sản phẩm
+                        document.getElementById('modal-product-image').src = productImage;
+                        document.getElementById('modal-product-image').alt = productName;
+                        document.getElementById('modal-product-name').textContent = productName;
+                        
+                        // Hiển thị giá (lấy từ variant đầu tiên nếu có)
+                        if (variants.length > 0) {
+                            const firstVariant = variants[0];
+                            updatePriceDisplay(firstVariant.display_price, firstVariant.price, firstVariant.sale_price);
+                            currentVariantId = firstVariant.id;
+                            maxStock = firstVariant.stock_quantity !== null ? firstVariant.stock_quantity : 999;
+                            quantityInput.max = maxStock;
+                        } else {
+                            const displayPrice = productSalePrice && productSalePrice < productPrice ? productSalePrice : productPrice;
+                            updatePriceDisplay(displayPrice, productPrice, productSalePrice);
+                            currentVariantId = null;
+                        }
+
+                        // Render variants
+                        renderVariants(variants);
+
+                        // Reset quantity
+                        quantityInput.value = 1;
+
+                        // Update button text if buy now
+                        if (isBuyNow) {
+                            addToCartBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18" height="18" style="margin-right: 8px;"><path fill="currentColor" d="M0 24C0 10.7 10.7 0 24 0L69.5 0c22 0 41.5 12.8 50.6 32l411 0c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3l-288.5 0 5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5L488 336c13.3 0 24 10.7 24 24s-10.7 24-24 24l-288.3 0c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5L24 48C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>Mua ngay';
+                        } else {
+                            addToCartBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18" height="18" style="margin-right: 8px;"><path fill="currentColor" d="M0 24C0 10.7 10.7 0 24 0L69.5 0c22 0 41.5 12.8 50.6 32l411 0c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3l-288.5 0 5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5L488 336c13.3 0 24 10.7 24 24s-10.7 24-24 24l-288.3 0c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5L24 48C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>Thêm vào giỏ hàng';
+                        }
+
+                        // Hiển thị modal
+                        modal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    });
                 });
-            });
 
-            if (quantityInput) {
-                quantityInput.addEventListener('change', function() {
-                    let value = parseInt(this.value) || 1;
-                    value = Math.max(1, Math.min(value, maxStock));
-                    this.value = value;
-                });
-            }
+                // Đóng modal
+                function closeModal() {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    currentProductId = null;
+                    currentVariantId = null;
+                    currentVariants = [];
+                    isBuyNow = false;
+                }
 
-            // Add to cart
-            if (addToCartBtn) {
-                addToCartBtn.addEventListener('click', function() {
-                    if (!currentProductId) return;
+                if (modalOverlay) modalOverlay.addEventListener('click', closeModal);
+                if (modalClose) modalClose.addEventListener('click', closeModal);
+                if (modalCancel) modalCancel.addEventListener('click', closeModal);
+
+                // Render variants
+                function renderVariants(variants) {
+                    if (!variantsList) return;
                     
-                    const quantity = parseInt(quantityInput.value) || 1;
-                    if (quantity < 1) {
-                        alert('Số lượng phải lớn hơn 0');
+                    variantsList.innerHTML = '';
+                    
+                    if (variants.length === 0) {
+                        variantsList.innerHTML = '<p style="color: #999; padding: 20px; text-align: center;">Không có biến thể nào</p>';
                         return;
                     }
 
-                    // Disable button
-                    this.disabled = true;
-                    const originalText = this.innerHTML;
-                    this.innerHTML = '<span>Đang xử lý...</span>';
+                    variants.forEach(function(variant, index) {
+                        const variantBtn = document.createElement('button');
+                        variantBtn.type = 'button';
+                        variantBtn.className = 'xanhworld_variant_modal_variant_item' + (index === 0 ? ' active' : '');
+                        variantBtn.dataset.variantId = variant.id;
+                        variantBtn.dataset.variantPrice = variant.display_price;
+                        variantBtn.dataset.variantOriginalPrice = variant.price;
+                        variantBtn.dataset.variantSalePrice = variant.sale_price || '';
+                        variantBtn.dataset.variantStock = variant.stock_quantity !== null ? variant.stock_quantity : 'null';
+                        
+                        if (variant.stock_quantity !== null && variant.stock_quantity <= 0) {
+                            variantBtn.classList.add('disabled');
+                            variantBtn.disabled = true;
+                        }
 
-                    // Submit form
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '{{ route("client.cart.store") }}';
-                    
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = '{{ csrf_token() }}';
-                    form.appendChild(csrfInput);
+                        let variantHtml = '<span class="variant-name">' + (variant.name || '') + '</span>';
+                        if (variant.details && variant.details.length > 0) {
+                            variantHtml += '<span class="variant-details">(' + variant.details.join(', ') + ')</span>';
+                        }
+                        variantHtml += '<span class="variant-price">' + formatCurrencyVND(variant.display_price) + '₫</span>';
+                        
+                        if (variant.is_on_sale && variant.discount_percent) {
+                            variantHtml += '<span class="variant-discount">-' + variant.discount_percent + '%</span>';
+                        }
+                        
+                        if (variant.stock_quantity !== null && variant.stock_quantity <= 0) {
+                            variantHtml += '<span class="variant-out-of-stock">Hết hàng</span>';
+                        }
 
-                    const productIdInput = document.createElement('input');
-                    productIdInput.type = 'hidden';
-                    productIdInput.name = 'product_id';
-                    productIdInput.value = currentProductId;
-                    form.appendChild(productIdInput);
+                        variantBtn.innerHTML = variantHtml;
 
-                    if (currentVariantId) {
-                        const variantIdInput = document.createElement('input');
-                        variantIdInput.type = 'hidden';
-                        variantIdInput.name = 'product_variant_id';
-                        variantIdInput.value = currentVariantId;
-                        form.appendChild(variantIdInput);
-                    }
+                        variantBtn.addEventListener('click', function() {
+                            if (this.classList.contains('disabled')) return;
+                            
+                            // Update active state
+                            variantsList.querySelectorAll('.xanhworld_variant_modal_variant_item').forEach(function(btn) {
+                                btn.classList.remove('active');
+                            });
+                            this.classList.add('active');
 
-                    const quantityInputHidden = document.createElement('input');
-                    quantityInputHidden.type = 'hidden';
-                    quantityInputHidden.name = 'quantity';
-                    quantityInputHidden.value = quantity;
-                    form.appendChild(quantityInputHidden);
+                            // Update variant
+                            currentVariantId = parseInt(this.dataset.variantId);
+                            const variantPrice = parseFloat(this.dataset.variantPrice);
+                            const variantOriginalPrice = parseFloat(this.dataset.variantOriginalPrice);
+                            const variantSalePrice = this.dataset.variantSalePrice ? parseFloat(this.dataset.variantSalePrice) : null;
+                            const variantStock = this.dataset.variantStock === 'null' ? null : parseInt(this.dataset.variantStock);
 
-                    // If buy now, redirect to checkout
-                    if (isBuyNow) {
-                        const buyNowInput = document.createElement('input');
-                        buyNowInput.type = 'hidden';
-                        buyNowInput.name = 'action';
-                        buyNowInput.value = 'buy_now';
-                        form.appendChild(buyNowInput);
-                    }
+                            updatePriceDisplay(variantPrice, variantOriginalPrice, variantSalePrice);
+                            
+                            maxStock = variantStock !== null ? variantStock : 999;
+                            quantityInput.max = maxStock;
+                            
+                            // Adjust quantity if exceeds max
+                            if (parseInt(quantityInput.value) > maxStock) {
+                                quantityInput.value = maxStock;
+                            }
+                        });
 
-                    document.body.appendChild(form);
-                    form.submit();
-                });
-            }
-
-            // Close on Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal.classList.contains('active')) {
-                    closeModal();
+                        variantsList.appendChild(variantBtn);
+                    });
                 }
+
+                // Update price display
+                function updatePriceDisplay(displayPrice, originalPrice, salePrice) {
+                    const priceContainer = document.getElementById('modal-product-price');
+                    if (!priceContainer) return;
+                    
+                    if (salePrice && salePrice < originalPrice) {
+                        priceContainer.innerHTML = '<span class="price-new">' + formatCurrencyVND(displayPrice) + '₫</span><span class="price-old">' + formatCurrencyVND(originalPrice) + '₫</span>';
+                    } else {
+                        priceContainer.innerHTML = '<span class="price-new">' + formatCurrencyVND(displayPrice) + '₫</span>';
+                    }
+                }
+
+                // Quantity controls
+                document.querySelectorAll('.xanhworld_variant_modal_quantity_btn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        if (!quantityInput) return;
+                        const action = this.dataset.action;
+                        const currentValue = parseInt(quantityInput.value) || 1;
+                        
+                        if (action === 'increase') {
+                            const newValue = Math.min(currentValue + 1, maxStock);
+                            quantityInput.value = newValue;
+                        } else if (action === 'decrease') {
+                            const newValue = Math.max(currentValue - 1, 1);
+                            quantityInput.value = newValue;
+                        }
+                    });
+                });
+
+                if (quantityInput) {
+                    quantityInput.addEventListener('change', function() {
+                        let value = parseInt(this.value) || 1;
+                        value = Math.max(1, Math.min(value, maxStock));
+                        this.value = value;
+                    });
+                }
+
+                // Add to cart
+                if (addToCartBtn) {
+                    addToCartBtn.addEventListener('click', function() {
+                        if (!currentProductId) return;
+                        
+                        const quantity = parseInt(quantityInput.value) || 1;
+                        if (quantity < 1) {
+                            alert('Số lượng phải lớn hơn 0');
+                            return;
+                        }
+
+                        // Disable button
+                        this.disabled = true;
+                        const originalText = this.innerHTML;
+                        this.innerHTML = '<span>Đang xử lý...</span>';
+
+                        // Submit form
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '{{ route("client.cart.store") }}';
+                        
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '_token';
+                        csrfInput.value = '{{ csrf_token() }}';
+                        form.appendChild(csrfInput);
+
+                        const productIdInput = document.createElement('input');
+                        productIdInput.type = 'hidden';
+                        productIdInput.name = 'product_id';
+                        productIdInput.value = currentProductId;
+                        form.appendChild(productIdInput);
+
+                        if (currentVariantId) {
+                            const variantIdInput = document.createElement('input');
+                            variantIdInput.type = 'hidden';
+                            variantIdInput.name = 'product_variant_id';
+                            variantIdInput.value = currentVariantId;
+                            form.appendChild(variantIdInput);
+                        }
+
+                        const quantityInputHidden = document.createElement('input');
+                        quantityInputHidden.type = 'hidden';
+                        quantityInputHidden.name = 'quantity';
+                        quantityInputHidden.value = quantity;
+                        form.appendChild(quantityInputHidden);
+
+                        // If buy now, redirect to checkout
+                        if (isBuyNow) {
+                            const buyNowInput = document.createElement('input');
+                            buyNowInput.type = 'hidden';
+                            buyNowInput.name = 'action';
+                            buyNowInput.value = 'buy_now';
+                            form.appendChild(buyNowInput);
+                        }
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    });
+                }
+
+                // Close on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && modal.classList.contains('active')) {
+                        closeModal();
+                    }
+                });
             });
-        });
-    </script>
+        </script>
     @endsection
 @endsection

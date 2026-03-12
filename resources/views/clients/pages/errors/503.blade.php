@@ -128,9 +128,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 @endsection
 
-@push('js_page')
-    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
-@endpush
+{{-- main.js included globally --}}
 
 @section('content')
 <div class="maintenance-container">

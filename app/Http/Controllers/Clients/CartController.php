@@ -29,13 +29,18 @@ class CartController extends Controller
             );
         }
 
-        $productNew = Cache::remember('new_products', 3600, function () {
+        $productNew = Cache::remember('new_products_cart', 3600, function () {
             $products = Product::active()
+                ->select('id', 'name', 'slug', 'price', 'sale_price', 'primary_category_id', 'image_ids', 'created_at')
                 ->orderBy('created_at', 'desc')
-                ->inRandomOrder()
-                ->limit(9)
-                ->get() ?? collect();
+                ->limit(16)
+                ->get();
 
+            if ($products->isNotEmpty()) {
+                $products = $products->random(min(16, $products->count()));
+            }
+
+            $products->load(['variants', 'primaryCategory']);
             Product::preloadImages($products);
 
             return $products;
@@ -116,9 +121,24 @@ class CartController extends Controller
                     : 'Không thể thêm thêm vì đã hết tồn kho cho sản phẩm này.';
             }
 
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                ], 422);
+            }
+
             return redirect()
                 ->back()
                 ->with('warning', $message);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã thêm sản phẩm vào giỏ hàng.',
+                'cart_total_items' => $result['cart_total_items'],
+            ]);
         }
 
         return redirect()
@@ -513,7 +533,7 @@ class CartController extends Controller
             $result['cart_item'] = $cartItem;
         });
 
-        $cart->loadMissing('items.product');
+        $cart->load(['items.product', 'items.variant']);
 
         $cartItem = $cart->items->firstWhere('product_id', $product->id);
 

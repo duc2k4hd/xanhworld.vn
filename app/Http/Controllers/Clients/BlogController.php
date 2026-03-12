@@ -98,9 +98,10 @@ class BlogController extends Controller
         }
 
         $posts = $postsQuery
-            ->orderByDesc('published_at')
+            ->with(['category', 'author'])
+            ->orderBy('published_at', 'desc')
             ->orderByDesc('created_at')
-            ->paginate(12)
+            ->paginate(8)
             ->withQueryString();
         Post::preloadImages($posts->getCollection());
 
@@ -178,25 +179,40 @@ class BlogController extends Controller
             abort(404);
         }
 
+        // Tối ưu: Eager load ngay lập tức các quan hệ cần thiết
         $post->loadMissing(['category', 'author', 'creator']);
         Post::preloadImages([$post]);
         $post->increment('views');
 
-        $contentData = $this->buildContentAnchors($post->content);
+        // Tối ưu: Cache Content Anchors và TOC (xử lý DOM nặng)
+        $contentData = Cache::remember('blog_post_content_v2_' . $post->id . '_' . $post->updated_at->timestamp, now()->addDays(30), function () use ($post) {
+            return $this->buildContentAnchors($post->content);
+        });
+
         $tags = $this->resolveTags($post);
         $meta = $this->resolvePostMeta($post);
 
-        $relatedPosts = Cache::remember('blog_related_posts_'.$post->id, now()->addDays(30), function () use ($post) {
-            // Lấy thời gian của bài hiện tại để so sánh
-            $currentPublishedAt = $post->published_at ?? $post->created_at;
+        // Tối ưu: Cache Schema Data (xử lý regex và I/O nặng)
+        $schemaData = Cache::remember('blog_post_schema_v2_' . $post->id . '_' . $post->updated_at->timestamp, now()->addDays(30), function () use ($post, $tags) {
+            return $this->buildShowSchemas($post, $tags);
+        });
 
-            // Lấy 3 bài trước (cũ hơn)
-            $previousPosts = Post::query()
+        $relatedPosts = Cache::remember('blog_related_posts_v2_' . $post->id . '_' . $post->updated_at->timestamp, now()->addDays(30), function () use ($post) {
+            $currentPublishedAt = $post->published_at ?? $post->created_at;
+            $limit = 6;
+
+            // Tối ưu: Chỉ lấy các cột cần thiết cho Bài viết liên quan
+            $baseQuery = Post::query()
                 ->published()
                 ->where('id', '!=', $post->id)
-                ->when($post->category_id, function ($q) use ($post) {
-                    $q->where('category_id', $post->category_id);
-                })
+                ->select(['id', 'title', 'slug', 'image_ids', 'category_id', 'published_at', 'created_at']);
+
+            if ($post->category_id) {
+                $baseQuery->where('category_id', $post->category_id);
+            }
+
+            // Lấy 3 bài trước
+            $previousPosts = (clone $baseQuery)
                 ->where(function ($q) use ($currentPublishedAt) {
                     $q->where('published_at', '<', $currentPublishedAt)
                         ->orWhere(function ($subQ) use ($currentPublishedAt) {
@@ -209,13 +225,8 @@ class BlogController extends Controller
                 ->take(3)
                 ->get();
 
-            // Lấy 3 bài sau (mới hơn)
-            $nextPosts = Post::query()
-                ->published()
-                ->where('id', '!=', $post->id)
-                ->when($post->category_id, function ($q) use ($post) {
-                    $q->where('category_id', $post->category_id);
-                })
+            // Lấy bài sau để đủ 6
+            $nextPosts = (clone $baseQuery)
                 ->where(function ($q) use ($currentPublishedAt) {
                     $q->where('published_at', '>', $currentPublishedAt)
                         ->orWhere(function ($subQ) use ($currentPublishedAt) {
@@ -223,34 +234,26 @@ class BlogController extends Controller
                                 ->where('created_at', '>', $currentPublishedAt);
                         });
                 })
+                ->whereNotIn('id', $previousPosts->pluck('id'))
                 ->orderBy('published_at')
                 ->orderBy('created_at')
-                ->take(3)
+                ->take($limit - $previousPosts->count())
                 ->get();
 
-            // Merge và sắp xếp theo thứ tự thời gian
             $allRelatedPosts = $previousPosts->merge($nextPosts);
 
-            // Nếu không đủ 6 bài, lấy thêm từ tất cả bài viết
-            if ($allRelatedPosts->count() < 6) {
-                $remainingCount = 6 - $allRelatedPosts->count();
-                $additionalPosts = Post::query()
-                    ->published()
-                    ->where('id', '!=', $post->id)
+            // Nếu vẫn thiếu, lấy thêm ngẫu nhiên cùng category hoặc bất kỳ bài nào
+            if ($allRelatedPosts->count() < $limit) {
+                $remainingCount = $limit - $allRelatedPosts->count();
+                $additionalPosts = (clone $baseQuery)
                     ->whereNotIn('id', $allRelatedPosts->pluck('id'))
-                    ->when($post->category_id, function ($q) use ($post) {
-                        $q->where('category_id', $post->category_id);
-                    })
-                    ->orderByDesc('published_at')
-                    ->orderByDesc('created_at')
+                    ->inRandomOrder()
                     ->take($remainingCount)
                     ->get();
-
                 $allRelatedPosts = $allRelatedPosts->merge($additionalPosts);
             }
 
-            // Sắp xếp lại theo thứ tự thời gian (cũ nhất -> mới nhất)
-            $sortedPosts = $allRelatedPosts->sortBy(function ($item) {
+            $sortedPosts = $allRelatedPosts->sortByDesc(function ($item) {
                 return $item->published_at ?? $item->created_at;
             })->values();
 
@@ -259,10 +262,11 @@ class BlogController extends Controller
             return $sortedPosts;
         });
 
-        $internalLinks = Cache::remember('blog_internal_links_'.$post->id, now()->addDays(30), function () use ($post) {
+        $internalLinks = Cache::remember('blog_internal_links_v2_' . $post->id, now()->addDays(7), function () use ($post) {
             $links = Post::query()
                 ->published()
                 ->where('id', '!=', $post->id)
+                ->select(['id', 'title', 'slug', 'image_ids', 'published_at', 'created_at'])
                 ->inRandomOrder()
                 ->take(3)
                 ->get();
@@ -271,45 +275,54 @@ class BlogController extends Controller
             return $links;
         });
 
-        // Load comments và rating stats - chỉ load 10 đầu tiên
+        // Load comments - chỉ load 10 đầu tiên, cache nhẹ stats
         $comments = Comment::where('commentable_type', 'post')
             ->where('commentable_id', $post->id)
             ->whereNull('parent_id')
             ->approved()
-            ->with(['account'])
+            ->with(['account:id,name,role']) // Chỉ lấy field cần thiết
             ->orderByDesc('created_at')
             ->limit(10)
             ->get();
 
-        // Load admin replies separately để đảm bảo relationship hoạt động đúng
         $commentIds = $comments->pluck('id');
         $adminReplies = Comment::whereIn('parent_id', $commentIds)
             ->whereNotNull('account_id')
             ->whereHas('account', function ($q) {
                 $q->where('role', 'admin');
             })
-            ->with('account')
+            ->with('account:id,name,role')
             ->get()
             ->keyBy('parent_id');
 
-        // Attach admin replies to comments
         $comments->each(function ($comment) use ($adminReplies) {
             if ($adminReplies->has($comment->id)) {
                 $comment->setRelation('adminReply', $adminReplies->get($comment->id));
             }
         });
 
-        // Get total count for "load more" functionality
         $totalComments = Comment::where('commentable_type', 'post')
             ->where('commentable_id', $post->id)
             ->whereNull('parent_id')
             ->approved()
             ->count();
 
-        $commentService = app(\App\Services\CommentService::class);
-        $ratingStats = $commentService->calculateRatingStats('post', $post->id);
+        $ratingStats = Cache::remember('blog_post_rating_stats_' . $post->id . '_' . $post->updated_at->timestamp, now()->addDays(7), function () use ($post) {
+            $commentService = app(\App\Services\CommentService::class);
+            return $commentService->calculateRatingStats('post', $post->id);
+        });
 
-        $schemaData = $this->buildShowSchemas($post, $tags);
+        // Tối ưu: Cache 5 bài viết đề xuất ngẫu nhiên trong 7 ngày để tiết kiệm tài nguyên
+        $suggestedPosts = Cache::remember('blog_suggested_posts_pool_v1', now()->addDays(7), function () {
+            return Post::query()
+                ->published()
+                ->select(['id', 'title', 'slug', 'image_ids', 'published_at', 'created_at'])
+                ->inRandomOrder()
+                ->take(10)
+                ->get();
+        })->where('id', '!=', $post->id)->shuffle()->take(5);
+        
+        Post::preloadImages($suggestedPosts);
 
         return view('clients.pages.blog.show', [
             'post' => $post,
@@ -319,6 +332,7 @@ class BlogController extends Controller
             'contentWithAnchors' => $contentData['content'],
             'internalLinks' => $internalLinks,
             'relatedPosts' => $relatedPosts,
+            'suggestedPosts' => $suggestedPosts,
             'comments' => $comments,
             'ratingStats' => $ratingStats,
             'totalComments' => $totalComments,

@@ -12,9 +12,7 @@
 
 @endsection
 
-@push('js_page')
-    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
-@endpush
+{{-- main.js included globally --}}
 
 @push('styles')
 

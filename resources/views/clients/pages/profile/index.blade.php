@@ -7,9 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
 @endsection
 
-@push('js_page')
-    <script src="{{ asset('clients/assets/js/main.js') }}"></script>
-@endpush
+{{-- main.js already included globally --}}
 
 @section('content')
     <!-- Breadcrumb -->

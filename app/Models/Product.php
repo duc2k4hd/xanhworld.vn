@@ -42,6 +42,7 @@ class Product extends Model
         'created_by',
         'is_active',
         'category_ids_backup',
+        'product_included_ids',
         'created_at',
         'updated_at',
     ];
@@ -61,6 +62,7 @@ class Product extends Model
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
         'category_included_ids' => 'array',
+        'product_included_ids' => 'array',
     ];
 
     protected array $reviewDisplayCache = [];
@@ -344,6 +346,8 @@ class Product extends Model
 
         $baseQuery = static::query()
             ->active()
+            ->select('id', 'name', 'slug', 'price', 'sale_price', 'primary_category_id', 'image_ids')
+            ->with(['variants', 'primaryCategory'])
             ->withApprovedCommentsMeta()
             ->where('id', '!=', $currentId)
             ->where(function ($q) use ($product) {

@@ -50,7 +50,6 @@
     <link rel="alternate" hreflang="x-default" href="{{ $canonicalUrl }}">
 @endsection
 
-
 @section('foot')
     <script src="{{ asset('clients/assets/js/shop.js?v='. time()) }}"></script>
     <script>

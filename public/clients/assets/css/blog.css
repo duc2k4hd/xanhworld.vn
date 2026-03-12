@@ -1046,6 +1046,14 @@ img.xanhworld_blog_featured-image {
     margin-bottom: 12px;
 }
 
+.xanhworld_blog_article-content ul li {
+    list-style: disc;
+}
+
+.xanhworld_blog_article-content ol li {
+    list-style: decimal;
+}
+
 .xanhworld_blog_article-content img {
     max-width: 100%;
     height: auto;
@@ -1547,4 +1555,79 @@ img.xanhworld_blog_featured-image {
 /* Smooth Scroll */
 html {
     scroll-behavior: smooth;
+}
+
+/* Suggested Posts Widget */
+.xanhworld_blog_sidebar-widget {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    margin-top: 24px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.xanhworld_blog_sidebar-widget-title {
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #059669;
+}
+
+.xanhworld_blog_sidebar-widget-title h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.xanhworld_blog_sidebar-widget-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.xanhworld_blog_sidebar-widget-item {
+    display: flex;
+    gap: 12px;
+    text-decoration: none;
+    transition: transform 0.2s;
+}
+
+.xanhworld_blog_sidebar-widget-item:hover {
+    transform: translateX(5px);
+}
+
+.xanhworld_blog_sidebar-widget-item-img {
+    width: 65px;
+    height: 65px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.xanhworld_blog_sidebar-widget-item-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.xanhworld_blog_sidebar-widget-item-content {
+    flex: 1;
+}
+
+.xanhworld_blog_sidebar-widget-item-content p {
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.2s;
+}
+
+.xanhworld_blog_sidebar-widget-item:hover .xanhworld_blog_sidebar-widget-item-content p {
+    color: #059669;
 }

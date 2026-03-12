@@ -190,12 +190,66 @@ document.addEventListener('DOMContentLoaded', () => {
             maxItems: null,
         };
         
-        ['#primary-category', '#included-categories', '#extra-categories', '#tagSelect'].forEach(sel => {
+        const tomSelects = {};
+        ['#primary-category', '#included-categories', '#included-products', '#extra-categories', '#tagSelect'].forEach(sel => {
             const el = document.querySelector(sel);
             if (el) {
-                new TomSelect(el, selectSettings);
+                let settings = {...selectSettings};
+                
+                // Giới hạn 6 sản phẩm cho included-products
+                if (sel === '#included-products') {
+                    settings.maxItems = 6;
+                    settings.onInitialize = function() {
+                        const categoriesSel = tomSelects['#included-categories'];
+                        if (categoriesSel && this.items.length > 0) {
+                            categoriesSel.disable();
+                        }
+                    };
+                }
+                
+                if (sel === '#included-categories') {
+                    settings.onInitialize = function() {
+                        const productsSel = tomSelects['#included-products'];
+                        if (productsSel && this.items.length > 0) {
+                            productsSel.disable();
+                        }
+                    };
+                }
+
+                tomSelects[sel] = new TomSelect(el, settings);
             }
         });
+
+        // Logic 1 trong 2: Sản phẩm vs Danh mục
+        const prodTs = tomSelects['#included-products'];
+        const catTs = tomSelects['#included-categories'];
+
+        if (prodTs && catTs) {
+            // Check ban đầu khi tải trang
+            if (prodTs.items.length > 0) {
+                catTs.disable();
+            } else if (catTs.items.length > 0) {
+                prodTs.disable();
+            }
+
+            prodTs.on('change', (vals) => {
+                if (vals.length > 0) {
+                    catTs.clear();
+                    catTs.disable();
+                } else {
+                    catTs.enable();
+                }
+            });
+
+            catTs.on('change', (vals) => {
+                if (vals.length > 0) {
+                    prodTs.clear();
+                    prodTs.disable();
+                } else {
+                    prodTs.enable();
+                }
+            });
+        }
     } else {
         console.warn('TomSelect library not loaded.');
     }

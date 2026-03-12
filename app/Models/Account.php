@@ -238,4 +238,19 @@ class Account extends Authenticatable
     {
         return $this->status;
     }
+
+    public function getAvatarColorAttribute(): array
+    {
+        $colors = [
+            ['background' => '0D8ABC', 'color' => 'FFFFFF'],
+            ['background' => 'D32F2F', 'color' => 'FFFFFF'],
+            ['background' => '388E3C', 'color' => 'FFFFFF'],
+            ['background' => 'F57C00', 'color' => 'FFFFFF'],
+            ['background' => '7B1FA2', 'color' => 'FFFFFF'],
+            ['background' => '00796B', 'color' => 'FFFFFF'],
+        ];
+        
+        // Dùng ID để lấy màu cố định cho từng user
+        return $colors[$this->id % count($colors)];
+    }
 }

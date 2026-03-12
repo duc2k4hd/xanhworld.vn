@@ -52,6 +52,12 @@
     }
     $includedCategoryIds = array_values(array_unique(array_map('intval', array_filter($includedCategoryIds))));
 
+    $includedProductIds = old('product_included_ids', $product->product_included_ids ?? []);
+    if (! is_array($includedProductIds)) {
+        $includedProductIds = (array) $includedProductIds;
+    }
+    $includedProductIds = array_values(array_unique(array_map('intval', array_filter($includedProductIds))));
+
     // Load variants
     $productVariants = [];
     if ($product->exists) {
@@ -180,25 +186,110 @@
                 >{{ old('short_description', $product->short_description) }}</textarea>
             </div>
             <div class="card">
-                <div class="repeater-header">
-                    <h3>Mô tả chi tiết (JSON)</h3>
-                    <button type="button" class="btn btn-secondary" id="add-description-section" data-template="#description-section-template">+ Thêm section</button>
+                <h3>Mô tả & Hướng dẫn cụ thể</h3>
+                <div class="mt-3">
+                    <label>Mô tả chi tiết sản phẩm</label>
+                    <textarea class="form-control tinymce-editor" name="description[description]" rows="10" data-media-folder="clothes">{{ old('description.description', $product->description['description'] ?? '') }}</textarea>
                 </div>
-                
-                <div class="repeater-list" id="description-sections-list">
-                    @php
-                        $description = old('description', $product->description);
-                        $sections = $description['sections'] ?? [];
-                    @endphp
+                <div class="mt-3">
+                    <label>Hướng dẫn chăm sóc</label>
+                    <textarea class="form-control tinymce-editor" name="description[instruction]" rows="10" data-media-folder="clothes">{{ old('description.instruction', $product->description['instruction'] ?? '') }}</textarea>
+                </div>
 
-                    @foreach($sections as $index => $section)
-                        @include('admins.products.partials.description-section', ['index' => $index, 'section' => $section])
-                    @endforeach
-                </div>
+                <h3 class="mt-4">Thông số kỹ thuật (Kỹ thuật cây cảnh)</h3>
                 
-                <template id="description-section-template">
-                    @include('admins.products.partials.description-section', ['index' => '__INDEX__', 'section' => []])
-                </template>
+                <div class="mt-2 mb-4 p-3 border rounded bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="fw-bold">Huy hiệu nổi bật (Tối đa 2)</label>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="addHighlight()">+ Thêm huy hiệu</button>
+                    </div>
+                    <div id="highlights-container" class="grid-2">
+                        @php
+                            $highlights = old('description.highlights', $product->description['highlights'] ?? []);
+                        @endphp
+                        @foreach($highlights as $index => $hl)
+                            <div class="highlight-item input-group mb-2">
+                                <input type="text" name="description[highlights][{{ $index }}][icon]" class="form-control" style="max-width: 60px;" value="{{ $hl['icon'] ?? '' }}" placeholder="🌿">
+                                <input type="text" name="description[highlights][{{ $index }}][text]" class="form-control" value="{{ $hl['text'] ?? '' }}" placeholder="Dễ chăm sóc">
+                                <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">&times;</button>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="grid-3 mt-2">
+                    <div>
+                        <label>Chiều cao (cm/m)</label>
+                        <input type="text" class="form-control" name="description[specifications][height]" value="{{ old('description.specifications.height', $product->description['specifications']['height'] ?? '') }}" placeholder="Ví dụ: 1.2m - 1.5m">
+                    </div>
+                    <div>
+                        <label>Tán lá</label>
+                        <input type="text" class="form-control" name="description[specifications][foliage]" value="{{ old('description.specifications.foliage', $product->description['specifications']['foliage'] ?? '') }}" placeholder="Ví dụ: Tán rộng 50cm">
+                    </div>
+                    <div>
+                        <label>Ánh sáng</label>
+                        <input type="text" class="form-control" name="description[specifications][light]" value="{{ old('description.specifications.light', $product->description['specifications']['light'] ?? '') }}" placeholder="Ví dụ: Ưa sáng bán phần">
+                    </div>
+                    <div>
+                        <label>Nước</label>
+                        <input type="text" class="form-control" name="description[specifications][water]" value="{{ old('description.specifications.water', $product->description['specifications']['water'] ?? '') }}" placeholder="Ví dụ: Tưới 2-3 lần/tuần">
+                    </div>
+                    <div>
+                        <label>Tên khoa học</label>
+                        <input type="text" class="form-control" name="description[specifications][scientific_name]" value="{{ old('description.specifications.scientific_name', $product->description['specifications']['scientific_name'] ?? '') }}" placeholder="Ví dụ: Sansevieria trifasciata">
+                    </div>
+                    <div>
+                        <label>Vị trí đặt cây</label>
+                        <input type="text" class="form-control" name="description[specifications][position]" value="{{ old('description.specifications.position', $product->description['specifications']['position'] ?? '') }}" placeholder="Ví dụ: Phòng khách, ban công, văn phòng">
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <label>Phong thủy & Ý nghĩa</label>
+                    <textarea class="form-control" name="description[specifications][fengshui]" rows="3">{{ old('description.specifications.fengshui', $product->description['specifications']['fengshui'] ?? '') }}</textarea>
+                </div>
+
+                <hr class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <h3 class="mb-0">Thông tin khác (Bổ sung)</h3>
+                    <button type="button" class="btn btn-success btn-sm" onclick="openGeneralModal()">+ Thêm thông số</button>
+                </div>
+                <div class="table-responsive mt-3">
+                    <table class="table table-bordered table-hover" id="general-specs-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên thông số</th>
+                                <th>Khóa (Slug)</th>
+                                <th>Nội dung</th>
+                                <th style="width: 120px; text-align: center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="general-specs-body">
+                            @php
+                                $generalSpecs = old('description.general', $product->description['general'] ?? []);
+                            @endphp
+                            @foreach($generalSpecs as $key => $item)
+                                <tr data-key="{{ $key }}">
+                                    <td class="col-name">{{ $item['name'] ?? '' }}</td>
+                                    <td class="col-key"><code>{{ $key }}</code></td>
+                                    <td class="col-value">{{ $item['value'] ?? '' }}</td>
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="editGeneral('{{ $key }}')">Sửa</button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeGeneral('{{ $key }}')">Xóa</button>
+                                        </div>
+                                        <input type="hidden" name="description[general][{{ $key }}][name]" value="{{ $item['name'] ?? '' }}">
+                                        <input type="hidden" name="description[general][{{ $key }}][value]" value="{{ $item['value'] ?? '' }}">
+                                    </td>
+                                </tr>
+                            @endforeach
+                            @if(empty($generalSpecs))
+                                <tr class="no-data">
+                                    <td colspan="4" class="text-center text-muted">Chưa có thông số bổ sung nào.</td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -218,16 +309,32 @@
                     </select>
                 </div>
                 <div>
-                    <label>Danh mục sản phẩm đi kèm</label>
-                    <select class="form-control" id="included-categories" name="category_included_ids[]" multiple>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}"
-                                {{ in_array($category->id, $includedCategoryIds, true) ? 'selected' : '' }}>
-                                {{ $category->name }}
+                    <label>Sản phẩm mua kèm gợi ý</label>
+                    <select class="form-control" id="included-products" name="product_included_ids[]" multiple>
+                        @foreach($allProducts as $p)
+                            <option value="{{ $p->id }}"
+                                {{ in_array($p->id, $includedProductIds, true) ? 'selected' : '' }}>
+                                {{ $p->name }}
                             </option>
                         @endforeach
                     </select>
-                    <small class="text-muted d-block mt-1">Chọn danh mục để hệ thống tự gợi ý tối đa 10 sản phẩm ngẫu nhiên thuộc danh mục đó (kể cả danh mục con/cháu).</small>
+                    <small class="text-secondary d-block mt-1">
+                        <i class="fas fa-info-circle"></i> Chọn <strong>tối đa 6 sản phẩm</strong>. 
+                        Nếu chọn sản phẩm, phần chọn danh mục bên dưới sẽ bị vô hiệu hóa.
+                    </small>
+                    
+                    <div class="mt-3">
+                        <label class="small text-muted">HOẶC chọn danh mục gợi ý (Hệ thống sẽ lấy ngẫu nhiên 6 sản phẩm thuộc danh mục)</label>
+                        <select class="form-control form-control-sm" id="included-categories" name="category_included_ids[]" multiple>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}"
+                                    {{ in_array($category->id, $includedCategoryIds, true) ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted d-block mt-1">Lưu ý: Chỉ được phép chọn Sản phẩm cụ thể <strong>HOẶC</strong> Danh mục gợi ý.</small>
+                    </div>
                 </div>
                 <div>
                     <label>Danh mục phụ</label>
@@ -534,15 +641,15 @@
                             </div>
                             <div>
                                 <label>Giá gốc <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" name="variants[{{ $index }}][price]" value="{{ $variant['price'] ?? 0 }}" min="0" step="1000" required>
+                                <input type="number" class="form-control" name="variants[{{ $index }}][price]" value="{{ $variant['price'] ?? 0 }}" min="0" required>
                             </div>
                             <div>
                                 <label>Giá khuyến mãi</label>
-                                <input type="number" class="form-control" name="variants[{{ $index }}][sale_price]" value="{{ $variant['sale_price'] ?? '' }}" min="0" step="1000" placeholder="Để trống nếu không có">
+                                <input type="number" class="form-control" name="variants[{{ $index }}][sale_price]" value="{{ $variant['sale_price'] ?? '' }}" min="0" placeholder="Để trống nếu không có">
                             </div>
                             <div>
                                 <label>Giá vốn</label>
-                                <input type="number" class="form-control" name="variants[{{ $index }}][cost_price]" value="{{ $variant['cost_price'] ?? '' }}" min="0" step="1000" placeholder="Để trống nếu không có">
+                                <input type="number" class="form-control" name="variants[{{ $index }}][cost_price]" value="{{ $variant['cost_price'] ?? '' }}" min="0" placeholder="Để trống nếu không có">
                             </div>
                             <div>
                                 <label>Số lượng tồn kho</label>
@@ -825,4 +932,169 @@
             </div>
         </div>
     </template>
+
+    <!-- Modal cho thông số General -->
+    <div class="modal fade" id="generalModal" tabindex="-1" aria-labelledby="generalModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="generalModalLabel">Thêm/Sửa thông số bổ sung</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-general-old-key">
+                    <div class="mb-3">
+                        <label class="form-label">Tên thông số (Ví dụ: Chất liệu, Chiều rộng đáy)</label>
+                        <input type="text" class="form-control" id="general-name" placeholder="Chất liệu" onkeyup="updateGeneralSlugPreview()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Khóa tự động (Slug)</label>
+                        <input type="text" class="form-control bg-light" id="general-key-preview" readonly>
+                        <small class="text-muted">Hệ thống sẽ dùng khóa này để lưu trữ.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giá trị / Nội dung</label>
+                        <textarea class="form-control" id="general-value" rows="3" placeholder="Gốm sứ tráng men"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveGeneral()">Lưu thay đổi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        function generateSimpleSlug(text) {
+            return text.toString().toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, "") // Xóa dấu tiếng Việt
+                .replace(/đ/g, "d").replace(/Đ/g, "d")
+                .replace(/\s+/g, '_')           // Khoảng trắng -> _
+                .replace(/[^\w\-]+/g, '')       // Xóa ký tự lạ
+                .replace(/\-\-+/g, '_')         // -- -> _
+                .replace(/^-+/, '')             // Xóa - đầu
+                .replace(/-+$/, '');            // Xóa - cuối
+        }
+
+        function updateGeneralSlugPreview() {
+            const name = document.getElementById('general-name').value;
+            document.getElementById('general-key-preview').value = generateSimpleSlug(name);
+        }
+
+        const generalModal = new bootstrap.Modal(document.getElementById('generalModal'));
+
+        function openGeneralModal() {
+            document.getElementById('edit-general-old-key').value = '';
+            document.getElementById('general-name').value = '';
+            document.getElementById('general-value').value = '';
+            document.getElementById('general-key-preview').value = '';
+            document.getElementById('generalModalLabel').textContent = 'Thêm thông số mới';
+            generalModal.show();
+        }
+
+        function editGeneral(key) {
+            const row = document.querySelector(`#general-specs-body tr[data-key="${key}"]`);
+            if (!row) return;
+
+            const name = row.querySelector('input[name*="[name]"]').value;
+            const value = row.querySelector('input[name*="[value]"]').value;
+
+            document.getElementById('edit-general-old-key').value = key;
+            document.getElementById('general-name').value = name;
+            document.getElementById('general-value').value = value;
+            document.getElementById('general-key-preview').value = key;
+            document.getElementById('generalModalLabel').textContent = 'Chỉnh sửa thông số';
+            generalModal.show();
+        }
+
+        function saveGeneral() {
+            const name = document.getElementById('general-name').value.trim();
+            const value = document.getElementById('general-value').value.trim();
+            const key = document.getElementById('general-key-preview').value.trim();
+            const oldKey = document.getElementById('edit-general-old-key').value;
+
+            if (!name || !value) {
+                alert('Vui lòng nhập tên và giá trị thông số!');
+                return;
+            }
+
+            if (!key) {
+                alert('Khóa (slug) không hợp lệ!');
+                return;
+            }
+
+            const body = document.getElementById('general-specs-body');
+            
+            // Xóa dòng cũ nếu đang sửa
+            if (oldKey) {
+                const oldRow = body.querySelector(`tr[data-key="${oldKey}"]`);
+                if (oldRow) oldRow.remove();
+            }
+
+            // Xóa dòng "no data"
+            const noData = body.querySelector('.no-data');
+            if (noData) noData.remove();
+
+            // Nếu trùng key mà không phải đang sửa đúng key đó, báo lỗi (trừ khi ghi đè)
+            const existing = body.querySelector(`tr[data-key="${key}"]`);
+            if (existing && key !== oldKey) {
+                if(!confirm('Khóa này đã tồn tại, bạn có muốn ghi đè?')) return;
+                existing.remove();
+            }
+
+            const row = document.createElement('tr');
+            row.setAttribute('data-key', key);
+            row.innerHTML = `
+                <td class="col-name">${name}</td>
+                <td class="col-key"><code>${key}</code></td>
+                <td class="col-value">${value}</td>
+                <td class="text-center">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="editGeneral('${key}')">Sửa</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeGeneral('${key}')">Xóa</button>
+                    </div>
+                    <input type="hidden" name="description[general][${key}][name]" value="${name}">
+                    <input type="hidden" name="description[general][${key}][value]" value="${value}">
+                </td>
+            `;
+            body.appendChild(row);
+            generalModal.hide();
+        }
+
+        function removeGeneral(key) {
+            if (confirm('Bạn có chắc muốn xóa thông số này?')) {
+                const row = document.querySelector(`#general-specs-body tr[data-key="${key}"]`);
+                if (row) row.remove();
+
+                const body = document.getElementById('general-specs-body');
+                if (body.children.length === 0) {
+                    body.innerHTML = `
+                        <tr class="no-data">
+                            <td colspan="4" class="text-center text-muted">Chưa có thông số bổ sung nào.</td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        function addHighlight() {
+            const container = document.getElementById('highlights-container');
+            const index = container.children.length;
+            if (index >= 2) {
+                alert('Tổ đa 2 huy hiệu thôi bạn nhé!');
+                return;
+            }
+            const div = document.createElement('div');
+            div.className = 'highlight-item input-group mb-2';
+            div.innerHTML = `
+                <input type="text" name="description[highlights][${index}][icon]" class="form-control" style="max-width: 60px;" placeholder="🚚">
+                <input type="text" name="description[highlights][${index}][text]" class="form-control" placeholder="Giao nhanh">
+                <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">&times;</button>
+            `;
+            container.appendChild(div);
+        }
+    </script>
+    @endpush
 @endsection

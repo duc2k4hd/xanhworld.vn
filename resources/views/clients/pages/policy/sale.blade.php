@@ -12,9 +12,7 @@
 
 @endsection
 
-@push('js_page')
-    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
-@endpush
+{{-- main.js included globally --}}
 
 @push('styles')
 
@@ -60,7 +58,7 @@
 
                     <span>Miễn phí giao hàng</span>
 
-                    <strong>Từ 500.000đ</strong>
+                    <strong>Từ 4.999.000đ</strong>
 
                 </div>
 
@@ -110,7 +108,7 @@
 
                 <li>Đóng gói chống sốc, chống ẩm kỹ lưỡng để đảm bảo cây không bị hư hại.</li>
 
-                <li>Miễn phí giao hàng cho đơn từ <strong>500.000đ</strong>.</li>
+                <li>Miễn phí giao hàng cho đơn từ <strong>4.999.000đ</strong>.</li>
 
             </ul>
 

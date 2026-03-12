@@ -26,22 +26,51 @@ class ProductDescriptionCast implements CastsAttributes
         // Try to decode JSON
         $decoded = json_decode($value, true);
 
-        // If valid JSON and has strict structure, return it
-        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded) && isset($decoded['sections'])) {
-            return $decoded;
+        // If valid JSON and has the new structure, return it
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded) && (isset($decoded['description']) || isset($decoded['instruction']) || isset($decoded['specifications']))) {
+            return array_merge([
+                'description' => '',
+                'instruction' => '',
+                'specifications' => [],
+                'general' => [],
+                'highlights' => []
+            ], $decoded);
         }
 
         // BACKWARD COMPATIBILITY:
-        // If value is not valid JSON or doesn't have 'sections', treat it as legacy text
+        // If it's the old 'sections' structure, map it to the new one
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded) && isset($decoded['sections'])) {
+            $description = '';
+            $instruction = '';
+            $specs = [];
+
+            foreach ($decoded['sections'] as $section) {
+                $key = $section['key'] ?? '';
+                $content = $section['content'] ?? '';
+                
+                if ($key === 'care' || $key === 'instruction') {
+                    $instruction .= $content;
+                } else {
+                    $description .= $content;
+                }
+            }
+
+            return [
+                'description' => $description,
+                'instruction' => $instruction,
+                'specifications' => $specs,
+                'general' => [],
+                'highlights' => []
+            ];
+        }
+
+        // If value is not valid JSON or unknown, treat as raw description
         return [
-            'sections' => [
-                [
-                    'key' => 'legacy',
-                    'title' => 'Mô tả chi tiết',
-                    'content' => $value, // The original text
-                    'media' => null,
-                ]
-            ]
+            'description' => $value,
+            'instruction' => '',
+            'specifications' => [],
+            'general' => [],
+            'highlights' => []
         ];
     }
 
@@ -71,20 +100,11 @@ class ProductDescriptionCast implements CastsAttributes
             $value = $decoded;
         }
 
-        // Cleanup empty media URLs
-        if (is_array($value) && isset($value['sections']) && is_array($value['sections'])) {
-            foreach ($value['sections'] as &$section) {
-                if (isset($section['media']) && is_array($section['media'])) {
-                    if (empty($section['media']['url'])) {
-                        // Create a temporary array without 'media' to avoid modifying the array structure while iterating if possible,
-                        // but here we are modifying value of the key, which is fine.
-                        // However, we want to REMOVE the key.
-                        $temp = $section;
-                        unset($temp['media']);
-                        $section = $temp;
-                    }
-                }
-            }
+        // Cleanup empty specifications
+        if (is_array($value) && isset($value['specifications']) && is_array($value['specifications'])) {
+            $value['specifications'] = array_filter($value['specifications'], function($val) {
+                return !is_null($val) && $val !== '';
+            });
         }
 
         // Validate structure
@@ -105,90 +125,12 @@ class ProductDescriptionCast implements CastsAttributes
             throw new \InvalidArgumentException('Description must be an array or JSON object');
         }
 
-        // Must have 'sections' key
-        if (! isset($value['sections']) || ! is_array($value['sections'])) {
-            throw new \InvalidArgumentException('Description must contain "sections" array');
-        }
-
-        // Sections cannot be empty
-        if (empty($value['sections'])) {
-            throw new \InvalidArgumentException('Description "sections" array cannot be empty');
-        }
-
-        // Validate each section
-        foreach ($value['sections'] as $index => $section) {
-            $this->validateSection($section, $index);
-        }
-    }
-
-    /**
-     * Validate individual section structure.
-     *
-     * @throws \InvalidArgumentException
-     */
-    protected function validateSection(mixed $section, int $index): void
-    {
-        if (! is_array($section)) {
-            throw new \InvalidArgumentException("Section at index {$index} must be an object");
-        }
-
-        // Required fields keys (but values can be empty/null)
-        $requiredKeys = ['key'];
-        foreach ($requiredKeys as $field) {
-            if (! isset($section[$field])) {
-                throw new \InvalidArgumentException("Section at index {$index} missing required field: {$field}");
+        // We expect at least one of these keys or an empty array
+        $validKeys = ['description', 'instruction', 'specifications', 'general', 'highlights'];
+        foreach ($value as $key => $v) {
+            if (!in_array($key, $validKeys)) {
+                // We allow it but maybe log it? For now just keep what's defined.
             }
-        }
-        
-        // Title and content are optional, but if present must be string or null
-        if (isset($section['title']) && ! is_string($section['title']) && ! is_null($section['title'])) {
-             throw new \InvalidArgumentException("Section at index {$index} title must be string or null");
-        }
-        
-        if (isset($section['content']) && ! is_string($section['content']) && ! is_null($section['content'])) {
-             throw new \InvalidArgumentException("Section at index {$index} content must be string or null");
-        }
-
-        // Validate key format (should be slug-like: intro, feature, use, etc.)
-        if (! preg_match('/^[a-z_]+$/', $section['key'])) {
-            throw new \InvalidArgumentException("Section at index {$index} 'key' must be lowercase alphanumeric with underscores");
-        }
-
-        // Validate media if present
-        if (isset($section['media'])) {
-            $this->validateMedia($section['media'], $index);
-        }
-    }
-
-    /**
-     * Validate media object if present.
-     *
-     * @throws \InvalidArgumentException
-     */
-    protected function validateMedia(mixed $media, int $sectionIndex): void
-    {
-        if ($media === null) {
-            return; // null is allowed
-        }
-
-        if (! is_array($media)) {
-            throw new \InvalidArgumentException("Section at index {$sectionIndex} 'media' must be null or object");
-        }
-
-        // Required media fields
-        if (! isset($media['type']) || ! isset($media['url'])) {
-            throw new \InvalidArgumentException("Section at index {$sectionIndex} media must have 'type' and 'url'");
-        }
-
-        // Validate type
-        $allowedTypes = ['image', 'video'];
-        if (! in_array($media['type'], $allowedTypes)) {
-            throw new \InvalidArgumentException("Section at index {$sectionIndex} media 'type' must be 'image' or 'video'");
-        }
-
-        // Validate URL is not empty
-        if (empty($media['url'])) {
-            throw new \InvalidArgumentException("Section at index {$sectionIndex} media 'url' cannot be empty");
         }
     }
 }

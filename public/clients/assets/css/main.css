@@ -5,7 +5,7 @@
     --background-color: #fff5f7;
     --text-color-light: white;
     --text-color-dark: #232629;
-    --font-family: "Open Sans", sans-serif;
+    --font-family: "Segoe UI", sans-serif;
     --font-size: 16px;
     --border-radius: 5px;
     --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
@@ -1085,6 +1085,7 @@ input:focus, textarea:focus {
     column-gap: 15px;
     grid-template-columns: 180px 100px 1fr 130px;
     z-index: 999;
+    position: relative;
 }
 
 .xanhworld_header_main_nav_fixed {
@@ -1095,8 +1096,13 @@ input:focus, textarea:focus {
     padding: 5px 5%;
     background-color: var(--primary-color);
     margin: 0 auto;
-    transition: all 0.5s ease-in-out;
-    z-index: 999;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+    z-index: 1000;
+    transform: translateY(0);
+}
+
+.xanhworld_header_main_nav_fixed.xanhworld_header_main_nav_hidden {
+    transform: translateY(-110%);
 }
 
 .xanhworld_header_main_nav_fixed .xanhworld_header_main_nav_links_item_title a,
@@ -1440,7 +1446,7 @@ input:focus, textarea:focus {
 }
 
 .xanhworld_header_main_nav_links_item {
-    position: relative;
+    position: static;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1490,8 +1496,8 @@ input:focus, textarea:focus {
 .xanhworld_header_main_nav_links_item_list {
     display: none;
     position: absolute;
-    top: 29px;
-    width: 100vw;
+    top: 100%;
+    width: 100%;
     margin: 0 auto;
     max-width: 100vw;
     height: max-content;
@@ -1505,7 +1511,11 @@ input:focus, textarea:focus {
     gap: 30px 20px;
     transition: all 0.5s ease-in-out;
     left: 0;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.xanhworld_header_main_nav_links_item:hover .xanhworld_header_main_nav_links_item_list {
+    display: grid;
 }
 
 .xanhworld_header_main_nav_links_item_list:hover {
@@ -1745,7 +1755,8 @@ input:focus, textarea:focus {
 
 .xanhworld_chat {
     position: fixed;
-    bottom: 30px;
+    top: 50%;
+    transform: translateY(-50%);
     right: 30px;
     display: flex;
     flex-direction: column;
@@ -1844,6 +1855,7 @@ input:focus, textarea:focus {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    margin-top: 10px;
 }
 
 .xanhworld_chat_message {
@@ -2182,6 +2194,8 @@ input:focus, textarea:focus {
     .xanhworld_chat {
         position: fixed;
         bottom: 0;
+        top: auto;
+        transform: none;
         left: 0;
         right: 0;
         width: 100%;
@@ -2223,19 +2237,34 @@ input:focus, textarea:focus {
         position: fixed;
         box-shadow: 0 6px 20px rgba(255, 77, 77, 0.5) !important;
         z-index: 1001;
-        animation: phonePulse 2s ease-in-out infinite;
+        animation: phonePulse 2s infinite, phoneShake 3s infinite;
         padding: 0 !important;
         flex-direction: row;
         bottom: 30px;
     }
     
     @keyframes phonePulse {
-        0%, 100% {
-            box-shadow: 0 6px 20px rgba(255, 77, 77, 0.5), 0 0 0 0 rgba(255, 77, 77, 0.4);
+        0% {
+            box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7);
         }
-        50% {
-            box-shadow: 0 6px 20px rgba(255, 77, 77, 0.5), 0 0 0 10px rgba(255, 77, 77, 0);
+        70% {
+            box-shadow: 0 0 0 20px rgba(255, 77, 77, 0);
         }
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 77, 77, 0);
+        }
+    }
+
+    @keyframes phoneShake {
+        0%, 90%, 100% { transform: rotate(0); }
+        91% { transform: rotate(-15deg); }
+        92% { transform: rotate(15deg); }
+        93% { transform: rotate(-15deg); }
+        94% { transform: rotate(15deg); }
+        95% { transform: rotate(-10deg); }
+        96% { transform: rotate(10deg); }
+        97% { transform: rotate(-5deg); }
+        98% { transform: rotate(5deg); }
     }
     
     .xanhworld_chat_phone svg {
@@ -2364,7 +2393,7 @@ input:focus, textarea:focus {
         width: 100vw;
         max-width: 100vw;
         height: 100vh;
-        max-height: 100vh;
+        max-height: calc(100vh - 60px);
         border-radius: 0;
         bottom: auto;
         right: auto;

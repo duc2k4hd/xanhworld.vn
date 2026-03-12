@@ -190,6 +190,17 @@ class Post extends Model
         return Str::limit($text, 180) ?: '';
     }
 
+    public function getLcpImageUrlAttribute(): string
+    {
+        $galleryImages = $this->images;
+        if ($galleryImages && $galleryImages->isNotEmpty()) {
+            return asset('clients/assets/img/posts/' . $galleryImages->first()->url);
+        }
+        
+        $coverPath = $this->coverImagePath();
+        return $coverPath ? asset($coverPath) : asset('clients/assets/img/posts/no-image.webp');
+    }
+
     public function coverImagePath(): ?string
     {
         if ($this->primaryImage) {

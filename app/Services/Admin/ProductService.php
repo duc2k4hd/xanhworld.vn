@@ -234,6 +234,7 @@ class ProductService
             'meta_canonical' => $canonicalUrl,
             'primary_category_id' => Arr::get($data, 'primary_category_id'),
             'category_included_ids' => $includedCategoryIds,
+            'product_included_ids' => $this->normalizeIncludedProducts(Arr::get($data, 'product_included_ids', [])),
             'is_featured' => Arr::get($data, 'is_featured', false),
             'created_by' => Arr::get($data, 'created_by', Auth::id()),
             'is_active' => Arr::get($data, 'is_active', true),
@@ -273,6 +274,27 @@ class ProductService
     }
 
     private function normalizeIncludedCategories($value): ?array
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        if (! is_array($value)) {
+            $value = [$value];
+        }
+
+        $ids = collect($value)
+            ->filter(fn ($id) => $id !== null && $id !== '')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        return ! empty($ids) ? $ids : null;
+    }
+
+    private function normalizeIncludedProducts($value): ?array
     {
         if (empty($value)) {
             return null;
@@ -858,17 +880,34 @@ class ProductService
     private function normalizeImageUrls(string|array|null $content): string|array|null
     {
         if (is_array($content)) {
-            if (isset($content['sections']) && is_array($content['sections'])) {
-                foreach ($content['sections'] as $key => $section) {
-                    if (isset($section['content'])) {
-                        $content['sections'][$key]['content'] = $this->normalizeImageUrls($section['content']);
+            // Handle structured description (JSON)
+            if (isset($content['description'])) {
+                $content['description'] = $this->normalizeImageUrls($content['description']);
+            }
+            if (isset($content['instruction'])) {
+                $content['instruction'] = $this->normalizeImageUrls($content['instruction']);
+            }
+            if (isset($content['general']) && is_array($content['general'])) {
+                foreach ($content['general'] as &$item) {
+                    if (isset($item['value'])) {
+                        $item['value'] = $this->normalizeImageUrls($item['value']);
                     }
                 }
             }
+
+            // Backward compatibility for old sections
+            if (isset($content['sections']) && is_array($content['sections'])) {
+                foreach ($content['sections'] as &$section) {
+                    if (isset($section['content'])) {
+                        $section['content'] = $this->normalizeImageUrls($section['content']);
+                    }
+                }
+            }
+
             return $content;
         }
 
-        if (empty($content)) {
+        if (empty($content) || ! is_string($content)) {
             return $content;
         }
 

@@ -2,9 +2,7 @@
 
 @section('title', 'Thanh toán không thành công')
 
-@push('js_page')
-    <script src="{{ asset('clients/assets/js/main.js') }}"></script>
-@endpush
+{{-- main.js included globally --}}
 
 @section('head')
     <link rel="stylesheet" href="{{ asset('clients/assets/css/main.css') }}">

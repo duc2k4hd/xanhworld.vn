@@ -20,9 +20,7 @@
 
 @endsection
 
-@push('js_page')
-    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
-@endpush
+{{-- main.js included globally --}}
 
 @section('content')
 <section class="garden-hero contact-block">

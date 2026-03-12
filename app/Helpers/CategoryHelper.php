@@ -65,22 +65,25 @@ class CategoryHelper
     }
 
     /**
-     * Build category tree structure
+     * Build category tree structure (Optimized: Single Query)
      */
     public static function buildTree(?int $parentId = null, bool $includeInactive = false): array
     {
-        $query = Category::where('parent_id', $parentId)
+        $allCategories = Category::when(! $includeInactive, fn ($q) => $q->active())
             ->orderBy('order')
-            ->orderBy('name');
+            ->orderBy('name')
+            ->get();
 
-        if (! $includeInactive) {
-            $query->where('is_active', true);
-        }
+        return self::buildTreeFromCollection($allCategories, $parentId);
+    }
 
-        $categories = $query->get();
-
-        return $categories->map(function ($category) use ($includeInactive) {
-            $item = [
+    /**
+     * Helper to build tree from a pre-loaded collection
+     */
+    public static function buildTreeFromCollection($collection, ?int $parentId = null): array
+    {
+        return $collection->where('parent_id', $parentId)->map(function ($category) use ($collection) {
+            return [
                 'id' => $category->id,
                 'name' => $category->name,
                 'slug' => $category->slug,
@@ -88,24 +91,32 @@ class CategoryHelper
                 'image' => $category->image,
                 'order' => $category->order,
                 'is_active' => $category->is_active,
-                'children_count' => $category->children()->count(),
-                'children' => self::buildTree($category->id, $includeInactive),
+                'children' => self::buildTreeFromCollection($collection, $category->id),
             ];
-
-            return $item;
-        })->toArray();
+        })->values()->toArray();
     }
 
     /**
-     * Get all descendants of a category (including itself)
+     * Get all descendants of a category (including itself) (Optimized: Single Query)
      */
     public static function getDescendants(int $categoryId): array
     {
+        $allCategories = Category::active()->select('id', 'parent_id')->get();
         $descendants = [$categoryId];
-        $children = Category::where('parent_id', $categoryId)->pluck('id')->toArray();
+
+        return self::collectDescendantIds($allCategories, $categoryId, $descendants);
+    }
+
+    /**
+     * Recurse through collection to find descendant IDs
+     */
+    protected static function collectDescendantIds($collection, $parentId, &$descendants): array
+    {
+        $children = $collection->where('parent_id', $parentId)->pluck('id')->toArray();
 
         foreach ($children as $childId) {
-            $descendants = array_merge($descendants, self::getDescendants($childId));
+            $descendants[] = $childId;
+            self::collectDescendantIds($collection, $childId, $descendants);
         }
 
         return array_values(array_unique($descendants));

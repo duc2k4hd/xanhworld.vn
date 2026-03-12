@@ -12,7 +12,7 @@
                 <div class="xanhworld_single_desc_tabs_describe_product_new_item">
                     <div class="xanhworld_single_desc_tabs_describe_product_new_img">
                         <a href="/san-pham/{{ $new->slug ?? 'san-pham-moi' }}">
-                            <img loading="lazy" decoding="async" src="{{ asset('clients/assets/img/clothes/' . ($new->primaryImage->url ?? 'no-image.webp')) }}"
+                            <img onerror="this.src='{{ asset('clients/assets/img/clothes/no-image.webp') }}'" loading="lazy" decoding="async" src="{{ asset('clients/assets/img/clothes/' . ($new->primaryImage->url ?? 'no-image.webp')) }}"
                                 alt="Áo Thun Nam Basic">
                             <span class="xanhworld_single_desc_tabs_describe_product_new_badge">New</span>
                         </a>

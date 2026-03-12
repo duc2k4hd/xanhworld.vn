@@ -26,15 +26,7 @@
 
 @section('head')
     @php
-        // Lấy ảnh LCP (ảnh đầu tiên trong gallery hoặc cover image)
-        $lcpImage = null;
-        $galleryImages = $post->images;
-        if ($galleryImages->isNotEmpty()) {
-            $firstImage = $galleryImages->first();
-            $lcpImage = asset('clients/assets/img/posts/'.$firstImage->url);
-        } else {
-            $lcpImage = $coverAsset ?? asset('clients/assets/img/posts/no-image.webp');
-        }
+        $lcpImage = $post->lcp_image_url;
     @endphp
     
     {{-- Preload LCP Image - Tối ưu LCP --}}
@@ -66,9 +58,7 @@
     <meta name="twitter:image" content="{{ $coverAsset ?? asset('clients/assets/img/posts/no-image.webp') }}">
 @endsection
 
-@push('js_page')
-    <script defer src="{{ asset('clients/assets/js/main.js') }}"></script>
-@endpush
+{{-- main.js included globally --}}
 
 @section('schema')
     @if(isset($schemaData) && is_array($schemaData))
@@ -85,7 +75,7 @@
         $shareUrl = urlencode(route('client.blog.show', $post));
         $shareText = urlencode($post->title . ' - ' . config('app.name'));
         $galleryImages = $post->images;
-        $firstImage = $galleryImages->isNotEmpty() ? asset('clients/assets/img/posts/'.$galleryImages->first()->url) : ($coverAsset ?? asset('clients/assets/img/posts/no-image.webp'));
+        $firstImage = $post->lcp_image_url;
     @endphp
 
     <!-- Social Icons Sidebar (Left) -->
@@ -143,6 +133,31 @@
                                     </li>
                                 @endforeach
                             </ul>
+                        </div>
+                    @endif
+
+                    <!-- Bài viết đề xuất widget -->
+                    @if($suggestedPosts->isNotEmpty())
+                        <div class="xanhworld_blog_sidebar-widget">
+                            <div class="xanhworld_blog_sidebar-widget-title">
+                                <h4>💡 Có thể bạn quan tâm</h4>
+                            </div>
+                            <div class="xanhworld_blog_sidebar-widget-list">
+                                @foreach($suggestedPosts as $suggested)
+                                    @php
+                                        $suggestedPath = $suggested->coverImagePath();
+                                        $suggestedUrl = asset($suggestedPath ?? 'clients/assets/img/posts/no-image.webp');
+                                    @endphp
+                                    <a href="{{ route('client.blog.show', $suggested) }}" class="xanhworld_blog_sidebar-widget-item">
+                                        <div class="xanhworld_blog_sidebar-widget-item-img">
+                                            <img src="{{ $suggestedUrl }}" alt="{{ $suggested->title }}" loading="lazy">
+                                        </div>
+                                        <div class="xanhworld_blog_sidebar-widget-item-content">
+                                            <p>{{ str()->limit($suggested->title, 50) }}</p>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            </div>
                         </div>
                     @endif
                 @enddesktop
@@ -204,25 +219,17 @@
                     </div>
                     
                     @php
-                        $colorAvatar = [
-                            ['background' => '0D8ABC', 'color' => 'FFFFFF'],
-                            ['background' => 'D32F2F', 'color' => 'FFFFFF'],
-                            ['background' => 'E0E0E0', 'color' => '000000'],
-                            ['background' => '388E3C', 'color' => 'FFFFFF'],
-                            ['background' => 'F57C00', 'color' => 'FFFFFF'],
-                            ['background' => '7B1FA2', 'color' => 'FFFFFF'],
-                            ['background' => '00796B', 'color' => 'FFFFFF'],
-                            ['background' => 'FFEB3B', 'color' => '000000'],
-                        ];
-                        $avatarColor = $colorAvatar[array_rand($colorAvatar)];
+                        $creator = $post?->creator;
+                        $creatorName = $creator?->name ?? 'Đội ngũ biên tập';
+                        $avatarColor = $creator?->avatar_color ?? ['background' => '0D8ABC', 'color' => 'FFFFFF'];
                     @endphp
                     <!-- Author Info -->
                     <div class="xanhworld-article-author-info" style="display: flex; align-items: center; gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e5e5;">
                         <div class="xanhworld-article-author-avatar" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
-                            <img width="100%" height="100%" src="https://ui-avatars.com/api/?name={{ urlencode($post?->creator?->name ?? 'Đức Nobi 💖') }}&background={{ $avatarColor['background'] }}&color={{ $avatarColor['color'] }}&size=48&rounded=true" alt="">
+                            <img width="100%" height="100%" src="https://ui-avatars.com/api/?name={{ urlencode($creatorName) }}&background={{ $avatarColor['background'] }}&color={{ $avatarColor['color'] }}&size=48&rounded=true" alt="{{ $creatorName }}">
                         </div>
                         <div class="xanhworld-article-author-details">
-                            <h3 style="font-size: 16px; font-weight: 600; margin: 0; color: #333;">{{ $post?->creator?->name ?? 'Đội ngũ biên tập' }}</h3>
+                            <h3 style="font-size: 16px; font-weight: 600; margin: 0; color: #333;">{{ $creatorName }}</h3>
                             <p style="font-size: 13px; color: #999; margin: 4px 0 0 0;">📅 {{ optional($post->published_at)->format('d/m/Y') ?? $post->updated_at->format('d/m/Y') }}</p>
                         </div>
                     </div>

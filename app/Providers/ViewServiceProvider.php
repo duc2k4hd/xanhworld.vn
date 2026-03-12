@@ -17,6 +17,11 @@ use Throwable;
 class ViewServiceProvider extends ServiceProvider
 {
     /**
+     * Cache dữ liệu composer trong suốt vòng đời của một request
+     */
+    protected static $sharedComposerData = null;
+
+    /**
      * Register services.
      */
     public function register(): void {}
@@ -91,6 +96,13 @@ class ViewServiceProvider extends ServiceProvider
 
         // --- ACCOUNT + CART (Global composer) ---
         View::composer('*', function ($view) {
+            if (static::$sharedComposerData !== null) {
+                foreach (static::$sharedComposerData as $key => $value) {
+                    $view->with($key, $value);
+                }
+                return;
+            }
+
             // Không cache để đảm bảo luôn lấy dữ liệu mới nhất, đặc biệt sau khi đăng xuất
             try {
                 $accountId = auth('web')->id();
@@ -158,7 +170,7 @@ class ViewServiceProvider extends ServiceProvider
                 $favIds = $favorites->toArray();
                 $favLink = $favCount > 0 ? route('client.wishlist.index') : null;
 
-                $sharedPayload = [
+                static::$sharedComposerData = [
                     'account' => $account,
                     'cart' => $cart,
                     'cartCount' => $cartCount,
@@ -172,11 +184,11 @@ class ViewServiceProvider extends ServiceProvider
                     'favoriteProductIds' => $favIds,
                 ];
             } catch (Throwable $e) {
-                Log::debug('Trình soạn thảo ViewServiceProvider đã bỏ qua', [
+                Log::debug('ViewServiceProvider: Exception ignored', [
                     'error' => $e->getMessage(),
                 ]);
 
-                $sharedPayload = [
+                static::$sharedComposerData = [
                     'account' => null,
                     'cart' => null,
                     'cartCount' => 0,
@@ -191,7 +203,7 @@ class ViewServiceProvider extends ServiceProvider
                 ];
             }
 
-            foreach ($sharedPayload as $key => $value) {
+            foreach (static::$sharedComposerData as $key => $value) {
                 $view->with($key, $value);
             }
 

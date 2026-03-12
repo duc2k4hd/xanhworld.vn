@@ -407,7 +407,7 @@
                     }
 
                     // Lấy sản phẩm theo scope inCategory()
-                    $productsCategories = Cache::rememberForever('products_in_category_' . implode('_', $categoryIds), function () use ($categoryIds) {
+                    $productsCategories = Cache::remember('products_in_category_' . implode('_', $categoryIds), 86400, function () use ($categoryIds) {
                         $products = \App\Models\Product::active()
                             ->featured()
                             ->inCategory($categoryIds)
@@ -452,19 +452,17 @@
                                 <div class="xanhworld_header_main_nav_links_item_list_product_info_rating">
                                     <span class="xanhworld_header_main_nav_links_item_list_product_info_rating_star">
                                         @php
-                                        $star = rand(4, 5);
-                                        for ($i = 1; $i <= $star; $i++) { if ($star==4) {
-                                            echo '<svg xmlns="http://www.w3.org/2000/svg" height="10" width="10" viewBox="0 0 640 640"><!--!Font Awesome Free v7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="#FFD43B" d="M341.5 45.1C337.4 37.1 329.1 32 320.1 32C311.1 32 302.8 37.1 298.7 45.1L225.1 189.3L65.2 214.7C56.3 216.1 48.9 222.4 46.1 231C43.3 239.6 45.6 249 51.9 255.4L166.3 369.9L141.1 529.8C139.7 538.7 143.4 547.7 150.7 553C158 558.3 167.6 559.1 175.7 555L320.1 481.6L464.4 555C472.4 559.1 482.1 558.3 489.4 553C496.7 547.7 500.4 538.8 499 529.8L473.7 369.9L588.1 255.4C594.5 249 596.7 239.6 593.9 231C591.1 222.4 583.8 216.1 574.8 214.7L415 189.3L341.5 45.1z"/></svg>'
-                                            ; if ($i==4) {
-                                            echo '<svg xmlns="http://www.w3.org/2000/svg" height="10" width="10" viewBox="0 0 640 640"><!--!Font Awesome Free v7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="#FFD43B" d="M320.1 417.6C330.1 417.6 340 419.9 349.1 424.6L423.5 462.5L410.5 380C407.3 359.8 414 339.3 428.4 324.8L487.4 265.7L404.9 252.6C384.7 249.4 367.2 236.7 357.9 218.5L319.9 144.1L319.9 417.7zM489.4 553C482.1 558.3 472.4 559.1 464.4 555L320.1 481.6L175.8 555C167.8 559.1 158.1 558.3 150.8 553C143.5 547.7 139.8 538.8 141.2 529.8L166.4 369.9L52 255.4C45.6 249 43.4 239.6 46.2 231C49 222.4 56.3 216.1 65.3 214.7L225.2 189.3L298.8 45.1C302.9 37.1 311.2 32 320.2 32C329.2 32 337.5 37.1 341.6 45.1L415 189.3L574.9 214.7C583.8 216.1 591.2 222.4 594 231C596.8 239.6 594.5 249 588.2 255.4L473.7 369.9L499 529.8C500.4 538.7 496.7 547.7 489.4 553z"/></svg>'
-                                            ; break; } } if ($star==5) {
-                                            echo '<svg xmlns="http://www.w3.org/2000/svg" height="10" width="10" viewBox="0 0 640 640"><!--!Font Awesome Free v7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="#FFD43B" d="M341.5 45.1C337.4 37.1 329.1 32 320.1 32C311.1 32 302.8 37.1 298.7 45.1L225.1 189.3L65.2 214.7C56.3 216.1 48.9 222.4 46.1 231C43.3 239.6 45.6 249 51.9 255.4L166.3 369.9L141.1 529.8C139.7 538.7 143.4 547.7 150.7 553C158 558.3 167.6 559.1 175.7 555L320.1 481.6L464.4 555C472.4 559.1 482.1 558.3 489.4 553C496.7 547.7 500.4 538.8 499 529.8L473.7 369.9L588.1 255.4C594.5 249 596.7 239.6 593.9 231C591.1 222.4 583.8 216.1 574.8 214.7L415 189.3L341.5 45.1z"/></svg>'
-                                            ; } } @endphp </span>
-                                            <span
-                                                class="xanhworld_header_main_nav_links_item_list_product_info_rating_count"><a
-                                                    style="color: #FF3366; text-decoration: underline;"
-                                                    href="/san-pham/{{ $product->slug }}">({{ rand(4, 5) }}
-                                                    review)</a></span>
+                                        $star = $product?->display_rating_star ?? 5;
+                                        for ($i = 1; $i <= $star; $i++) { 
+                                            echo '<svg xmlns="http://www.w3.org/2000/svg" height="10" width="10" viewBox="0 0 640 640"><!--!Font Awesome Free v7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="#FFD43B" d="M341.5 45.1C337.4 37.1 329.1 32 320.1 32C311.1 32 302.8 37.1 298.7 45.1L225.1 189.3L65.2 214.7C56.3 216.1 48.9 222.4 46.1 231C43.3 239.6 45.6 249 51.9 255.4L166.3 369.9L141.1 529.8C139.7 538.7 143.4 547.7 150.7 553C158 558.3 167.6 559.1 175.7 555L320.1 481.6L464.4 555C472.4 559.1 482.1 558.3 489.4 553C496.7 547.7 500.4 538.8 499 529.8L473.7 369.9L588.1 255.4C594.5 249 596.7 239.6 593.9 231C591.1 222.4 583.8 216.1 574.8 214.7L415 189.3L341.5 45.1z"/></svg>';
+                                        } 
+                                        @endphp
+                                    </span>
+                                    <span class="xanhworld_header_main_nav_links_item_list_product_info_rating_count">
+                                        <a style="color: #FF3366; text-decoration: underline;" href="/san-pham/{{ $product->slug }}">
+                                            ({{ $product?->display_review_count ?? 0 }} đánh giá)
+                                        </a>
+                                    </span>
                                 </div>
                                 <div class="xanhworld_header_main_nav_links_item_list_product_info_price">
                                     @if (!empty($product?->sale_price) && $product?->sale_price < $product?->price)
@@ -696,22 +694,24 @@
 
         <div class="xanhworld_header_mobile_main_nav_links">
             @php
-                $renderCategory = function ($cat, $lvl = 0) use (&$renderCategory) {
+                $renderCategory = function ($cat, $lvl = 0, $maxLvl = 3) use (&$renderCategory) {
+                    if ($lvl > $maxLvl) return '';
+                    
                     $html = '<div class="xanhworld_header_mobile_main_nav_links_item level-' . $lvl . '">';
                     $html .= '<h3 class="xanhworld_header_mobile_main_nav_links_item_title">';
                     $html .= '<a href="/' . e($cat->slug) . '" style="padding-left: ' . (max($lvl, 0) * 12) . 'px">';
                     $html .= e($cat->name);
                     $html .= '</a>';
-                    if ($cat->children->isNotEmpty()) {
+                    if ($cat->children && $cat->children->isNotEmpty()) {
                         $html .= '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">';
                         $html .= '<path d="M201.4 374.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 306.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z" />';
                         $html .= '</svg>';
                     }
                     $html .= '</h3>';
-                    if ($cat->children->isNotEmpty()) {
+                    if ($cat->children && $cat->children->isNotEmpty()) {
                         $html .= '<div class="xanhworld_header_mobile_main_nav_links_item_list">';
                         foreach ($cat->children as $child) {
-                            $html .= $renderCategory($child, $lvl + 1);
+                            $html .= $renderCategory($child, $lvl + 1, $maxLvl);
                         }
                         $html .= '</div>';
                     }
@@ -724,6 +724,11 @@
                     @endforeach
         </div>
     </div>
+    {{-- JS Config for static assets --}}
+    <div id="xanhworld-js-config" 
+        data-image-search-url="{{ route('client.image-search.search') }}"
+        data-shop-url="{{ route('client.shop.index') }}"
+        hidden></div>
 </header>
 
 <!-- Image Search Modal -->

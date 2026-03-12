@@ -1183,48 +1183,29 @@ class ImportExcelController extends Controller
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle('product_descriptions');
 
-        // Columns: SKU + 5 Standard Sections (Title, Content, Image)
         $headers = [
-            'sku',
+            'sku', 'description', 'instruction', 'height', 'foliage', 'light', 'water', 'scientific_name', 'fengshui', 'position'
         ];
-
-        $keys = ['intro', 'feature', 'use', 'meaning', 'care'];
-        foreach ($keys as $key) {
-            $headers[] = $key . '_title';
-            $headers[] = $key . '_content';
-            $headers[] = $key . '_image';
-        }
 
         $sheet->fromArray($headers, null, 'A1');
 
         $row = 2;
-
         foreach ($products as $product) {
-            $rowData = [$product->sku];
-            $description = is_array($product->description) ? $product->description : [];
+            $desc = $product->description ?? [];
+            $specs = $desc['specifications'] ?? [];
 
-            foreach ($keys as $key) {
-                // Find section by key or default to empty
-                // We need a helper to find section by key in the array
-                $section = null;
-                if (!empty($description['sections'])) {
-                    foreach ($description['sections'] as $s) {
-                        if (($s['key'] ?? '') === $key) {
-                            $section = $s;
-                            break;
-                        }
-                    }
-                }
-
-                $rowData[] = $section['title'] ?? '';
-                $rowData[] = $section['content'] ?? '';
-                // Check if media is array or object, based on how it's stored
-                $mediaUrl = '';
-                if (!empty($section['media']) && is_array($section['media'])) {
-                    $mediaUrl = $section['media']['url'] ?? '';
-                }
-                $rowData[] = $mediaUrl;
-            }
+            $rowData = [
+                $product->sku,
+                $desc['description'] ?? '',
+                $desc['instruction'] ?? '',
+                $specs['height'] ?? '',
+                $specs['foliage'] ?? '',
+                $specs['light'] ?? '',
+                $specs['water'] ?? '',
+                $specs['scientific_name'] ?? '',
+                $specs['fengshui'] ?? '',
+                $specs['position'] ?? '',
+            ];
 
             $sheet->fromArray($rowData, null, 'A' . $row);
             $row++;
@@ -1242,12 +1223,12 @@ class ImportExcelController extends Controller
         }
 
         $rows = $sheet->toArray();
-        $headers = array_shift($rows); // Remove header
+        $headers = array_shift($rows); 
 
         foreach ($rows as $rowIndex => $row) {
             if (empty($row[0])) {
                 continue;
-            } // Skip empty SKU
+            }
 
             $sku = trim($row[0]);
             $product = Product::where('sku', $sku)->first();
@@ -1263,67 +1244,29 @@ class ImportExcelController extends Controller
                 continue;
             }
 
-            // Construct sections array
-            // Merge Strategy:
-            // 1. Get current description (which might have been set by importProducts or exists in DB)
-            //    Note: importProducts runs first in the transaction. If it updated the product, strictly speaking we should reload it.
-            //    But we only fetched $product at the start of this loop.
-            $product->refresh(); // Ensure we have the latest description from importProducts
-            $currentDescription = $product->description ?? ['sections' => []];
+            // Create new structure directly from row data
+            $descriptionData = [
+                'description' => $row[1] ?? '',
+                'instruction' => $row[2] ?? '',
+                'specifications' => [
+                    'height' => $row[3] ?? '',
+                    'foliage' => $row[4] ?? '',
+                    'light' => $row[5] ?? '',
+                    'water' => $row[6] ?? '',
+                    'scientific_name' => $row[7] ?? '',
+                    'fengshui' => $row[8] ?? '',
+                    'position' => $row[9] ?? '',
+                ]
+            ];
 
-            $keys = ['intro', 'feature', 'use', 'meaning', 'care'];
-            $colIndex = 1; // Start after SKU
-            $hasChanges = false;
-
-            foreach ($keys as $key) {
-                $title = isset($row[$colIndex]) ? trim($row[$colIndex]) : '';
-                $colIndex++;
-                $content = isset($row[$colIndex]) ? trim($row[$colIndex]) : '';
-                $colIndex++;
-                $imageUrl = isset($row[$colIndex]) ? trim($row[$colIndex]) : '';
-                $colIndex++;
-
-                // If row has data, Update/Add section
-                if (!empty($title) || !empty($content) || !empty($imageUrl)) {
-                    $media = null;
-                    if (!empty($imageUrl)) {
-                        $imageUrl = $this->sanitizeImageKey($imageUrl);
-                        if (!empty($imageUrl)) {
-                            $media = ['type' => 'image', 'url' => $imageUrl];
-                        }
-                    }
-
-                    $sectionData = [
-                        'title' => $title,
-                        'content' => $content,
-                        'media' => $media
-                    ];
-                    
-                    // Use Service to update (merges if exists, adds if new)
-                    $currentDescription = \App\Services\ProductDescriptionService::updateSection($currentDescription, $key, $sectionData);
-                    $hasChanges = true;
-                } else {
-                    // If row is empty, Remove section (if it exists)
-                    // This allows users to delete a specific section via Excel by clearing values
-                    $newDesc = \App\Services\ProductDescriptionService::removeSection($currentDescription, $key);
-                    if ($newDesc !== $currentDescription) {
-                         $currentDescription = $newDesc;
-                         $hasChanges = true;
-                    }
-                }
-            }
-
-            if ($hasChanges) {
-                // Determine if we need to call createDescription to re-validate? 
-                // updateSection already returns a structured array.
-                // But let's run it through createDescription to be sure of structure sanitization if needed.
-                // Actually updateSection keeps it clean. 
-                
-                $product->update(['description' => $currentDescription]);
-                
-                // Clear cache
-                Cache::forget('product_detail_' . $product->slug);
-            }
+            // Use the Service to ensure validation and correct structure
+            $finalDescription = \App\Services\ProductDescriptionService::createDescription($descriptionData);
+            
+            // Re-fetch product to be sure of state if needed (though not strictly necessary in a single transaction if not modifying same fields)
+            $product->update(['description' => $finalDescription]);
+            
+            // Clear cache
+            Cache::forget('product_detail_' . $product->slug);
         }
     }
     /**
