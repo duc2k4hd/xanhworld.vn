@@ -1,6 +1,10 @@
 @extends('clients.layouts.master')
 
-@section('title', $product->meta_title . ' – Thế giới cây xanh Xworld' ?? ($product->name ? ($product->name . ' – Thế giới cây xanh Xworld') : 'Thế giới cây xanh Xworld - Chi tiết sản phẩm'))
+@section('title', 
+    ($product->meta_title ?? $product->name ?? 'Sản phẩm đến từ Cây Xanh XWORLD') 
+    . ' - ' . 
+    ($settings->site_name ?? 'Cây Xanh XWORLD')
+)
 
 @section('schema')
     @include('clients.templates.schema_product')
@@ -11,8 +15,8 @@
         $siteUrl = rtrim($settings->site_url ?? 'https://xanhworld.vn', '/');
         $productUrl = $product->canonical_url ?? ($siteUrl.'/san-pham/'.($product->slug ?? 'san-pham'));
         $productUrl = rtrim($productUrl, '/');
-        $pageTitle = $product->meta_title ?? ($product->name . ' – Thế giới cây xanh Xworld');
-        $pageDescription = $product->meta_description ?? 'Thế giới cây xanh Xworld: Cây xanh, chậu cảnh, phụ kiện trang trí. Hướng dẫn setup góc làm việc, ban công, sân vườn xanh mát, giao tận nơi.';
+        $pageTitle = $product->meta_title ?? ($product->name . ' – Cây Xanh XWORLD');
+        $pageDescription = $product->meta_description ?? 'Cây Xanh XWORLD: Cây xanh, chậu cảnh, phụ kiện trang trí. Hướng dẫn setup góc làm việc, ban công, sân vườn xanh mát, giao tận nơi.';
         $keywords = $product->meta_keywords ?? [];
         $pageKeywords = is_array($keywords) ? implode(', ', $keywords) : $keywords;
         $primaryImg = optional($product->primaryImage)->url 
@@ -40,12 +44,12 @@
     <meta property="og:image:alt" content="{{ $pageTitle }}">
     <meta property="og:image:type" content="image/webp">
     <meta property="og:type" content="product">
-    <meta property="og:site_name" content="{{ $settings->site_name ?? 'Thế giới cây xanh Xworld' }}">
+    <meta property="og:site_name" content="{{ $settings->site_name ?? 'Cây Xanh XWORLD' }}">
     <meta property="og:locale" content="vi_VN">
 
     {{-- Twitter --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="{{ $settings->site_name ?? 'Thế giới cây xanh Xworld' }}">
+    <meta name="twitter:site" content="{{ $settings->site_name ?? 'Cây Xanh XWORLD' }}">
     <meta name="twitter:title" content="{{ $pageTitle }}">
     <meta name="twitter:description" content="{{ $pageDescription }}">
     <meta name="twitter:image" content="{{ $primaryImg }}">
