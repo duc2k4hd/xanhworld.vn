@@ -10,7 +10,7 @@
 )
 
 @push('css_page')
-    <link rel="stylesheet" href="{{ asset('clients/assets/css/blog.css') }}">
+    <link rel="stylesheet" href="{{ asset('clients/assets/css/blog.css?v='. time()) }}">
     <link
         rel="preload"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
@@ -22,6 +22,10 @@
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     </noscript>
+@endpush
+
+@push('js_page')
+    <script defer src="{{ asset('clients/assets/js/blog-show.js?v='. time()) }}"></script>
 @endpush
 
 @section('head')
@@ -72,8 +76,6 @@
 
 @section('content')
     @php
-        $shareUrl = urlencode(route('client.blog.show', $post));
-        $shareText = urlencode($post->title . ' - ' . config('app.name'));
         $galleryImages = $post->images;
         $firstImage = $post->lcp_image_url;
     @endphp
@@ -319,238 +321,4 @@
         <i class="fa fa-headset"></i>
         <span>Hỗ trợ trực tuyến</span>
     </div>
-@endsection
-
-@section('foot')
-    <script>
-        // Toggle Sidebar
-        function toggleSidebar() {
-            const sidebar = document.getElementById('xanhworld_blog_leftSidebar');
-            if (sidebar) {
-                sidebar.classList.toggle('xanhworld_blog_active');
-            }
-        }
-
-        // Close sidebar when clicking outside
-        document.addEventListener('click', function(event) {
-            const sidebar = document.getElementById('xanhworld_blog_leftSidebar');
-            const toggle = document.querySelector('.xanhworld_blog_menu-toggle');
-            
-            if (sidebar && toggle) {
-                if (!sidebar.contains(event.target) && !toggle.contains(event.target)) {
-                    sidebar.classList.remove('xanhworld_blog_active');
-                }
-            }
-        });
-
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-
-        // Add scroll animation to images
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        });
-
-        document.querySelectorAll('.xanhworld_blog_article-content img').forEach(img => {
-            img.style.opacity = '0';
-            img.style.transform = 'translateY(20px)';
-            img.style.transition = 'opacity 0.6s, transform 0.6s';
-            observer.observe(img);
-        });
-
-        // Chat bubble animation
-        const chatBubble = document.querySelector('.xanhworld_blog_chat-bubble');
-        if (chatBubble) {
-            setInterval(() => {
-                chatBubble.style.animation = 'pulse 1s';
-                setTimeout(() => {
-                    chatBubble.style.animation = '';
-                }, 1000);
-            }, 5000);
-        }
-
-        // Add pulse animation
-        if (!document.getElementById('blog-pulse-animation')) {
-            const style = document.createElement('style');
-            style.id = 'blog-pulse-animation';
-            style.textContent = `
-                @keyframes pulse {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.1); }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-
-        // Carousel functionality - Giữ lại chức năng cũ
-        document.addEventListener('DOMContentLoaded', () => {
-            const carousel = document.getElementById('postImageCarousel');
-            if (!carousel) return;
-
-            const items = carousel.querySelectorAll('.xanhworld-article-carousel-item');
-            const prevBtn = carousel.querySelector('.xanhworld-article-carousel-prev');
-            const nextBtn = carousel.querySelector('.xanhworld-article-carousel-next');
-            
-            if (items.length <= 1) return;
-
-            let currentIndex = 0;
-
-            function showSlide(index) {
-                items.forEach((item, i) => {
-                    item.classList.remove('active');
-                    if (i === index) {
-                        item.classList.add('active');
-                    }
-                });
-            }
-
-            function nextSlide() {
-                currentIndex = (currentIndex + 1) % items.length;
-                showSlide(currentIndex);
-            }
-
-            function prevSlide() {
-                currentIndex = (currentIndex - 1 + items.length) % items.length;
-                showSlide(currentIndex);
-            }
-
-            if (prevBtn) {
-                prevBtn.addEventListener('click', prevSlide);
-            }
-
-            if (nextBtn) {
-                nextBtn.addEventListener('click', nextSlide);
-            }
-        });
-
-        // Auto Highlight TOC on scroll - Giữ lại chức năng cũ
-        document.addEventListener('DOMContentLoaded', () => {
-            const tocDesktop = document.getElementById('toc-desktop');
-            const tocMobile = document.getElementById('toc-mobile');
-            const tocContainer = tocDesktop || tocMobile;
-            
-            if (!tocContainer) return;
-
-            const contentSections = document.querySelectorAll('.xanhworld_blog_article-content h2[id], .xanhworld_blog_article-content h3[id]');
-            if (contentSections.length === 0) return;
-
-            const tocLinks = new Map();
-            tocContainer.querySelectorAll('a').forEach(link => {
-                const href = link.getAttribute('href');
-                if (href) {
-                    const id = href.substring(1);
-                    tocLinks.set(id, link);
-                }
-            });
-
-            let activeId = null;
-            const observer = new IntersectionObserver((entries) => {
-                let currentEntry = null;
-                for (const entry of entries) {
-                    if (entry.isIntersecting && entry.intersectionRatio > 0) {
-                        if (!currentEntry || entry.boundingClientRect.top < currentEntry.boundingClientRect.top) {
-                            currentEntry = entry;
-                        }
-                    }
-                }
-
-                if (!currentEntry) {
-                    const viewportTop = window.scrollY + 100;
-                    for (const entry of entries) {
-                        const rect = entry.boundingClientRect;
-                        const elementTop = rect.top + window.scrollY;
-                        if (elementTop <= viewportTop) {
-                            if (!currentEntry || elementTop > (currentEntry.boundingClientRect.top + window.scrollY)) {
-                                currentEntry = entry;
-                            }
-                        }
-                    }
-                }
-
-                if (currentEntry) {
-                    const id = currentEntry.target.getAttribute('id');
-                    if (id && id !== activeId) {
-                        activeId = id;
-                        
-                        tocContainer.querySelectorAll('a').forEach(link => {
-                            link.classList.remove('active');
-                        });
-                        
-                        const tocLink = tocLinks.get(id);
-                        if (tocLink) {
-                            tocLink.classList.add('active');
-                            
-                            if (tocContainer.scrollHeight > tocContainer.clientHeight) {
-                                const linkTop = tocLink.offsetTop;
-                                const linkHeight = tocLink.offsetHeight;
-                                const containerHeight = tocContainer.clientHeight;
-                                const scrollTop = tocContainer.scrollTop;
-                                
-                                if (linkTop < scrollTop) {
-                                    tocContainer.scrollTop = linkTop - 20;
-                                } else if (linkTop + linkHeight > scrollTop + containerHeight) {
-                                    tocContainer.scrollTop = linkTop - containerHeight + linkHeight + 20;
-                                }
-                            }
-                        }
-                    }
-                }
-            }, {
-                rootMargin: '-100px 0px -60% 0px',
-                threshold: [0, 0.1, 0.5, 1]
-            });
-
-            contentSections.forEach((section) => {
-                observer.observe(section);
-            });
-
-            const images = document.querySelectorAll('.xanhworld_blog_article-content img:not([loading])');
-            images.forEach(img => {
-                img.setAttribute('loading', 'lazy');
-            });
-
-            tocContainer.addEventListener('click', (e) => {
-                const link = e.target.closest('a');
-                if (!link || !link.hash) return;
-                
-                e.preventDefault();
-                const targetId = link.hash.substring(1);
-                const target = document.getElementById(targetId);
-                if (target) {
-                    const offset = 100;
-                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
-                    
-                    setTimeout(() => {
-                        const id = target.getAttribute('id');
-                        if (id) {
-                            tocContainer.querySelectorAll('a').forEach(l => l.classList.remove('active'));
-                            const tocLink = tocLinks.get(id);
-                            if (tocLink) {
-                                tocLink.classList.add('active');
-                            }
-                        }
-                    }, 500);
-                }
-            });
-        });
-    </script>
 @endsection

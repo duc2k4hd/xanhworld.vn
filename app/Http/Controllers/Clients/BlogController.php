@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Comment;
 use App\Models\Post;
-use App\Models\Setting;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -179,29 +178,34 @@ class BlogController extends Controller
             abort(404);
         }
 
-        // Tối ưu: Eager load ngay lập tức các quan hệ cần thiết
-        $post->loadMissing(['category', 'author', 'creator']);
-        Post::preloadImages([$post]);
-        $post->increment('views');
+        // Chỉ load những quan hệ thực sự cần cho trang chi tiết.
+        $post->loadMissing(['category', 'creator']);
+        if ($post->account_id && $post->account_id !== $post->created_by) {
+            $post->loadMissing('author');
+        }
 
-        // Tối ưu: Cache Content Anchors và TOC (xử lý DOM nặng)
-        $contentData = Cache::remember('blog_post_content_v2_' . $post->id . '_' . $post->updated_at->timestamp, now()->addDays(30), function () use ($post) {
+        Post::preloadImages([$post]);
+        Post::withoutTimestamps(function () use ($post) {
+            $post->increment('views');
+        });
+
+        $postCacheVersion = $post->updated_at?->timestamp ?? $post->id;
+
+        $contentData = Cache::remember('blog_post_content_v2_' . $post->id . '_' . $postCacheVersion, now()->addDays(30), function () use ($post) {
             return $this->buildContentAnchors($post->content);
         });
 
         $tags = $this->resolveTags($post);
-        $meta = $this->resolvePostMeta($post);
+        $meta = $this->resolvePostMeta($post, $tags);
 
-        // Tối ưu: Cache Schema Data (xử lý regex và I/O nặng)
-        $schemaData = Cache::remember('blog_post_schema_v2_' . $post->id . '_' . $post->updated_at->timestamp, now()->addDays(30), function () use ($post, $tags) {
-            return $this->buildShowSchemas($post, $tags);
+        $schemaData = Cache::remember('blog_post_schema_v3_' . $post->id . '_' . $postCacheVersion, now()->addDays(30), function () use ($post, $tags, $meta) {
+            return $this->buildShowSchemas($post, $tags, $meta);
         });
 
-        $relatedPosts = Cache::remember('blog_related_posts_v2_' . $post->id . '_' . $post->updated_at->timestamp, now()->addDays(30), function () use ($post) {
+        $relatedPostIds = Cache::remember('blog_related_post_ids_v4_' . $post->id . '_' . $postCacheVersion, now()->addDays(30), function () use ($post) {
             $currentPublishedAt = $post->published_at ?? $post->created_at;
             $limit = 6;
 
-            // Tối ưu: Chỉ lấy các cột cần thiết cho Bài viết liên quan
             $baseQuery = Post::query()
                 ->published()
                 ->where('id', '!=', $post->id)
@@ -211,7 +215,7 @@ class BlogController extends Controller
                 $baseQuery->where('category_id', $post->category_id);
             }
 
-            // Lấy 3 bài trước
+            // Lấy nhóm bài trước và sau, sau đó trộn theo thời gian xuất bản.
             $previousPosts = (clone $baseQuery)
                 ->where(function ($q) use ($currentPublishedAt) {
                     $q->where('published_at', '<', $currentPublishedAt)
@@ -222,10 +226,9 @@ class BlogController extends Controller
                 })
                 ->orderByDesc('published_at')
                 ->orderByDesc('created_at')
-                ->take(3)
+                ->take($limit)
                 ->get();
 
-            // Lấy bài sau để đủ 6
             $nextPosts = (clone $baseQuery)
                 ->where(function ($q) use ($currentPublishedAt) {
                     $q->where('published_at', '>', $currentPublishedAt)
@@ -237,92 +240,72 @@ class BlogController extends Controller
                 ->whereNotIn('id', $previousPosts->pluck('id'))
                 ->orderBy('published_at')
                 ->orderBy('created_at')
-                ->take($limit - $previousPosts->count())
+                ->take($limit)
                 ->get();
 
-            $allRelatedPosts = $previousPosts->merge($nextPosts);
-
-            // Nếu vẫn thiếu, lấy thêm ngẫu nhiên cùng category hoặc bất kỳ bài nào
-            if ($allRelatedPosts->count() < $limit) {
-                $remainingCount = $limit - $allRelatedPosts->count();
-                $additionalPosts = (clone $baseQuery)
-                    ->whereNotIn('id', $allRelatedPosts->pluck('id'))
-                    ->inRandomOrder()
-                    ->take($remainingCount)
-                    ->get();
-                $allRelatedPosts = $allRelatedPosts->merge($additionalPosts);
-            }
-
-            $sortedPosts = $allRelatedPosts->sortByDesc(function ($item) {
+            $sortedPosts = $previousPosts->merge($nextPosts)->sortByDesc(function ($item) {
                 return $item->published_at ?? $item->created_at;
-            })->values();
+            })->take($limit)->values();
 
-            Post::preloadImages($sortedPosts);
-
-            return $sortedPosts;
+            return $sortedPosts->pluck('id')->all();
         });
+        $relatedPosts = $this->loadOrderedPostsByIds($relatedPostIds);
 
-        $internalLinks = Cache::remember('blog_internal_links_v2_' . $post->id, now()->addDays(7), function () use ($post) {
-            $links = Post::query()
-                ->published()
-                ->where('id', '!=', $post->id)
-                ->select(['id', 'title', 'slug', 'image_ids', 'published_at', 'created_at'])
-                ->inRandomOrder()
-                ->take(3)
-                ->get();
-            Post::preloadImages($links);
-
-            return $links;
-        });
-
-        // Load comments - chỉ load 10 đầu tiên, cache nhẹ stats
-        $comments = Comment::where('commentable_type', 'post')
+        $commentsBaseQuery = Comment::query()
+            ->where('commentable_type', 'post')
             ->where('commentable_id', $post->id)
             ->whereNull('parent_id')
-            ->approved()
-            ->with(['account:id,name,role']) // Chỉ lấy field cần thiết
+            ->approved();
+
+        $comments = (clone $commentsBaseQuery)
+            ->select(['id', 'account_id', 'name', 'content', 'rating', 'created_at'])
+            ->with(['account:id,name,role'])
             ->orderByDesc('created_at')
             ->limit(10)
             ->get();
 
-        $commentIds = $comments->pluck('id');
-        $adminReplies = Comment::whereIn('parent_id', $commentIds)
-            ->whereNotNull('account_id')
-            ->whereHas('account', function ($q) {
-                $q->where('role', 'admin');
-            })
-            ->with('account:id,name,role')
-            ->get()
-            ->keyBy('parent_id');
+        $commentIds = $comments->modelKeys();
+        $adminReplies = collect();
+
+        if (! empty($commentIds)) {
+            $adminReplies = Comment::query()
+                ->select(['id', 'parent_id', 'account_id', 'content', 'created_at'])
+                ->whereIn('parent_id', $commentIds)
+                ->whereNotNull('account_id')
+                ->whereHas('account', function ($q) {
+                    $q->where('role', 'admin');
+                })
+                ->with('account:id,name,role')
+                ->get()
+                ->keyBy('parent_id');
+        }
 
         $comments->each(function ($comment) use ($adminReplies) {
-            if ($adminReplies->has($comment->id)) {
-                $comment->setRelation('adminReply', $adminReplies->get($comment->id));
-            }
+            $comment->setRelation('adminReply', $adminReplies->get($comment->id));
         });
 
-        $totalComments = Comment::where('commentable_type', 'post')
-            ->where('commentable_id', $post->id)
-            ->whereNull('parent_id')
-            ->approved()
-            ->count();
+        $totalComments = $comments->count() < 10
+            ? $comments->count()
+            : (clone $commentsBaseQuery)->count();
 
-        $ratingStats = Cache::remember('blog_post_rating_stats_' . $post->id . '_' . $post->updated_at->timestamp, now()->addDays(7), function () use ($post) {
+        $ratingStats = Cache::remember('blog_post_rating_stats_' . $post->id . '_' . $postCacheVersion, now()->addDays(7), function () use ($post) {
             $commentService = app(\App\Services\CommentService::class);
+
             return $commentService->calculateRatingStats('post', $post->id);
         });
 
-        // Tối ưu: Cache 5 bài viết đề xuất ngẫu nhiên trong 7 ngày để tiết kiệm tài nguyên
-        $suggestedPosts = Cache::remember('blog_suggested_posts_pool_v1', now()->addDays(7), function () {
+        $suggestedPostPoolIds = Cache::remember('blog_suggested_post_ids_pool_v3', now()->addDays(7), function () {
             return Post::query()
                 ->published()
-                ->select(['id', 'title', 'slug', 'image_ids', 'published_at', 'created_at'])
-                ->inRandomOrder()
-                ->take(10)
-                ->get();
-        })->where('id', '!=', $post->id)->shuffle()->take(5);
-        
-        Post::preloadImages($suggestedPosts);
+                ->orderByDesc('published_at')
+                ->orderByDesc('created_at')
+                ->limit(15)
+                ->pluck('id')
+                ->all();
+        });
+
+        $suggestedPostIds = $this->resolveSuggestedPostIdsFromPool($suggestedPostPoolIds, $post->id, 5);
+        $suggestedPosts = $this->loadOrderedPostsByIds($suggestedPostIds);
 
         return view('clients.pages.blog.show', [
             'post' => $post,
@@ -330,7 +313,6 @@ class BlogController extends Controller
             'tags' => $tags,
             'toc' => $contentData['toc'],
             'contentWithAnchors' => $contentData['content'],
-            'internalLinks' => $internalLinks,
             'relatedPosts' => $relatedPosts,
             'suggestedPosts' => $suggestedPosts,
             'comments' => $comments,
@@ -472,12 +454,13 @@ class BlogController extends Controller
         ];
     }
 
-    protected function resolvePostMeta(Post $post): array
+    protected function resolvePostMeta(Post $post, ?Collection $tags = null): array
     {
         $siteName = config('app.name');
         $title = $post->meta_title ?? ($post->title.' | '.$siteName);
         $description = $post->meta_description ?? $post->excerpt;
-        $keywords = $post->meta_keywords ?? $post->tags()->pluck('name')->implode(', ');
+        $keywords = $post->meta_keywords
+            ?? ($tags?->pluck('name')->implode(', ') ?: '');
         $settings = View::shared('settings');
         $siteUrl = rtrim($settings->site_url ?? config('app.url') ?? url('/'), '/');
         if ($post->meta_canonical) {
@@ -516,20 +499,15 @@ class BlogController extends Controller
         ];
     }
 
-    protected function buildShowSchemas(Post $post, Collection $tags): array
+    protected function buildShowSchemas(Post $post, Collection $tags, array $meta): array
     {
-        $settings = \Illuminate\Support\Facades\View::shared('settings');
+        $settings = View::shared('settings');
         $siteUrl = rtrim($settings->site_url ?? config('app.url') ?? url('/'), '/');
         $siteName = $settings->site_name ?? config('app.name') ?? 'Thế giới cây xanh Xworld';
-        $canonicalUrl = $post->meta_canonical
-            ? $siteUrl.'/'.ltrim($post->meta_canonical, '/')
-            : $siteUrl.'/kinh-nghiem/'.$post->slug;
+        $canonicalUrl = $meta['canonical'];
         $postUrl = route('client.blog.show', $post);
         $blogIndexUrl = route('client.blog.index');
-
-        // Lấy ảnh cover
-        $coverPath = $post->coverImagePath();
-        $coverUrl = $coverPath ? asset($coverPath) : asset('clients/assets/img/posts/no-image.webp');
+        $coverUrl = $meta['cover'];
 
         // Lấy thông tin author
         $authorName = $post->author?->name ?? $post->creator?->name ?? 'Đội ngũ biên tập';
@@ -550,43 +528,14 @@ class BlogController extends Controller
         $readingTimeMinutes = max(1, ceil($wordCount / 200));
         $timeRequired = 'PT'.$readingTimeMinutes.'M';
 
-        // Lấy logo organization và kích thước thực tế
-        $logoUrl = asset('favicon-512x512.png');
+        // Dùng kích thước chuẩn cố định để tránh I/O filesystem trên mỗi request.
+        $logoUrl = ! empty($settings->site_logo)
+            ? asset('clients/assets/img/business/'.$settings->site_logo)
+            : asset('favicon-512x512.png');
         $logoWidth = 512;
         $logoHeight = 512;
-
-        if (file_exists(public_path('favicon-512x512.png'))) {
-            $logoUrl = asset('favicon-512x512.png');
-            $logoInfo = @getimagesize(public_path('favicon-512x512.png'));
-            if ($logoInfo) {
-                $logoWidth = $logoInfo[0];
-                $logoHeight = $logoInfo[1];
-            }
-        } elseif (isset($settings->site_logo) && ! empty($settings->site_logo)) {
-            $logoPath = public_path('clients/assets/img/business/'.$settings->site_logo);
-            $logoUrl = asset('clients/assets/img/business/'.$settings->site_logo);
-            if (file_exists($logoPath)) {
-                $logoInfo = @getimagesize($logoPath);
-                if ($logoInfo) {
-                    $logoWidth = $logoInfo[0];
-                    $logoHeight = $logoInfo[1];
-                }
-            }
-        }
-
-        // Lấy kích thước ảnh - ưu tiên 1200x675 cho Google Discover
-        // Nếu ảnh thực tế lớn hơn thì dùng kích thước thực tế
         $imageWidth = 1200;
         $imageHeight = 675;
-        if ($coverPath && file_exists(public_path($coverPath))) {
-            $imageInfo = @getimagesize(public_path($coverPath));
-            if ($imageInfo && $imageInfo[0] >= 1200 && $imageInfo[1] >= 630) {
-                // Dùng kích thước thực tế nếu đủ lớn (>= 1200x630)
-                $imageWidth = $imageInfo[0];
-                $imageHeight = $imageInfo[1];
-            }
-            // Nếu ảnh nhỏ hơn, giữ nguyên 1200x675 (chuẩn Google Discover)
-        }
 
         $schemas = [];
 
@@ -688,7 +637,7 @@ class BlogController extends Controller
             'author' => [
                 '@type' => 'Person',
                 '@id' => $authorId,
-                'url' => Setting::getValue('facebook_link') ?? 'https://www.facebook.com/ducnobi2004',
+                'url' => $settings->facebook_link ?? $siteUrl,
                 'name' => $authorName,
             ],
             'publisher' => [
@@ -719,12 +668,7 @@ class BlogController extends Controller
         }
 
         // Thêm keywords - ưu tiên meta_keywords, fallback về tags
-        $keywords = null;
-        if (! empty($post->meta_keywords)) {
-            $keywords = $post->meta_keywords;
-        } elseif ($tags->isNotEmpty()) {
-            $keywords = $tags->pluck('name')->implode(', ');
-        }
+        $keywords = $meta['keywords'] ?: ($tags->isNotEmpty() ? $tags->pluck('name')->implode(', ') : null);
 
         if ($keywords) {
             $blogPostingSchema['keywords'] = $keywords;
@@ -804,41 +748,82 @@ class BlogController extends Controller
 
     protected function resolveTags(Post $post): Collection
     {
-        $allTagIds = collect();
-
-        // Lấy tags từ relationship (bảng tags với entity_id và entity_type)
-        $tagsFromRelationship = Tag::query()
-            ->where('entity_id', $post->id)
-            ->where('entity_type', Post::class)
-            ->where('is_active', true)
-            ->get();
-
-        if ($tagsFromRelationship->isNotEmpty()) {
-            $allTagIds = $allTagIds->merge($tagsFromRelationship->pluck('id'));
-        }
-
-        // Lấy tags từ tag_ids (JSON column) nếu có
-        $tagIdsFromColumn = collect($post->tag_ids ?? [])
+        $tagIds = collect($post->tag_ids ?? [])
             ->filter()
+            ->map(fn ($id) => (int) $id)
             ->unique()
             ->values();
 
-        if ($tagIdsFromColumn->isNotEmpty()) {
-            $allTagIds = $allTagIds->merge($tagIdsFromColumn);
-        }
-
-        // Loại bỏ trùng lặp và lấy tags
-        $uniqueTagIds = $allTagIds->unique()->values();
-
-        if ($uniqueTagIds->isEmpty()) {
+        if ($tagIds->isEmpty() && ! $post->id) {
             return collect();
         }
 
         return Tag::query()
-            ->whereIn('id', $uniqueTagIds)
             ->where('entity_type', Post::class)
             ->where('is_active', true)
+            ->where(function ($query) use ($post, $tagIds) {
+                $query->where('entity_id', $post->id);
+
+                if ($tagIds->isNotEmpty()) {
+                    $query->orWhereIn('id', $tagIds);
+                }
+            })
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->unique('id')
+            ->values();
+    }
+
+    protected function resolveSuggestedPostIdsFromPool(array $postIds, int $currentPostId, int $limit = 5): array
+    {
+        $pool = collect($postIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0 && $id !== $currentPostId)
+            ->values();
+
+        if ($pool->count() <= $limit) {
+            return $pool->all();
+        }
+
+        $offset = $currentPostId % $pool->count();
+        $selected = $pool->slice($offset, $limit)->values();
+
+        if ($selected->count() >= $limit) {
+            return $selected->all();
+        }
+
+        return $selected
+            ->merge($pool->take($limit - $selected->count()))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    protected function loadOrderedPostsByIds(array $postIds): Collection
+    {
+        $postIds = collect($postIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->values();
+
+        if ($postIds->isEmpty()) {
+            return collect();
+        }
+
+        $posts = Post::query()
+            ->published()
+            ->select(['id', 'title', 'slug', 'image_ids', 'category_id', 'published_at', 'created_at'])
+            ->whereIn('id', $postIds)
+            ->get()
+            ->keyBy('id');
+
+        $orderedPosts = $postIds
+            ->map(fn ($id) => $posts->get($id))
+            ->filter()
+            ->values();
+
+        Post::preloadImages($orderedPosts);
+
+        return $orderedPosts;
     }
 }
